@@ -35,3 +35,25 @@ app.include_router(api_router)
 @app.get("/health", response_model=Health, tags=["ops"])
 def health() -> Health:
     return Health(status="ok", version=__version__, env=settings.app_env, time=datetime.now(UTC))
+
+
+@app.get("/health/llm", tags=["ops"])
+def health_llm() -> dict[str, object]:
+    """Diagnóstico do gateway de LLM: modo efetivo e quais chaves estão configuradas.
+
+    Nunca expõe valores — só presença (bool) e o modo resolvido (fake/live).
+    """
+    from app.llm.client import LITELLM_AVAILABLE, LLMClient
+
+    client = LLMClient()
+    return {
+        "llm_mode_config": settings.llm_mode,
+        "effective": "fake" if client.fake else "live",
+        "litellm_available": LITELLM_AVAILABLE,
+        "keys_present": {
+            "anthropic": bool(settings.anthropic_api_key),
+            "openai": bool(settings.openai_api_key),
+        },
+        "default_model": settings.llm_default_model,
+        "small_model": settings.llm_small_model,
+    }
