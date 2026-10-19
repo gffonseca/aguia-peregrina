@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     llm_small_model: str = "claude-haiku"
     litellm_proxy_url: str | None = None
     litellm_proxy_key: str | None = None
+    ops_key: str | None = None  # protege endpoints operacionais (ex.: /health/llm/ping)
     anthropic_api_key: str | None = None
     openai_api_key: str | None = None
 

@@ -9,11 +9,14 @@
 
 from __future__ import annotations
 
+import functools
 import hashlib
 import json
+import os
 import time
 import uuid
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, TypeVar
 
 from pydantic import BaseModel, ValidationError
@@ -31,6 +34,31 @@ except Exception:  # pragma: no cover - ambiente sem litellm
     LITELLM_AVAILABLE = False
 
 T = TypeVar("T", bound=BaseModel)
+
+
+@functools.lru_cache(maxsize=1)
+def _model_catalog() -> dict[str, dict[str, Any]]:
+    """Lê `model_list` do litellm_config.yaml → {nome_lógico: litellm_params}."""
+    path = Path(get_settings().litellm_config)
+    if not path.is_absolute():
+        # procura a partir da raiz do pacote e do cwd
+        for base in (Path(__file__).resolve().parents[2], Path.cwd()):
+            if (base / path).exists():
+                path = base / path
+                break
+    try:
+        import yaml
+
+        data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    except Exception:  # noqa: BLE001 - catálogo ausente → sem alias
+        return {}
+    out: dict[str, dict[str, Any]] = {}
+    for item in data.get("model_list", []) or []:
+        name = item.get("model_name")
+        params = item.get("litellm_params") or {}
+        if name and params.get("model"):
+            out[str(name)] = dict(params)
+    return out
 
 
 @dataclass
@@ -166,6 +194,20 @@ class LLMClient:
             params["api_base"] = self.settings.litellm_proxy_url
             params["api_key"] = self.settings.litellm_proxy_key
             params["model"] = f"openai/{model}"  # proxy expõe interface OpenAI-compatível
+        else:
+            # Sem proxy: resolve o nome lógico (claude-sonnet) para o modelo do vendor
+            # usando o catálogo do litellm_config.yaml, e injeta a chave do ambiente.
+            alias = _model_catalog().get(model)
+            if alias:
+                params["model"] = alias["model"]
+                for key in ("max_tokens", "temperature"):
+                    if key in alias and key not in params:
+                        params[key] = alias[key]
+                api_key_ref = alias.get("api_key", "")
+                if isinstance(api_key_ref, str) and api_key_ref.startswith("os.environ/"):
+                    env_val = os.environ.get(api_key_ref.split("/", 1)[1])
+                    if env_val:
+                        params["api_key"] = env_val
         out = litellm.completion(**params)
         usage = getattr(out, "usage", None)
         cost = None
