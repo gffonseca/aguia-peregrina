@@ -124,7 +124,7 @@ O RLS do Postgres só é exercitado em banco real; `tests/test_tenant_isolation.
 ## Deploy no Railway
 
 1. Crie um projeto com os serviços **Postgres** (template com pgvector) e **Redis**.
-2. Crie dois serviços a partir deste repositório: `web` (start command do `railway.json`) e `worker` (`python -m app.workflows.worker`). O `Procfile` descreve os dois.
+2. Crie dois serviços a partir deste repositório (build pelo `Dockerfile`): `web` (pre-deploy `alembic upgrade head`, start `uvicorn app.main:app --host 0.0.0.0 --port $PORT`) e `worker` (start `python -m app.workflows.worker`). O `Procfile` descreve os dois.
 3. Variáveis: `DATABASE_URL`, `REDIS_URL`, `SECRET_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `WORKFLOW_ENGINE`, `HATCHET_CLIENT_TOKEN`, `PUBLICATIONS_PROVIDER` e as do `.env.example`.
 4. O `web` roda `alembic upgrade head` antes de subir. Healthcheck em `/health`.
 5. Crie a role `aguia_app` (a migração cria se não existir) e aponte `DATABASE_URL` para um usuário **sem** `BYPASSRLS` em produção; o superusuário só para migrações.
