@@ -5,7 +5,7 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     workflow_engine: Literal["in_process", "hatchet"] = "in_process"
     hatchet_client_token: str | None = None
 
-    # auto: usa LiteLLM se instalado; fake: respostas determinísticas (sem chaves); live: força LiteLLM
+    # auto: LiteLLM se instalado; fake: respostas determinísticas (sem chaves); live: força LiteLLM
     llm_mode: Literal["auto", "fake", "live"] = "auto"
     litellm_config: str = "litellm_config.yaml"
     llm_default_model: str = "claude-sonnet"
@@ -46,6 +46,17 @@ class Settings(BaseSettings):
     s3_bucket: str | None = None
     s3_access_key: str | None = None
     s3_secret_key: str | None = None
+
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def _normalize_database_url(cls, v: str) -> str:
+        """Aceita `postgres://`/`postgresql://` (padrão Railway) e força o driver psycopg3."""
+        if isinstance(v, str):
+            if v.startswith("postgres://"):
+                return "postgresql+psycopg://" + v[len("postgres://") :]
+            if v.startswith("postgresql://"):
+                return "postgresql+psycopg://" + v[len("postgresql://") :]
+        return v
 
     @property
     def is_sqlite(self) -> bool:
