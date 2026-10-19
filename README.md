@@ -41,7 +41,7 @@ Stack fixada: Python 3.12 · FastAPI · SQLAlchemy 2 + Alembic · Postgres (pgve
 
 | Módulo | Pacote | Tabelas | Função |
 |---|---|---|---|
-| M0 Playbook | `modules/m00_playbook` | `theses`, `thesis_versions` | Árvore de teses por tipologia, versionada e **aprovada por sócio (OAB)** |
+| M0 Playbook | `modules/m00_playbook` | `theses`, `thesis_versions` | Árvore de teses por tipologia, versionada e **aprovada por sócio (OAB)**; arquivos `playbooks/*.playbook.yaml` validados por `schema.py` (ver [`playbooks/README.md`](playbooks/README.md)) |
 | M1 Intake | `modules/m01_intake` | `publications` | Captura de distribuições/publicações via provedor ou CSV do ERP |
 | M2 Autos | `modules/m02_autos` | `documents`, `document_pages` | Upload, OCR por visão LLM, split e classificação por página |
 | M3 Subsídios | `modules/m03_subsidios` | — | Vínculo processo ↔ registro interno; checklist determinístico de faltantes |

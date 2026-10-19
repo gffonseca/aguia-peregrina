@@ -1,0 +1,796 @@
+# =============================================================================
+# Águia Peregrina — M0 Playbook — Consignado / RMC não reconhecido (defesa) — TJPA
+# =============================================================================
+# PRIMEIRO RASCUNHO. Nenhuma citação legal, número, prazo ou valor aqui foi
+# conferido por advogado. Todo item marcado "[A CONFERIR pelo advogado-dono]"
+# e `conferido: false` precisa ser validado (texto vigente, número do tema,
+# ementa, modulação, jurisprudência atual do TJPA) antes de o status virar
+# `aprovado`. O validador recusa `status: aprovado` enquanto houver pendência.
+#
+# Fonte da verdade: este YAML. A versão em prosa (consignado-rmc-tjpa.playbook.md)
+# é derivada e serve para leitura/comentário de quem não edita YAML.
+# =============================================================================
+
+schema_version: "1.0"
+
+metadata:
+  id: consignado-rmc-tjpa
+  nome: "Consignado / RMC não reconhecido — defesa de instituição financeira regional — TJPA"
+  tipologia: consignado_rmc_nao_reconhecido
+  tribunal: TJPA
+  reu_tipo: instituicao_financeira_regional
+  lado: defesa
+  tipo_peca_padrao: contestacao
+  versao: 1
+  supera_versao: null
+  autor_nome: "[A PREENCHER — advogado-dono da tipologia]"
+  autor_oab: "PA 00000"
+  criado_em: 2026-10-19T12:00:00-03:00
+  status: rascunho
+  aprovado_por_nome: null
+  aprovado_por_oab: null
+  aprovado_em: null
+  descricao: >-
+    Ações de consumidor (geralmente aposentado/pensionista do INSS ou servidor) que negam
+    a contratação de empréstimo consignado, cartão consignado com reserva de margem (RMC)
+    ou cartão benefício (RCC), pedindo declaração de inexistência do débito, devolução
+    (em dobro) dos descontos e dano moral. Réu: instituição financeira regional cliente da FBS.
+  observacoes: >-
+    Rascunho gerado para validação. Números de temas repetitivos, súmulas, artigos e faixas
+    de valor são placeholders. Antes de aprovar: (1) conferir cada referência; (2) calibrar
+    faixas de acordo com a carteira do cliente; (3) confirmar com o cliente quais subsídios
+    (logs, biometria, TED, áudio) ele consegue entregar em até 5 dias úteis.
+
+# -----------------------------------------------------------------------------
+# GATILHOS DE CLASSIFICAÇÃO (M1/M9)
+# -----------------------------------------------------------------------------
+gatilhos_classificacao:
+  assuntos_cnj:
+    - { codigo: "11806", nome: "Empréstimo consignado [A CONFERIR pelo advogado-dono — código TPU]", conferido: false }
+    - { codigo: "7771", nome: "Indenização por dano moral — contratos bancários [A CONFERIR pelo advogado-dono]", conferido: false }
+    - { codigo: "7780", nome: "Cartão de crédito / RMC [A CONFERIR pelo advogado-dono]", conferido: false }
+    - { codigo: "10433", nome: "Inexistência de relação jurídica / débito [A CONFERIR pelo advogado-dono]", conferido: false }
+  classes_cnj:
+    - { codigo: "7", nome: "Procedimento Comum Cível [A CONFERIR pelo advogado-dono]", conferido: false }
+    - { codigo: "436", nome: "Procedimento do Juizado Especial Cível [A CONFERIR pelo advogado-dono]", conferido: false }
+  palavras_chave:
+    - "empréstimo consignado"
+    - "consignado não contratado"
+    - "não reconhece"
+    - "desconto indevido"
+    - "reserva de margem consignável"
+    - "RMC"
+    - "RCC"
+    - "cartão consignado"
+    - "cartão benefício"
+    - "inexistência de débito"
+    - "repetição do indébito"
+    - "benefício previdenciário"
+  palavras_que_excluem:
+    - "revisional de juros"
+    - "superendividamento"
+    - "portabilidade"
+    - "busca e apreensão"
+  confianca_minima: 0.85
+
+# -----------------------------------------------------------------------------
+# CAMPOS OBRIGATÓRIOS DO DOSSIÊ (M5)
+# -----------------------------------------------------------------------------
+campos_dossie_obrigatorios:
+  # --- identificação do caso (extração dos autos) ---
+  - { campo: comarca, tipo: texto, origem: extracao, descricao: "Comarca do juízo", obrigatorio: true }
+  - { campo: tipo_produto, tipo: texto, origem: subsidio, descricao: "consignado | rmc | rcc | cartao_beneficio | refinanciamento", obrigatorio: true, bloqueia_minuta_se_ausente: true }
+  - { campo: valor_causa, tipo: valor_monetario, origem: extracao, descricao: "Valor da causa", obrigatorio: true }
+  - { campo: valor_dano_moral_pedido, tipo: valor_monetario, origem: extracao, descricao: "Valor pedido a título de dano moral", obrigatorio: false }
+  - { campo: valor_contrato, tipo: valor_monetario, origem: subsidio, descricao: "Valor liberado/limite do contrato", obrigatorio: true }
+  - { campo: data_contrato, tipo: data, origem: subsidio, descricao: "Data da contratação", obrigatorio: true }
+  - { campo: data_primeiro_desconto, tipo: data, origem: subsidio, descricao: "Primeira parcela descontada", obrigatorio: true }
+  - { campo: data_ajuizamento, tipo: data, origem: extracao, descricao: "Data de distribuição", obrigatorio: true }
+  - { campo: data_ciencia_inequivoca, tipo: data, origem: calculado, descricao: "Data presumida de ciência do desconto (= data_primeiro_desconto salvo prova diversa)", obrigatorio: true }
+  - { campo: autor_idade, tipo: numero, origem: extracao, descricao: "Idade do autor na data do ajuizamento", obrigatorio: false }
+  - { campo: autor_beneficiario_inss, tipo: booleano, origem: extracao, descricao: "Autor é aposentado/pensionista do INSS", obrigatorio: true }
+  - { campo: autor_nega_contratacao, tipo: booleano, origem: extracao, descricao: "Inicial nega totalmente a contratação (vs. alega vício de consentimento)", obrigatorio: true, bloqueia_minuta_se_ausente: true }
+  - { campo: autor_alega_vicio_rmc, tipo: booleano, origem: extracao, descricao: "Autor diz que pensou contratar consignado e recebeu cartão RMC/RCC", obrigatorio: false }
+  - { campo: autor_pede_gratuidade, tipo: booleano, origem: extracao, descricao: "Pedido de justiça gratuita", obrigatorio: true }
+  - { campo: renda_declarada_autor, tipo: valor_monetario, origem: extracao, descricao: "Renda mensal que consta dos autos (benefício/holerite)", obrigatorio: false }
+  - { campo: inicial_atende_requisitos_tema_1198, tipo: booleano, origem: extracao, descricao: "Inicial traz os documentos exigidos pelo precedente do STJ sobre emenda em ações de consignado [A CONFERIR pelo advogado-dono]", obrigatorio: true }
+  - { campo: reclamacao_administrativa_previa, tipo: booleano, origem: subsidio, descricao: "Houve SAC/ouvidoria/consumidor.gov antes da ação", obrigatorio: false }
+  # --- subsídios do cliente (M3) ---
+  - { campo: contrato_localizado, tipo: booleano, origem: subsidio, descricao: "Cliente localizou o instrumento contratual", obrigatorio: true, bloqueia_minuta_se_ausente: true }
+  - { campo: contrato_assinatura_tipo, tipo: texto, origem: subsidio, descricao: "biometria_facial | assinatura_digital_icp | assinatura_eletronica_simples | fisica | digital_telefone | nenhuma", obrigatorio: true }
+  - { campo: biometria_score, tipo: numero, origem: subsidio, descricao: "Score da biometria facial (0–1), se houver", obrigatorio: false }
+  - { campo: documento_selfie_coincide, tipo: booleano, origem: subsidio, descricao: "Selfie × documento com match registrado pelo fornecedor de biometria", obrigatorio: false }
+  - { campo: geolocalizacao_compativel, tipo: booleano, origem: subsidio, descricao: "Lat/long da contratação compatível com endereço do autor", obrigatorio: false }
+  - { campo: ip_log_disponivel, tipo: booleano, origem: subsidio, descricao: "Há log de IP/dispositivo/horário da contratação", obrigatorio: true }
+  - { campo: valor_creditado_conta_autor, tipo: booleano, origem: subsidio, descricao: "TED/PIX/crédito em conta de titularidade do próprio autor", obrigatorio: true, bloqueia_minuta_se_ausente: true }
+  - { campo: conta_credito_titularidade, tipo: texto, origem: subsidio, descricao: "autor | terceiro | desconhecida", obrigatorio: true }
+  - { campo: ted_comprovante_localizado, tipo: booleano, origem: subsidio, descricao: "Comprovante de TED/PIX/ordem de pagamento juntável", obrigatorio: true }
+  - { campo: extratos_mostram_uso, tipo: booleano, origem: subsidio, descricao: "Extratos mostram saque/uso do valor creditado", obrigatorio: false }
+  - { campo: rmc_houve_saque_ou_compra, tipo: booleano, origem: subsidio, descricao: "No RMC/RCC, houve saque autorizado ou compras no cartão", obrigatorio: false }
+  - { campo: descontos_parcelas_n, tipo: numero, origem: subsidio, descricao: "Nº de parcelas já descontadas", obrigatorio: true }
+  - { campo: audio_sac_disponivel, tipo: booleano, origem: subsidio, descricao: "Há gravação de SAC/telemarketing com o autor", obrigatorio: false }
+  - { campo: contratos_ativos_autor_n, tipo: numero, origem: subsidio, descricao: "Nº de contratos do autor com o cliente", obrigatorio: true }
+  - { campo: contratos_anteriores_adimplidos, tipo: booleano, origem: subsidio, descricao: "Autor tem histórico de contratos anteriores pagos sem questionamento", obrigatorio: false }
+  # --- cruzamentos (antifraude / publicações) ---
+  - { campo: litispendencia_cnj, tipo: lista, origem: antifraude, descricao: "Processos em curso com mesmas partes/causa/pedido", obrigatorio: true }
+  - { campo: coisa_julgada_cnj, tipo: lista, origem: antifraude, descricao: "Processos transitados com mesmas partes/causa/pedido", obrigatorio: true }
+  - { campo: acoes_mesmo_autor_mesmo_reu_n, tipo: numero, origem: antifraude, descricao: "Nº de ações do autor contra o cliente (carteira + publicações)", obrigatorio: true }
+  - { campo: acoes_mesmo_advogado_mes_n, tipo: numero, origem: antifraude, descricao: "Nº de ações do mesmo advogado contra o cliente no mês", obrigatorio: true }
+  - { campo: autor_falecido, tipo: booleano, origem: antifraude, descricao: "Indício de óbito do autor antes do ajuizamento/procuração", obrigatorio: true }
+  - { campo: data_procuracao, tipo: data, origem: extracao, descricao: "Data da procuração juntada", obrigatorio: true }
+  - { campo: comprovante_endereco_titular, tipo: texto, origem: extracao, descricao: "autor | terceiro | ausente", obrigatorio: true }
+  - { campo: indicio_fraude_contra_autor, tipo: booleano, origem: calculado, descricao: "Sinais de que a fraude pode ter sido real (IP/geo incompatível, conta de terceiro, sem biometria)", obrigatorio: true }
+
+# -----------------------------------------------------------------------------
+# ÁRVORE DE TESES
+# -----------------------------------------------------------------------------
+teses:
+  # ---------------------------------------------------------------- PRELIMINARES
+  - id: T01
+    nome: "Impugnação à gratuidade de justiça"
+    categoria: preliminar
+    ordem: 1
+    pai: null
+    resumo: >-
+      O autor pede gratuidade mas há elementos nos autos (renda, contratos, padrão de consumo)
+      que afastam a presunção de hipossuficiência; requer-se intimação para comprovar.
+    condicoes_aplicacao:
+      - { campo: autor_pede_gratuidade, operador: "==", valor: true }
+      - { campo: renda_declarada_autor, operador: ">", valor: 4554.0, nota: "~3 salários mínimos [A CONFERIR pelo advogado-dono — valor e critério local]" }
+    provas_necessarias:
+      - { tipo_documento: extrato_beneficio, descricao: "Histórico de créditos/HISCRE ou holerite", origem: extracao, obrigatoria: true, peso: 0.9 }
+      - { tipo_documento: extrato_bancario, descricao: "Extratos com movimentação incompatível com hipossuficiência", origem: subsidio, obrigatoria: false, peso: 0.6 }
+    provas_que_afastam:
+      - { tipo_documento: declaracao_hipossuficiencia, descricao: "Renda ≤ limite usado pelo TJPA e ausência de outros sinais", origem: extracao, obrigatoria: false, peso: 0.8 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CPC, art. 98 a 100", tipo: dispositivo, para_que_serve: "presunção relativa e impugnação à gratuidade", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CPC, art. 99, § 2º", tipo: dispositivo, para_que_serve: "juiz pode indeferir se houver elementos que evidenciem falta de pressupostos", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STJ — critério de renda para gratuidade [tema/REsp A CONFERIR]", tipo: precedente, para_que_serve: "parâmetro objetivo de renda", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "TJPA — jurisprudência das Câmaras Cíveis sobre impugnação [A CONFERIR]", tipo: precedente, para_que_serve: "critério local", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "A presunção do art. 99, § 3º, é relativa e cede diante de prova em contrário."
+        - "Renda e padrão de contratação do autor evidenciam capacidade de arcar com custas."
+        - "Pedido: intimação para comprovar hipossuficiência, sob pena de revogação."
+    pedidos:
+      - "Revogação/indeferimento da gratuidade ou intimação do autor para comprová-la."
+    pedidos_subsidiarios:
+      - "Parcelamento das custas (CPC, art. 98, § 6º) [A CONFERIR pelo advogado-dono]."
+    risco_se_mal_aplicada: "Impugnar gratuidade de aposentado com um salário mínimo irrita o juízo e enfraquece a credibilidade da defesa."
+    ativa: true
+
+  - id: T02
+    nome: "Emenda da inicial — requisitos do precedente do STJ para ações de consignado (Tema 1.198)"
+    categoria: preliminar
+    ordem: 2
+    pai: null
+    resumo: >-
+      A inicial não traz os documentos/requisitos mínimos fixados pelo STJ para ações que discutem
+      empréstimo consignado (procuração e comprovante de endereço atualizados, extratos do período,
+      indicação precisa do contrato etc.) — pede-se emenda, sob pena de indeferimento.
+    condicoes_aplicacao:
+      - { campo: inicial_atende_requisitos_tema_1198, operador: "==", valor: false }
+    provas_necessarias:
+      - { tipo_documento: peticao_inicial, descricao: "Inicial e anexos (para apontar o que falta)", origem: extracao, obrigatoria: true, peso: 1.0 }
+    provas_que_afastam:
+      - { tipo_documento: despacho, descricao: "Juízo já determinou emenda ou declarou a inicial apta", origem: publicacao, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CPC, arts. 319, 320, 321 e 330", tipo: dispositivo, para_que_serve: "requisitos da inicial e emenda", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STJ, Tema repetitivo 1.198 (número e tese exata A CONFERIR)", tipo: tema, para_que_serve: "requisitos documentais mínimos nas ações sobre consignado; enfrentamento de litigância em massa", conferido: false, nota: "[A CONFERIR pelo advogado-dono — conferir número, tese firmada, modulação e se se aplica ao caso]" }
+        - { ref: "CNJ, Recomendação sobre litigância predatória (nº A CONFERIR)", tipo: norma_regulatoria, para_que_serve: "respaldo para exigências documentais", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "A inicial é genérica e não individualiza o contrato impugnado nem junta os documentos exigidos pelo precedente vinculante."
+        - "A ausência inviabiliza o contraditório e a localização dos subsídios pelo réu."
+    pedidos:
+      - "Intimação do autor para emendar a inicial, sob pena de indeferimento (CPC, art. 321)."
+    pedidos_subsidiarios:
+      - "Suspensão do prazo de defesa até a emenda, se ainda cabível."
+    risco_se_mal_aplicada: "Se a inicial já atende aos requisitos, a preliminar soa protelatória."
+    ativa: true
+
+  - id: T03
+    nome: "Litispendência ou coisa julgada"
+    categoria: preliminar
+    ordem: 3
+    pai: null
+    resumo: "Há outra ação em curso (ou já julgada) com as mesmas partes, causa de pedir e pedido sobre o mesmo contrato."
+    condicoes_aplicacao:
+      - { campo: litispendencia_cnj, operador: existe }
+    provas_necessarias:
+      - { tipo_documento: certidao_processo, descricao: "Cópia da inicial e andamento do processo anterior", origem: antifraude, obrigatoria: true, peso: 1.0 }
+    provas_que_afastam:
+      - { tipo_documento: peticao_inicial, descricao: "Contratos distintos (número/data/valor) comprovadamente diferentes", origem: extracao, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CPC, art. 337, VI e VII, §§ 1º a 4º", tipo: dispositivo, para_que_serve: "litispendência e coisa julgada", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CPC, art. 485, V", tipo: dispositivo, para_que_serve: "extinção sem mérito", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes: []
+      argumentos_chave:
+        - "Tríplice identidade demonstrada documentalmente."
+        - "Requer extinção sem resolução de mérito e comunicação ao juízo prevento."
+    pedidos:
+      - "Extinção do feito sem resolução do mérito (CPC, art. 485, V)."
+    pedidos_subsidiarios:
+      - "Reunião dos feitos por conexão (CPC, art. 55) se a identidade for parcial."
+    risco_se_mal_aplicada: "Confundir contratos diferentes do mesmo autor como se fossem o mesmo."
+    ativa: true
+
+  - id: T03.1
+    nome: "Coisa julgada"
+    categoria: preliminar
+    ordem: 4
+    pai: T03
+    resumo: "Variante de T03 quando o processo anterior já transitou em julgado."
+    condicoes_aplicacao:
+      - { campo: coisa_julgada_cnj, operador: existe }
+    provas_necessarias:
+      - { tipo_documento: certidao_transito, descricao: "Certidão de trânsito em julgado e sentença anterior", origem: antifraude, obrigatoria: true, peso: 1.0 }
+    provas_que_afastam: []
+    fundamentacao:
+      dispositivos:
+        - { ref: "CPC, art. 337, VII e § 4º; art. 502 e 508", tipo: dispositivo, para_que_serve: "coisa julgada material e eficácia preclusiva", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes: []
+      argumentos_chave:
+        - "Questão já decidida com trânsito em julgado; vedada a rediscussão."
+    pedidos:
+      - "Extinção sem resolução do mérito por coisa julgada."
+    pedidos_subsidiarios: []
+    risco_se_mal_aplicada: null
+    ativa: true
+
+  - id: T04
+    nome: "Fracionamento indevido de demandas (mesmo autor, vários contratos, várias ações)"
+    categoria: processual
+    ordem: 5
+    pai: null
+    resumo: >-
+      O autor ajuizou ações separadas para cada contrato/desconto com a mesma causa de pedir remota,
+      multiplicando honorários e dano moral. Pede-se reunião por conexão, reconhecimento de abuso
+      e consideração do conjunto para fins de dano moral e sucumbência.
+    condicoes_aplicacao:
+      - { campo: acoes_mesmo_autor_mesmo_reu_n, operador: ">=", valor: 2 }
+    provas_necessarias:
+      - { tipo_documento: relatorio_antifraude, descricao: "Lista das ações do autor contra o réu com datas e objetos", origem: antifraude, obrigatoria: true, peso: 1.0 }
+    provas_que_afastam:
+      - { tipo_documento: peticao_inicial, descricao: "Contratos com causas de pedir realmente distintas (datas/fatos diversos)", origem: extracao, obrigatoria: false, peso: 0.7 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CPC, arts. 55, 58 e 59", tipo: dispositivo, para_que_serve: "conexão e prevenção", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CPC, arts. 5º, 6º, 77 e 80", tipo: dispositivo, para_que_serve: "boa-fé processual e litigância de má-fé", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STJ / TJPA — precedentes sobre fracionamento de demandas e abuso do direito de ação [A CONFERIR]", tipo: precedente, para_que_serve: "caracterização do fracionamento abusivo", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CNJ — Recomendação sobre litigância predatória; nota técnica do Centro de Inteligência do TJPA [A CONFERIR]", tipo: norma_regulatoria, para_que_serve: "instrumentos de gestão do abuso", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "Um só fato gerador alegado (fraude no benefício) foi pulverizado em N ações."
+        - "O fracionamento multiplica custos, honorários e indenizações pelo mesmo suposto dano."
+    pedidos:
+      - "Reunião dos feitos no juízo prevento; reconhecimento do fracionamento abusivo para fins de dano moral único e sucumbência."
+    pedidos_subsidiarios:
+      - "Fixação de dano moral, se houver, considerando o conjunto das ações."
+    risco_se_mal_aplicada: "Acusar fracionamento onde há contratos e fatos realmente distintos."
+    ativa: true
+
+  # ---------------------------------------------------------------- PREJUDICIAL
+  - id: T05
+    nome: "Prescrição da pretensão (e decadência, se o caso)"
+    categoria: prejudicial
+    ordem: 6
+    pai: null
+    resumo: >-
+      Entre a ciência inequívoca do desconto (primeira parcela) e o ajuizamento transcorreu prazo
+      superior ao prescricional aplicável. O prazo e o termo inicial (incluindo discussão sobre
+      trato sucessivo) devem ser definidos pelo advogado-dono.
+    condicoes_aplicacao:
+      - { campo: data_ciencia_inequivoca, operador: existe }
+      - { campo: data_ajuizamento, operador: existe }
+    provas_necessarias:
+      - { tipo_documento: extrato_beneficio, descricao: "HISCRE/extrato de consignações com a data do primeiro desconto", origem: subsidio, obrigatoria: true, peso: 1.0 }
+    provas_que_afastam:
+      - { tipo_documento: reclamacao_administrativa, descricao: "Reclamação/SAC que interrompa ou demonstre ciência posterior", origem: subsidio, obrigatoria: false, peso: 0.6 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CDC, art. 27 (5 anos, fato do serviço) × CC, art. 206, § 3º, IV/V (3 anos) × CC, art. 205 (10 anos)", tipo: dispositivo, para_que_serve: "definir o prazo aplicável — divergência que o advogado-dono deve resolver para a tipologia", conferido: false, nota: "[A CONFERIR pelo advogado-dono — qual prazo o TJPA aplica a declaratória c/c repetição e dano moral em consignado]" }
+        - { ref: "CDC, art. 26", tipo: dispositivo, para_que_serve: "decadência para vício (se a inicial alegar vício do serviço)", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STJ — termo inicial em descontos sucessivos (trato sucessivo × ato único) [A CONFERIR]", tipo: precedente, para_que_serve: "termo inicial", conferido: false, nota: "[A CONFERIR pelo advogado-dono — risco: tese de trato sucessivo costuma afastar a prescrição total]" }
+      argumentos_chave:
+        - "A ciência inequívoca ocorre com o primeiro desconto, visível no extrato do benefício."
+        - "Subsidiariamente, prescrição das parcelas anteriores ao quinquênio/triênio."
+    pedidos:
+      - "Reconhecimento da prescrição e extinção com resolução de mérito (CPC, art. 487, II)."
+    pedidos_subsidiarios:
+      - "Prescrição parcial das parcelas anteriores ao prazo legal."
+    risco_se_mal_aplicada: "Em descontos de trato sucessivo o juízo pode considerar a pretensão renovada a cada parcela; a tese total raramente prospera sozinha."
+    ativa: true
+
+  # ---------------------------------------------------------------- MÉRITO
+  - id: T06
+    nome: "Contratação válida e regular (biometria / assinatura digital / geolocalização / logs)"
+    categoria: merito
+    ordem: 7
+    pai: null
+    resumo: >-
+      O contrato existe, foi celebrado pelo próprio autor por canal digital ou físico, com
+      autenticação robusta (biometria facial, assinatura eletrônica, token, geolocalização,
+      IP/dispositivo) e trilha de auditoria. O réu desincumbe-se do ônus de provar a autenticidade.
+    condicoes_aplicacao:
+      - { campo: contrato_localizado, operador: "==", valor: true }
+      - { campo: contrato_assinatura_tipo, operador: in, valor: [biometria_facial, assinatura_digital_icp, assinatura_eletronica_simples, digital_telefone, fisica] }
+    provas_necessarias:
+      - { tipo_documento: contrato, descricao: "Instrumento contratual/termo de adesão com dados do autor", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: log_autenticacao, descricao: "Trilha de auditoria: IP, dispositivo, data/hora, hash da assinatura", origem: subsidio, obrigatoria: true, peso: 0.9 }
+      - { tipo_documento: biometria, descricao: "Selfie/biometria facial com documento e score", origem: subsidio, obrigatoria: false, peso: 0.9 }
+      - { tipo_documento: geolocalizacao, descricao: "Lat/long no momento da contratação", origem: subsidio, obrigatoria: false, peso: 0.6 }
+      - { tipo_documento: documento_identidade, descricao: "Cópia de RG/CNH apresentada na contratação", origem: subsidio, obrigatoria: false, peso: 0.6 }
+      - { tipo_documento: audio_sac, descricao: "Gravação de confirmação/telemarketing com o autor", origem: subsidio, obrigatoria: false, peso: 0.7 }
+      - { tipo_documento: autorizacao_inss, descricao: "Averbação/autorização de consignação no benefício (quando aplicável)", origem: subsidio, obrigatoria: false, peso: 0.5 }
+    provas_que_afastam:
+      - { tipo_documento: log_autenticacao, descricao: "IP/geolocalização em outra UF ou incompatível com o autor", origem: subsidio, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: boletim_ocorrencia, descricao: "BO de roubo/perda de documentos anterior à contratação", origem: extracao, obrigatoria: false, peso: 0.8 }
+      - { tipo_documento: laudo_pericial, descricao: "Assinatura física impugnada sem possibilidade de perícia favorável", origem: extracao, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: contrato, descricao: "Contrato com dados divergentes (nome, CPF, endereço) ou ilegível", origem: subsidio, obrigatoria: false, peso: 0.9 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CC, arts. 104, 107 e 421-422", tipo: dispositivo, para_que_serve: "validade do negócio e liberdade de forma", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "MP 2.200-2/2001, art. 10, § 2º; Lei 14.063/2020", tipo: dispositivo, para_que_serve: "validade da assinatura eletrônica não ICP quando admitida pelas partes", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "Lei 10.820/2003 e regulamentação do INSS (IN sobre consignação) [A CONFERIR]", tipo: dispositivo, para_que_serve: "regime do consignado e exigências de contratação", conferido: false, nota: "[A CONFERIR pelo advogado-dono — conferir IN vigente e exigências de biometria/canal]" }
+        - { ref: "CPC, arts. 373, II, 411 e 429, II", tipo: dispositivo, para_que_serve: "ônus da prova e autenticidade de documento", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STJ, Súmula 297", tipo: sumula, para_que_serve: "CDC aplicável — reconhecer e enfrentar", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "STJ, Súmula 479", tipo: sumula, para_que_serve: "risco — fortuito interno em fraude de terceiro; usar para delimitar: só incide se houver fraude", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "STJ, Tema 1.061 (ônus da prova da autenticidade de assinatura impugnada)", tipo: tema, para_que_serve: "risco — cabe ao banco provar; por isso logs/biometria são essenciais", conferido: false, nota: "[A CONFERIR pelo advogado-dono — número e tese exata]" }
+        - { ref: "TJPA — acórdãos que admitem contratação por biometria/assinatura eletrônica [A CONFERIR]", tipo: precedente, para_que_serve: "jurisprudência local favorável", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "A trilha de auditoria (IP, dispositivo, data/hora, biometria, geolocalização) prova a autoria do autor."
+        - "O contrato observa as exigências regulatórias do consignado e foi averbado no benefício com anuência."
+        - "Inexiste defeito do serviço; a Súmula 479 pressupõe fraude, que não houve."
+    pedidos:
+      - "Improcedência dos pedidos declaratório, condenatório e indenizatório."
+    pedidos_subsidiarios:
+      - "Em caso de dúvida sobre a autenticidade, produção de prova pericial (grafotécnica ou técnica sobre os logs)."
+    risco_se_mal_aplicada: "Afirmar contratação válida sem log/biometria anexos viola a regra de citação e expõe o cliente à Súmula 479."
+    ativa: true
+
+  - id: T06.1
+    nome: "RMC/RCC — regularidade do cartão consignado e distinção do empréstimo"
+    categoria: merito
+    ordem: 8
+    pai: T06
+    resumo: >-
+      Quando o produto é cartão consignado com reserva de margem (RMC) ou cartão benefício (RCC),
+      a contratação específica desse produto foi informada e aceita; houve saque/compra; a
+      reserva de margem é legal. Enfrenta a tese de "achei que era empréstimo".
+    condicoes_aplicacao:
+      - { campo: tipo_produto, operador: in, valor: [rmc, rcc, cartao_beneficio] }
+      - { campo: contrato_localizado, operador: "==", valor: true }
+    provas_necessarias:
+      - { tipo_documento: contrato, descricao: "Termo de adesão ao cartão com destaque para RMC/RCC e CET", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: fatura_cartao, descricao: "Faturas e comprovante de saque autorizado/compras", origem: subsidio, obrigatoria: true, peso: 0.9 }
+      - { tipo_documento: autorizacao_inss, descricao: "Autorização de reserva de margem no benefício", origem: subsidio, obrigatoria: false, peso: 0.6 }
+    provas_que_afastam:
+      - { tipo_documento: fatura_cartao, descricao: "Nenhum uso do cartão além do saque inicial; descontos perpétuos sem amortização", origem: subsidio, obrigatoria: false, peso: 0.9 }
+      - { tipo_documento: contrato, descricao: "Termo sem destaque informativo do produto RMC (dever de informação)", origem: subsidio, obrigatoria: false, peso: 0.9 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "Lei 10.820/2003, art. 6º, § 5º (RMC) e legislação do cartão benefício [A CONFERIR]", tipo: dispositivo, para_que_serve: "legalidade da reserva de margem", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CDC, arts. 6º, III, 31 e 46", tipo: dispositivo, para_que_serve: "dever de informação — enfrentar", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "TJPA — orientação sobre RMC (validade × conversão em consignado comum) [A CONFERIR]", tipo: precedente, para_que_serve: "saber se o tribunal converte RMC em empréstimo e com que taxa", conferido: false, nota: "[A CONFERIR pelo advogado-dono — risco alto: muitos tribunais convertem]" }
+      argumentos_chave:
+        - "O autor aderiu expressamente ao cartão, sacou e/ou usou o limite; a informação foi clara."
+        - "A reserva de margem é prevista em lei e autorizada no benefício."
+    pedidos:
+      - "Improcedência; manutenção do contrato de cartão consignado."
+    pedidos_subsidiarios:
+      - "Se convertido em empréstimo consignado comum, aplicação da taxa média de mercado da época e compensação dos valores pagos, sem repetição em dobro."
+    risco_se_mal_aplicada: "Em casos sem uso do cartão o TJPA tende a reconhecer vício de informação; avaliar acordo."
+    ativa: true
+
+  - id: T07
+    nome: "Recebimento e utilização dos valores pelo autor (TED/PIX em conta própria e extratos)"
+    categoria: merito
+    ordem: 9
+    pai: null
+    resumo: >-
+      O valor do contrato foi creditado em conta de titularidade do autor e utilizado, o que é
+      incompatível com a alegação de desconhecimento; vedação ao enriquecimento sem causa e ao
+      comportamento contraditório.
+    condicoes_aplicacao:
+      - { campo: valor_creditado_conta_autor, operador: "==", valor: true }
+      - { campo: conta_credito_titularidade, operador: "==", valor: autor }
+    provas_necessarias:
+      - { tipo_documento: comprovante_ted, descricao: "Comprovante de TED/PIX/ordem de pagamento com agência/conta do autor", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: extrato_bancario, descricao: "Extrato da conta do autor mostrando crédito e saques/uso", origem: subsidio, obrigatoria: false, peso: 0.9 }
+      - { tipo_documento: extrato_beneficio, descricao: "Histórico de descontos sem contestação por N meses", origem: subsidio, obrigatoria: false, peso: 0.5 }
+    provas_que_afastam:
+      - { tipo_documento: comprovante_ted, descricao: "Crédito em conta de terceiro ou conta aberta na mesma data da contratação", origem: subsidio, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: extrato_bancario, descricao: "Saque integral imediato em praça distante do domicílio", origem: subsidio, obrigatoria: false, peso: 0.8 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CC, arts. 884 a 886", tipo: dispositivo, para_que_serve: "enriquecimento sem causa", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CC, art. 187 e art. 422 (venire contra factum proprium)", tipo: dispositivo, para_que_serve: "comportamento contraditório", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STJ / TJPA — improcedência quando comprovado crédito em conta do autor [A CONFERIR]", tipo: precedente, para_que_serve: "efeito probatório da TED", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "O crédito na conta do autor, seguido de uso, demonstra ciência e proveito do contrato."
+        - "Os descontos ocorreram por N meses sem qualquer reclamação administrativa."
+    pedidos:
+      - "Improcedência; subsidiariamente, compensação integral do valor creditado."
+    pedidos_subsidiarios:
+      - "Devolução ao réu do valor líquido creditado, corrigido, em caso de declaração de inexistência (T09)."
+    risco_se_mal_aplicada: "Afirmar crédito em conta do autor quando a conta é de terceiro é o erro mais grave desta tipologia; pode configurar litigância de má-fé do réu."
+    ativa: true
+
+  - id: T08
+    nome: "Ausência de dano moral — mero aborrecimento / ausência de prova do abalo"
+    categoria: merito
+    ordem: 10
+    pai: null
+    resumo: >-
+      Ainda que se reconheça algum desconto indevido, não há dano moral in re ipsa em desconto de
+      pequena monta prontamente reparável; ausência de prova de abalo extraordinário.
+    condicoes_aplicacao:
+      - { campo: valor_dano_moral_pedido, operador: ">", valor: 0 }
+    provas_necessarias:
+      - { tipo_documento: extrato_beneficio, descricao: "Proporção do desconto frente ao benefício", origem: subsidio, obrigatoria: true, peso: 0.7 }
+    provas_que_afastam:
+      - { tipo_documento: reclamacao_administrativa, descricao: "Reclamação prévia ignorada pelo réu por longo período", origem: subsidio, obrigatoria: false, peso: 0.8 }
+      - { tipo_documento: extrato_beneficio, descricao: "Desconto que comprometeu parcela relevante de benefício de um salário mínimo (mínimo existencial)", origem: subsidio, obrigatoria: false, peso: 0.9 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CC, arts. 186, 927 e 944", tipo: dispositivo, para_que_serve: "pressupostos da responsabilidade e proporcionalidade", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STJ — dano moral não presumido em desconto indevido de baixo valor × TJPA — orientação local (in re ipsa em consignado de aposentado?) [A CONFERIR]", tipo: precedente, para_que_serve: "saber se o TJPA presume o dano nesta tipologia", conferido: false, nota: "[A CONFERIR pelo advogado-dono — risco: há tribunais que presumem]" }
+        - { ref: "TJPA — faixa usual de dano moral em consignado não reconhecido por comarca [A CONFERIR]", tipo: precedente, para_que_serve: "quantum subsidiário", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "Ausência de prova de repercussão concreta; mero dissabor."
+        - "Subsidiariamente, quantum moderado, proporcional ao valor descontado e à duração."
+    pedidos:
+      - "Improcedência do pedido de dano moral."
+    pedidos_subsidiarios:
+      - "Fixação em patamar moderado (faixa do TJPA [A CONFERIR]); juros e correção pelo índice legal vigente a partir do arbitramento (Súmula 362 STJ [A CONFERIR])."
+    risco_se_mal_aplicada: "Chamar de 'mero aborrecimento' desconto que consome parte relevante de benefício mínimo de idoso soa insensível e piora o quantum."
+    ativa: true
+
+  # ---------------------------------------------------------------- SUBSIDIÁRIAS
+  - id: T09
+    nome: "Compensação / devolução dos valores creditados e repetição simples (não em dobro)"
+    categoria: subsidiaria
+    ordem: 11
+    pai: null
+    resumo: >-
+      Se declarado inexistente o contrato, o valor disponibilizado ao autor deve ser compensado/
+      restituído ao réu; a repetição das parcelas, se devida, é simples, por ausência de má-fé
+      (observada a modulação do STJ sobre o art. 42 do CDC).
+    condicoes_aplicacao:
+      - { campo: valor_creditado_conta_autor, operador: "==", valor: true }
+    provas_necessarias:
+      - { tipo_documento: comprovante_ted, descricao: "Prova do crédito e do valor líquido", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: extrato_beneficio, descricao: "Total já descontado", origem: subsidio, obrigatoria: true, peso: 0.8 }
+    provas_que_afastam:
+      - { tipo_documento: comprovante_ted, descricao: "Crédito em conta de terceiro (não há o que compensar do autor)", origem: subsidio, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CC, arts. 368 a 380 e 884", tipo: dispositivo, para_que_serve: "compensação e enriquecimento sem causa", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CDC, art. 42, parágrafo único", tipo: dispositivo, para_que_serve: "repetição em dobro só sem engano justificável", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STJ, EAREsp 676.608 (modulação: dobro independe de má-fé para cobranças após 30/03/2021) [A CONFERIR]", tipo: precedente, para_que_serve: "delimitar quando cabe o dobro — risco para contratos posteriores à modulação", conferido: false, nota: "[A CONFERIR pelo advogado-dono — número, data da modulação e aplicação a consignado]" }
+      argumentos_chave:
+        - "Vedado o enriquecimento sem causa: o autor não pode ficar com o valor creditado e receber as parcelas."
+        - "Ausência de má-fé/engano justificável afasta a dobra; subsidiariamente, dobra limitada ao período pós-modulação."
+    pedidos:
+      - "Compensação do valor creditado com eventual condenação; repetição simples."
+    pedidos_subsidiarios:
+      - "Se dobra for reconhecida, limitação ao período admitido pela modulação do STJ."
+    risco_se_mal_aplicada: "Pedir compensação sem prova de crédito ao autor."
+    ativa: true
+
+  # ---------------------------------------------------------------- SINAL (não é argumento autônomo)
+  - id: T10
+    nome: "Sinais de litigância predatória — providências processuais"
+    categoria: sinal
+    ordem: 12
+    pai: null
+    resumo: >-
+      Não é uma tese de mérito; é um conjunto de providências (pedido de depoimento pessoal,
+      exibição de documentos, comunicação ao NUMOPEDE/Centro de Inteligência, ofício à OAB) que
+      só se insere na peça se o advogado-revisor confirmar os flags do M4. Jamais rotular o autor
+      ou o advogado como fraudador.
+    condicoes_aplicacao:
+      - { campo: acoes_mesmo_advogado_mes_n, operador: ">=", valor: 30, nota: "N a calibrar com a carteira [A CONFERIR pelo advogado-dono]" }
+    provas_necessarias:
+      - { tipo_documento: relatorio_antifraude, descricao: "Flags do M4 com evidência e decisão humana registrada (human_decide)", origem: antifraude, obrigatoria: true, peso: 1.0 }
+    provas_que_afastam:
+      - { tipo_documento: relatorio_antifraude, descricao: "Flags não confirmados por advogado com OAB", origem: antifraude, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CPC, arts. 77, 80, 139, III e 385", tipo: dispositivo, para_que_serve: "poderes do juiz, boa-fé, depoimento pessoal", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "CNJ — Recomendação sobre litigância predatória; TJPA — Centro de Inteligência/NUMOPEDE [A CONFERIR]", tipo: norma_regulatoria, para_que_serve: "canal institucional para comunicar padrões", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "Requerer depoimento pessoal do autor para confirmar ciência da ação e da procuração."
+        - "Requerer exibição de comprovante de residência atual, documento com foto e extratos."
+        - "Comunicar o padrão ao Centro de Inteligência do TJPA sem imputar conduta a pessoa determinada."
+    pedidos:
+      - "Depoimento pessoal do autor sob pena de confissão; exibição de documentos; demais providências que o juízo entender cabíveis."
+    pedidos_subsidiarios: []
+    risco_se_mal_aplicada: "Acusação de má-fé sem lastro gera condenação do réu e dano reputacional; só entra na peça após decisão humana registrada."
+    ativa: true
+
+# -----------------------------------------------------------------------------
+# EXCEÇÕES — a esteira para e devolve ao humano
+# -----------------------------------------------------------------------------
+excecoes:
+  - id: X01
+    descricao: "Contrato não localizado pelo cliente"
+    condicoes:
+      - { campo: contrato_localizado, operador: "==", valor: false }
+    acao: pedir_subsidio
+    nota: "Volta ao M3 com prazo; se persistir, sinalizar acordo (ver sinais_acordo)."
+  - id: X02
+    descricao: "Crédito em conta de terceiro ou titularidade desconhecida"
+    condicoes:
+      - { campo: conta_credito_titularidade, operador: in, valor: [terceiro, desconhecida] }
+    acao: escalar_socio
+    nota: "Forte indício de fraude real contra o autor; T07 e T09 ficam desativadas; avaliar acordo."
+  - id: X03
+    descricao: "Indício de fraude real contra o autor (IP/geo incompatível, sem biometria, conta recém-aberta)"
+    condicoes:
+      - { campo: indicio_fraude_contra_autor, operador: "==", valor: true }
+    acao: sinalizar_acordo
+    nota: "Defender contratação válida aqui é temerário (Súmula 479 [A CONFERIR])."
+  - id: X04
+    descricao: "Autor possivelmente falecido antes da procuração/ajuizamento"
+    condicoes:
+      - { campo: autor_falecido, operador: "==", valor: true }
+    acao: escalar_socio
+    nota: "Não gerar minuta padrão; peça específica (irregularidade de representação) por advogado."
+  - id: X05
+    descricao: "Valor da causa acima da alçada de contestação padrão"
+    condicoes:
+      - { campo: valor_causa, operador: ">", valor: 60000.0, nota: "[A CONFERIR pelo advogado-dono] alçada do cliente" }
+    acao: alertar_revisor
+    nota: "Exige segunda revisão por sócio."
+  - id: X06
+    descricao: "Autor não nega a contratação; discute juros/cláusulas"
+    condicoes:
+      - { campo: autor_nega_contratacao, operador: "==", valor: false }
+      - { campo: autor_alega_vicio_rmc, operador: "==", valor: false }
+    acao: nao_gerar_minuta
+    nota: "Fora da tipologia (provável revisional); reclassificar."
+  - id: X07
+    descricao: "Sem log de autenticação e sem comprovante de crédito"
+    condicoes:
+      - { campo: ip_log_disponivel, operador: "==", valor: false }
+      - { campo: ted_comprovante_localizado, operador: "==", valor: false }
+    acao: sinalizar_acordo
+    nota: "Sem T06 nem T07 a defesa fica só em preliminares; exposição alta."
+
+# -----------------------------------------------------------------------------
+# SINAIS DE ACORDO
+# -----------------------------------------------------------------------------
+sinais_acordo:
+  politica: >-
+    Defender quando há contrato + trilha de autenticação + crédito em conta do autor. Acordar cedo
+    (antes da audiência/contestação, quando o cliente autorizar) quando falta qualquer um desses
+    três pilares ou há indício de fraude real. Valores e alçadas abaixo são ilustrativos e
+    devem ser calibrados com a carteira do cliente por comarca [A CONFERIR pelo advogado-dono].
+  quando_acordar:
+    - condicoes:
+        - { campo: contrato_localizado, operador: "==", valor: false }
+      racional: "Sem contrato, o ônus do Tema 1.061 [A CONFERIR] não é vencido."
+    - condicoes:
+        - { campo: conta_credito_titularidade, operador: "!=", valor: autor }
+      racional: "Crédito a terceiro = fraude provável; condenação com dano moral e dobro."
+    - condicoes:
+        - { campo: indicio_fraude_contra_autor, operador: "==", valor: true }
+      racional: "Fortuito interno; defender só aumenta sucumbência."
+    - condicoes:
+        - { campo: contrato_assinatura_tipo, operador: "==", valor: fisica }
+        - { campo: valor_contrato, operador: "<", valor: 3000.0 }
+      racional: "Perícia grafotécnica custa mais que o contrato [A CONFERIR pelo advogado-dono — valor]."
+  quando_nao_acordar:
+    - condicoes:
+        - { campo: contrato_assinatura_tipo, operador: in, valor: [biometria_facial, assinatura_digital_icp] }
+        - { campo: valor_creditado_conta_autor, operador: "==", valor: true }
+      racional: "Caso forte; acordo aqui alimenta a litigância predatória."
+    - condicoes:
+        - { campo: acoes_mesmo_autor_mesmo_reu_n, operador: ">=", valor: 3 }
+      racional: "Autor serial; política de não acordar salvo decisão do cliente."
+  faixas_valor:
+    - grupo_comarcas: "Região Metropolitana de Belém"
+      comarcas: ["Belém", "Ananindeua", "Marituba", "Benevides", "Santa Bárbara do Pará", "Santa Izabel do Pará"]
+      valor_min: 1000.0
+      valor_max: 4000.0
+      moeda: BRL
+      base: "ILUSTRATIVO [A CONFERIR pelo advogado-dono] — substituir pela média de condenação (dano moral + repetição) da carteira do cliente, 12 meses"
+      calibrar: true
+    - grupo_comarcas: "Interior — polos (Santarém, Marabá, Castanhal, Parauapebas, Altamira)"
+      comarcas: ["Santarém", "Marabá", "Castanhal", "Parauapebas", "Altamira"]
+      valor_min: 1500.0
+      valor_max: 5000.0
+      moeda: BRL
+      base: "ILUSTRATIVO [A CONFERIR pelo advogado-dono]"
+      calibrar: true
+    - grupo_comarcas: "Interior — demais comarcas"
+      comarcas: ["*"]
+      valor_min: 1500.0
+      valor_max: 6000.0
+      moeda: BRL
+      base: "ILUSTRATIVO [A CONFERIR pelo advogado-dono] — comarcas do interior do PA tendem a condenações maiores em consignado; confirmar com dados"
+      calibrar: true
+  alcadas:
+    - { ate_valor: 3000.0, aprovador: "advogado responsável pela carteira [A CONFERIR]" }
+    - { ate_valor: 10000.0, aprovador: "sócio FBS + jurídico do cliente [A CONFERIR]" }
+    - { ate_valor: 999999.0, aprovador: "comitê do cliente [A CONFERIR]" }
+  decisao_final: "A decisão de acordar é do advogado/cliente; a plataforma só sinaliza e registra."
+
+# -----------------------------------------------------------------------------
+# ANTIFRAUDE ESPECÍFICO (M4)
+# -----------------------------------------------------------------------------
+antifraude:
+  regra_inviolavel: "Nenhuma checagem produz rótulo de 'fraudador'; só flags com evidência. Apenas decisão humana registrada com OAB (human_decide) confirma um flag."
+  checagens:
+    - codigo: procuracao_presente
+      descricao: "Procuração juntada aos autos"
+      parametros: {}
+      severidade: high
+      evidencia_esperada: "page_type 'procuracao' ausente"
+      implementada_em_m4: true
+      calibrar: false
+    - codigo: procuracao_antiga
+      descricao: "Procuração datada há mais de N dias do ajuizamento (sinal de outorga em massa)"
+      parametros: { max_dias: 180, nota: "[A CONFERIR pelo advogado-dono]" }
+      severidade: medium
+      evidencia_esperada: "data_procuracao, data_ajuizamento e diferença em dias"
+      implementada_em_m4: false
+      calibrar: true
+    - codigo: comprovante_endereco
+      descricao: "Comprovante de endereço presente"
+      parametros: {}
+      severidade: low
+      evidencia_esperada: "page_type 'comprovante_endereco' ausente"
+      implementada_em_m4: true
+      calibrar: false
+    - codigo: comprovante_endereco_terceiro
+      descricao: "Comprovante de endereço em nome de terceiro (forçar foro ou autor fictício)"
+      parametros: {}
+      severidade: medium
+      evidencia_esperada: "nome no comprovante ≠ autor e sem declaração de residência"
+      implementada_em_m4: false
+      calibrar: false
+    - codigo: concentracao_advogado_mes
+      descricao: "Mesmo advogado com mais de N ações contra o cliente no mês"
+      parametros: { n_min: 30, janela_dias: 30, nota: "[A CONFERIR pelo advogado-dono] calibrar N com a carteira" }
+      severidade: low
+      evidencia_esperada: "lista de CNJs do mesmo advogado na janela"
+      implementada_em_m4: false
+      calibrar: true
+    - codigo: concentracao_autor
+      descricao: "Mesmo autor com 3+ ações na carteira do cliente"
+      parametros: { n_min: 3 }
+      severidade: medium
+      evidencia_esperada: "lista de CNJs do mesmo autor"
+      implementada_em_m4: true
+      calibrar: true
+    - codigo: autor_falecido
+      descricao: "Indício de óbito do autor anterior à procuração/ajuizamento (base pública/INSS/subsídio do cliente)"
+      parametros: { fontes: ["subsidio_cliente", "publicacoes", "fonte_publica_a_definir"] }
+      severidade: high
+      evidencia_esperada: "fonte, data do óbito e data da procuração"
+      implementada_em_m4: false
+      calibrar: false
+    - codigo: litispendencia
+      descricao: "Processo duplicado (mesmas partes/contrato) em curso"
+      parametros: {}
+      severidade: high
+      evidencia_esperada: "CNJs duplicados"
+      implementada_em_m4: true
+      calibrar: false
+    - codigo: fracionamento_contratos
+      descricao: "Vários contratos do mesmo autor distribuídos em ações separadas na mesma janela"
+      parametros: { janela_dias: 90, n_min: 2 }
+      severidade: medium
+      evidencia_esperada: "CNJs, datas e contratos de cada ação"
+      implementada_em_m4: false
+      calibrar: true
+    - codigo: gratuidade_x_renda
+      descricao: "Pedido de gratuidade com renda declarada acima do parâmetro"
+      parametros: { limite_salarios_minimos: 5, nota: "[A CONFERIR pelo advogado-dono] parâmetro do TJPA" }
+      severidade: medium
+      evidencia_esperada: "renda extraída e fonte"
+      implementada_em_m4: true
+      calibrar: true
+    - codigo: peticao_padronizada
+      descricao: "Inicial com alta similaridade (embedding) com outras iniciais do mesmo advogado, sem individualização do contrato"
+      parametros: { similaridade_min: 0.95 }
+      severidade: low
+      evidencia_esperada: "score de similaridade e CNJs semelhantes"
+      implementada_em_m4: false
+      calibrar: true
+    - codigo: assinatura_procuracao_divergente
+      descricao: "Assinatura da procuração visivelmente divergente do documento de identidade juntado"
+      parametros: {}
+      severidade: medium
+      evidencia_esperada: "páginas comparadas (procuração × RG) — só sinal visual, sem laudo"
+      implementada_em_m4: false
+      calibrar: false
+    - codigo: indicio_fraude_contra_autor
+      descricao: "Checagem a favor do autor: IP/geo incompatível, conta de terceiro, sem biometria, conta aberta na data — sinaliza que o cliente pode ter sido vítima de fraude e que a defesa de contratação válida é temerária"
+      parametros: {}
+      severidade: high
+      evidencia_esperada: "logs e comprovante de crédito"
+      implementada_em_m4: false
+      calibrar: false
+
+# -----------------------------------------------------------------------------
+# MODELO DE PEÇA (M6)
+# -----------------------------------------------------------------------------
+modelo_peca:
+  tipo: contestacao
+  formato_saida: markdown
+  regra_citacao: "Toda afirmação de fato cita document_page_id (draft_citations). Sem página, sem afirmação."
+  secoes:
+    - { ordem: 1, id: enderecamento, titulo: "Endereçamento, qualificação e tempestividade", obrigatoria: true, teses_vinculadas: [], instrucoes: "Juízo, vara, número CNJ, partes; informar data da citação e tempestividade.", exige_citacao_de_pagina: false }
+    - { ordem: 2, id: sintese, titulo: "Síntese da demanda", obrigatoria: true, teses_vinculadas: [], instrucoes: "Resumir pedidos e causa de pedir em até 8 linhas, sem adjetivos.", exige_citacao_de_pagina: true }
+    - { ordem: 3, id: preliminares, titulo: "Preliminares", obrigatoria: false, teses_vinculadas: [T01, T02, T03, T03.1, T04], instrucoes: "Uma subseção por tese aplicável, na ordem do playbook. Omitir a seção se nenhuma se aplicar.", exige_citacao_de_pagina: true }
+    - { ordem: 4, id: prejudicial, titulo: "Prejudicial de mérito — prescrição", obrigatoria: false, teses_vinculadas: [T05], instrucoes: "Só se o prazo definido pelo advogado-dono tiver transcorrido; apresentar a parcial como subsidiária.", exige_citacao_de_pagina: true }
+    - { ordem: 5, id: fatos, titulo: "Dos fatos — a contratação", obrigatoria: true, teses_vinculadas: [], instrucoes: "Linha do tempo do dossiê: proposta, autenticação, formalização, averbação, crédito, descontos, reclamação (se houve), ajuizamento. Cada evento com página.", exige_citacao_de_pagina: true }
+    - { ordem: 6, id: merito_contratacao, titulo: "Do mérito — validade da contratação", obrigatoria: true, teses_vinculadas: [T06, T06.1], instrucoes: "Descrever a trilha de autenticação com as provas anexas; enfrentar Súmula 479 e Tema 1.061 [A CONFERIR] expressamente.", exige_citacao_de_pagina: true }
+    - { ordem: 7, id: merito_recebimento, titulo: "Do recebimento e utilização dos valores", obrigatoria: false, teses_vinculadas: [T07], instrucoes: "Somente se conta_credito_titularidade == autor. Citar comprovante de TED e extrato.", exige_citacao_de_pagina: true }
+    - { ordem: 8, id: dano_moral, titulo: "Da inexistência de dano moral", obrigatoria: true, teses_vinculadas: [T08], instrucoes: "Tom respeitoso; nunca minimizar a condição do autor; quantum subsidiário com faixa do TJPA.", exige_citacao_de_pagina: false }
+    - { ordem: 9, id: subsidiarios, titulo: "Pedidos subsidiários — compensação, repetição simples, juros", obrigatoria: true, teses_vinculadas: [T09], instrucoes: "Compensação do valor creditado; repetição simples; termo inicial de juros/correção; impugnar dobro com a modulação.", exige_citacao_de_pagina: true }
+    - { ordem: 10, id: providencias, titulo: "Providências processuais", obrigatoria: false, teses_vinculadas: [T10], instrucoes: "Só com flags confirmados por human_decide. Linguagem neutra; sem imputar fraude a pessoa.", exige_citacao_de_pagina: true }
+    - { ordem: 11, id: provas, titulo: "Das provas", obrigatoria: true, teses_vinculadas: [], instrucoes: "Protestar por depoimento pessoal, perícia (grafotécnica/técnica em logs) e juntada; especificar.", exige_citacao_de_pagina: false }
+    - { ordem: 12, id: pedidos, titulo: "Dos pedidos", obrigatoria: true, teses_vinculadas: [], instrucoes: "Consolidar na ordem: preliminares, prejudicial, improcedência, subsidiários, sucumbência, intimações.", exige_citacao_de_pagina: false }
+    - { ordem: 13, id: anexos, titulo: "Rol de documentos", obrigatoria: true, teses_vinculadas: [], instrucoes: "Listar cada documento anexo com o tipo do playbook (contrato, log_autenticacao, comprovante_ted…).", exige_citacao_de_pagina: false }
+  estilo:
+    - "Português formal; frases curtas; sem adjetivação do autor ou do advogado adverso."
+    - "Nenhuma afirmação de fato sem página dos autos ou documento anexo identificado."
+    - "Referências legais só as conferidas no playbook; nunca inventar número de tema, súmula ou acórdão."
+    - "Idoso/beneficiário do INSS: tom respeitoso obrigatório (Estatuto da Pessoa Idosa [A CONFERIR])."
+
+# -----------------------------------------------------------------------------
+# CRITÉRIOS DE REVISÃO (M7)
+# -----------------------------------------------------------------------------
+criterios_revisao:
+  tempo_minimo_segundos: 900
+  papel_minimo_revisor: lawyer
+  exige_segunda_revisao_se:
+    - { campo: valor_causa, operador: ">", valor: 60000.0, nota: "[A CONFERIR pelo advogado-dono]" }
+    - { campo: autor_falecido, operador: "==", valor: true }
+    - { campo: indicio_fraude_contra_autor, operador: "==", valor: true }
+  checklist:
+    - { id: R01, item: "Cada fato da peça tem citação de página dos autos ou documento anexo identificado", bloqueante: true }
+    - { id: R02, item: "Todas as referências legais citadas estão marcadas como conferidas no playbook (nenhum placeholder sobrou no texto)", bloqueante: true }
+    - { id: R03, item: "T06 só foi usada com contrato + log/biometria anexos", bloqueante: true }
+    - { id: R04, item: "T07/T09 só foram usadas com comprovante de crédito em conta do PRÓPRIO autor", bloqueante: true }
+    - { id: R05, item: "Nenhuma expressão imputa fraude/má-fé ao autor ou ao advogado sem flag confirmado por human_decide", bloqueante: true }
+    - { id: R06, item: "Produto correto (consignado × RMC × RCC) e valores/datas batem com o dossiê", bloqueante: true }
+    - { id: R07, item: "Pedidos subsidiários presentes (compensação, repetição simples, quantum)", bloqueante: true }
+    - { id: R08, item: "Tom respeitoso com autor idoso/beneficiário; sem 'mero aborrecimento' em benefício mínimo comprometido", bloqueante: false }
+    - { id: R09, item: "Sinal de acordo avaliado e registrado (defender × acordar) antes de protocolar", bloqueante: false }
+  motivos_recusa_padrao:
+    - "Fato sem prova citável"
+    - "Tese aplicada sem prova necessária"
+    - "Referência legal não conferida ou inexistente"
+    - "Produto/valores/datas divergentes do dossiê"
+    - "Linguagem imputa fraude sem decisão humana"
+    - "Caso deveria ir para acordo/escalada, não para contestação padrão"
+
+# -----------------------------------------------------------------------------
+# MÉTRICAS (M10/M11)
+# -----------------------------------------------------------------------------
+metricas:
+  - { id: M01, nome: "Tempo médio de revisão por contestação", definicao: "média de reviews.review_seconds para drafts desta tipologia", meta: "< 30 min com qualidade [A CONFERIR]", fonte: reviews }
+  - { id: M02, nome: "Aprovação sem alteração substancial", definicao: "% de reviews aprovadas com substantial_change = false", meta: "> 60 % após 200 casos [A CONFERIR]", fonte: reviews }
+  - { id: M03, nome: "Subsídios faltantes detectados antes da defesa", definicao: "% de casos com exceção X01/X07 aberta antes de gerar minuta", meta: "> 90 %", fonte: "dossiers + excecoes" }
+  - { id: M04, nome: "Taxa de êxito por tese × comarca", definicao: "outcomes.result ∈ {improcedente, parcial} por thesis_version_id e comarca vs. baseline FBS", meta: "≥ baseline + 10 p.p. [A CONFERIR]", fonte: outcomes }
+  - { id: M05, nome: "Condenação média (dano moral + repetição) por comarca", definicao: "média de outcomes.award_value por comarca; alimenta faixas_valor", meta: "queda de 20 % vs. baseline [A CONFERIR]", fonte: outcomes }
+  - { id: M06, nome: "Custo de tokens por processo", definicao: "soma de llm_calls.cost_usd por case_id", meta: "< US$ 2 por contestação [A CONFERIR]", fonte: llm_calls }
+  - { id: M07, nome: "Concordância modelo × revisor sênior", definicao: "gt_tasks.agreement_score médio (amostra semanal)", meta: "> 0,85", fonte: gt_tasks }
+  - { id: M08, nome: "Flags antifraude confirmados por humano", definicao: "% de fraud_checks com result = flag e human_decision = confirmed", meta: "monitorar precisão; recalibrar parâmetros se < 50 %", fonte: fraud_checks }
+  - { id: M09, nome: "Acordos sinalizados × realizados", definicao: "casos com sinal de acordo vs. outcomes.result = acordo e valor médio", meta: "calibrar faixas_valor trimestralmente", fonte: outcomes }

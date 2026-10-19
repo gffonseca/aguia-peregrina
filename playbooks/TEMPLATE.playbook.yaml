@@ -1,0 +1,185 @@
+# =============================================================================
+# Águia Peregrina — M0 Playbook de teses — TEMPLATE (schema 1.0)
+# =============================================================================
+# Regra de ouro: "tese antes da máquina". Nenhuma minuta (M6) é gerada para uma
+# tipologia sem um playbook APROVADO por advogado-dono (OAB + timestamp).
+#
+# Como usar:
+#   1. Copie este arquivo para playbooks/<tipologia>-<tribunal>.playbook.yaml
+#   2. Preencha. Tudo que for citação legal, número ou valor nasce com
+#      "[A CONFERIR pelo advogado-dono]" e `conferido: false`.
+#   3. Valide: python -m app.modules.m00_playbook.schema playbooks/<arquivo>
+#   4. Status rascunho -> em_revisao -> aprovado (só com aprovado_por_oab + aprovado_em).
+#      Um playbook 'aprovado' não valida se restar referência com conferido: false.
+#   5. Nova versão = novo número em metadata.versao + supera_versao; nunca edite
+#      uma versão aprovada em cima.
+#
+# Validação formal: playbooks/playbook.schema.json (gerado do pydantic em
+# app/modules/m00_playbook/schema.py). Este arquivo é apenas um exemplo mínimo
+# que passa na validação; use os comentários como guia.
+# =============================================================================
+
+schema_version: "1.0"
+
+# -----------------------------------------------------------------------------
+# 1. METADADOS — quem é o dono, de que tipologia, em que estado
+# -----------------------------------------------------------------------------
+metadata:
+  id: exemplo-tipologia-tjpa            # slug único: [a-z0-9-]
+  nome: "Exemplo — nome legível do playbook"
+  tipologia: exemplo_tipologia          # gravado em cases.typology e theses.typology
+  tribunal: TJPA                        # TJPA, TRT8, TJAP…
+  reu_tipo: instituicao_financeira_regional
+  lado: defesa                          # defesa | autor
+  tipo_peca_padrao: contestacao         # drafts.draft_type
+  versao: 1
+  supera_versao: null                   # número da versão anterior quando houver
+  autor_nome: "Nome do advogado-dono"
+  autor_oab: "PA 00000"                 # formato 'UF 99999'
+  criado_em: 2026-01-01T00:00:00-03:00
+  status: rascunho                      # rascunho | em_revisao | aprovado | superado
+  aprovado_por_nome: null               # preenchido no ato da aprovação
+  aprovado_por_oab: null
+  aprovado_em: null
+  descricao: "Uma frase sobre o escopo do playbook."
+  observacoes: null
+
+# -----------------------------------------------------------------------------
+# 2. GATILHOS DE CLASSIFICAÇÃO — como M1/M9 reconhecem a tipologia
+# -----------------------------------------------------------------------------
+gatilhos_classificacao:
+  assuntos_cnj:                          # tabela TPU do CNJ; conferir código
+    - { codigo: "0000", nome: "Nome do assunto CNJ [A CONFERIR pelo advogado-dono]", conferido: false }
+  classes_cnj: []
+  palavras_chave:
+    - "palavra ou expressão típica da inicial"
+  palavras_que_excluem: []
+  confianca_minima: 0.8                 # abaixo disso vai para triagem humana
+
+# -----------------------------------------------------------------------------
+# 3. CAMPOS OBRIGATÓRIOS DO DOSSIÊ (M5) — as condições abaixo só podem usar estes
+# -----------------------------------------------------------------------------
+# origem: extracao (autos, LLM) | subsidio (cliente/ERP) | publicacao | antifraude | calculado
+campos_dossie_obrigatorios:
+  - { campo: valor_causa, tipo: valor_monetario, origem: extracao, descricao: "Valor da causa", obrigatorio: true, bloqueia_minuta_se_ausente: false }
+  - { campo: contrato_localizado, tipo: booleano, origem: subsidio, descricao: "Cliente localizou o contrato discutido", obrigatorio: true, bloqueia_minuta_se_ausente: true }
+  - { campo: autor_pede_gratuidade, tipo: booleano, origem: extracao, descricao: "Inicial pede justiça gratuita", obrigatorio: false }
+
+# -----------------------------------------------------------------------------
+# 4. ÁRVORE DE TESES
+# -----------------------------------------------------------------------------
+# id: T01, T02… (subteses T01.1). categoria: preliminar | prejudicial | merito |
+# subsidiaria | processual | sinal. condicoes_aplicacao é um AND de condições sobre
+# campos do dossiê; operadores: == != > >= < <= in not_in existe nao_existe contem nao_contem
+teses:
+  - id: T01
+    nome: "Nome da tese"
+    categoria: merito
+    ordem: 1
+    pai: null
+    resumo: "O que a tese sustenta, em duas linhas."
+    condicoes_aplicacao:
+      - { campo: contrato_localizado, operador: "==", valor: true }
+    provas_necessarias:
+      - { tipo_documento: contrato, descricao: "Instrumento assinado", origem: subsidio, obrigatoria: true, peso: 1.0 }
+    provas_que_afastam:
+      - { tipo_documento: boletim_ocorrencia, descricao: "BO de fraude anterior à contratação", origem: extracao, obrigatoria: false, peso: 0.8 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "Art. 000 do Código X", tipo: dispositivo, para_que_serve: "para quê", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STJ, Tema 000", tipo: tema, para_que_serve: "para quê", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "Argumento 1."
+    pedidos:
+      - "Improcedência do pedido."
+    pedidos_subsidiarios:
+      - "Subsidiariamente, …"
+    risco_se_mal_aplicada: "O que acontece se a tese for usada sem a prova."
+    ativa: true
+
+# -----------------------------------------------------------------------------
+# 5. EXCEÇÕES — situações em que a esteira NÃO deve seguir sozinha
+# -----------------------------------------------------------------------------
+# acao: nao_gerar_minuta | escalar_socio | sinalizar_acordo | pedir_subsidio | alertar_revisor
+excecoes:
+  - id: X01
+    descricao: "Contrato não localizado pelo cliente"
+    condicoes:
+      - { campo: contrato_localizado, operador: "==", valor: false }
+    acao: pedir_subsidio
+    nota: "Sem contrato não há tese de contratação válida; devolver ao M3."
+
+# -----------------------------------------------------------------------------
+# 6. SINAIS DE ACORDO — a plataforma sinaliza; quem decide é o advogado/cliente
+# -----------------------------------------------------------------------------
+sinais_acordo:
+  politica: "Texto curto com a política do cliente para esta tipologia."
+  quando_acordar:
+    - condicoes:
+        - { campo: contrato_localizado, operador: "==", valor: false }
+      racional: "Sem prova da contratação a exposição é alta."
+  quando_nao_acordar: []
+  faixas_valor:
+    - grupo_comarcas: "Capital"
+      comarcas: ["Belém"]
+      valor_min: 0
+      valor_max: 0
+      moeda: BRL
+      base: "[A CONFERIR pelo advogado-dono] calibrar com a carteira"
+      calibrar: true
+  alcadas:
+    - { ate_valor: 0, aprovador: "advogado responsável" }
+  decisao_final: "A decisão de acordar é do advogado/cliente; a plataforma só sinaliza."
+
+# -----------------------------------------------------------------------------
+# 7. ANTIFRAUDE ESPECÍFICO DA TIPOLOGIA (M4) — flags com evidência, nunca rótulo
+# -----------------------------------------------------------------------------
+antifraude:
+  regra_inviolavel: "Nenhuma checagem produz rótulo de 'fraudador'; só flags com evidência. Apenas decisão humana registrada com OAB (human_decide) confirma um flag."
+  checagens:
+    - codigo: procuracao_presente        # = fraud_checks.check_code
+      descricao: "Procuração juntada aos autos"
+      parametros: {}
+      severidade: high
+      evidencia_esperada: "page_type 'procuracao' ausente"
+      implementada_em_m4: true
+      calibrar: false
+
+# -----------------------------------------------------------------------------
+# 8. MODELO DE PEÇA (M6) — seções e ordem
+# -----------------------------------------------------------------------------
+modelo_peca:
+  tipo: contestacao
+  formato_saida: markdown
+  regra_citacao: "Toda afirmação de fato cita document_page_id (draft_citations). Sem página, sem afirmação."
+  secoes:
+    - { ordem: 1, id: enderecamento, titulo: "Endereçamento e qualificação", obrigatoria: true, teses_vinculadas: [], instrucoes: "Juízo, partes, número CNJ.", exige_citacao_de_pagina: false }
+    - { ordem: 2, id: fatos, titulo: "Síntese dos fatos", obrigatoria: true, teses_vinculadas: [], instrucoes: "Linha do tempo do dossiê, só com fatos citáveis.", exige_citacao_de_pagina: true }
+    - { ordem: 3, id: merito, titulo: "Do mérito", obrigatoria: true, teses_vinculadas: [T01], instrucoes: "Uma subseção por tese aplicável, na ordem do playbook.", exige_citacao_de_pagina: true }
+    - { ordem: 4, id: pedidos, titulo: "Dos pedidos", obrigatoria: true, teses_vinculadas: [], instrucoes: "Consolidar pedidos e subsidiários.", exige_citacao_de_pagina: false }
+  estilo:
+    - "Português formal, sem adjetivos; sem adjetivar o autor."
+
+# -----------------------------------------------------------------------------
+# 9. CRITÉRIOS DE REVISÃO (M7)
+# -----------------------------------------------------------------------------
+criterios_revisao:
+  tempo_minimo_segundos: 900             # REVIEW_MIN_SECONDS_CONTESTACAO
+  papel_minimo_revisor: lawyer           # lawyer | partner
+  exige_segunda_revisao_se:
+    - { campo: valor_causa, operador: ">", valor: 50000 }
+  checklist:
+    - { id: R01, item: "Cada fato da peça tem citação de página dos autos", bloqueante: true }
+    - { id: R02, item: "Todas as referências legais foram conferidas", bloqueante: true }
+    - { id: R03, item: "Nenhuma tese aplicada sem a prova necessária anexa", bloqueante: true }
+  motivos_recusa_padrao:
+    - "Fato sem prova citável"
+    - "Tese inaplicável ao caso"
+
+# -----------------------------------------------------------------------------
+# 10. MÉTRICAS (M10/M11)
+# -----------------------------------------------------------------------------
+metricas:
+  - { id: M01, nome: "Tempo médio de revisão", definicao: "média de reviews.review_seconds", meta: "< 30 min", fonte: reviews }
+  - { id: M02, nome: "Aprovação sem alteração substancial", definicao: "% reviews com substantial_change = false", meta: "> 60 %", fonte: reviews }

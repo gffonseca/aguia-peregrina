@@ -1,0 +1,1156 @@
+{
+  "$defs": {
+    "AcaoExcecao": {
+      "enum": [
+        "nao_gerar_minuta",
+        "escalar_socio",
+        "sinalizar_acordo",
+        "pedir_subsidio",
+        "alertar_revisor"
+      ],
+      "title": "AcaoExcecao",
+      "type": "string"
+    },
+    "Alcada": {
+      "additionalProperties": false,
+      "properties": {
+        "ate_valor": {
+          "minimum": 0,
+          "title": "Ate Valor",
+          "type": "number"
+        },
+        "aprovador": {
+          "title": "Aprovador",
+          "type": "string"
+        }
+      },
+      "required": [
+        "ate_valor",
+        "aprovador"
+      ],
+      "title": "Alcada",
+      "type": "object"
+    },
+    "Antifraude": {
+      "additionalProperties": false,
+      "properties": {
+        "regra_inviolavel": {
+          "default": "Nenhuma checagem produz rótulo de 'fraudador'; só flags com evidência. Apenas decisão humana registrada com OAB (human_decide) confirma um flag.",
+          "title": "Regra Inviolavel",
+          "type": "string"
+        },
+        "checagens": {
+          "items": {
+            "$ref": "#/$defs/ChecagemAntifraude"
+          },
+          "minItems": 1,
+          "title": "Checagens",
+          "type": "array"
+        }
+      },
+      "required": [
+        "checagens"
+      ],
+      "title": "Antifraude",
+      "type": "object"
+    },
+    "AssuntoCnj": {
+      "additionalProperties": false,
+      "properties": {
+        "codigo": {
+          "pattern": "^\\d{1,6}$",
+          "title": "Codigo",
+          "type": "string"
+        },
+        "nome": {
+          "title": "Nome",
+          "type": "string"
+        },
+        "conferido": {
+          "default": false,
+          "title": "Conferido",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "codigo",
+        "nome"
+      ],
+      "title": "AssuntoCnj",
+      "type": "object"
+    },
+    "CampoDossie": {
+      "additionalProperties": false,
+      "properties": {
+        "campo": {
+          "pattern": "^[a-z][a-z0-9_.]{1,80}$",
+          "title": "Campo",
+          "type": "string"
+        },
+        "tipo": {
+          "$ref": "#/$defs/TipoCampo"
+        },
+        "origem": {
+          "$ref": "#/$defs/OrigemCampo"
+        },
+        "descricao": {
+          "title": "Descricao",
+          "type": "string"
+        },
+        "obrigatorio": {
+          "default": true,
+          "title": "Obrigatorio",
+          "type": "boolean"
+        },
+        "bloqueia_minuta_se_ausente": {
+          "default": false,
+          "title": "Bloqueia Minuta Se Ausente",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "campo",
+        "tipo",
+        "origem",
+        "descricao"
+      ],
+      "title": "CampoDossie",
+      "type": "object"
+    },
+    "CategoriaTese": {
+      "enum": [
+        "preliminar",
+        "prejudicial",
+        "merito",
+        "subsidiaria",
+        "processual",
+        "sinal"
+      ],
+      "title": "CategoriaTese",
+      "type": "string"
+    },
+    "ChecagemAntifraude": {
+      "additionalProperties": false,
+      "properties": {
+        "codigo": {
+          "description": "fraud_checks.check_code (M4)",
+          "pattern": "^[a-z][a-z0-9_]{2,60}$",
+          "title": "Codigo",
+          "type": "string"
+        },
+        "descricao": {
+          "title": "Descricao",
+          "type": "string"
+        },
+        "parametros": {
+          "additionalProperties": true,
+          "title": "Parametros",
+          "type": "object"
+        },
+        "severidade": {
+          "$ref": "#/$defs/Severidade",
+          "default": "medium"
+        },
+        "evidencia_esperada": {
+          "title": "Evidencia Esperada",
+          "type": "string"
+        },
+        "implementada_em_m4": {
+          "default": false,
+          "title": "Implementada Em M4",
+          "type": "boolean"
+        },
+        "calibrar": {
+          "default": true,
+          "title": "Calibrar",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "codigo",
+        "descricao",
+        "evidencia_esperada"
+      ],
+      "title": "ChecagemAntifraude",
+      "type": "object"
+    },
+    "Condicao": {
+      "additionalProperties": false,
+      "properties": {
+        "campo": {
+          "title": "Campo",
+          "type": "string"
+        },
+        "operador": {
+          "$ref": "#/$defs/Operador"
+        },
+        "valor": {
+          "default": null,
+          "title": "Valor"
+        },
+        "nota": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Nota"
+        }
+      },
+      "required": [
+        "campo",
+        "operador"
+      ],
+      "title": "Condicao",
+      "type": "object"
+    },
+    "CriteriosRevisao": {
+      "additionalProperties": false,
+      "properties": {
+        "tempo_minimo_segundos": {
+          "description": "REVIEW_MIN_SECONDS_<tipo> (M7)",
+          "minimum": 60,
+          "title": "Tempo Minimo Segundos",
+          "type": "integer"
+        },
+        "papel_minimo_revisor": {
+          "default": "lawyer",
+          "enum": [
+            "lawyer",
+            "partner"
+          ],
+          "title": "Papel Minimo Revisor",
+          "type": "string"
+        },
+        "exige_segunda_revisao_se": {
+          "items": {
+            "$ref": "#/$defs/Condicao"
+          },
+          "title": "Exige Segunda Revisao Se",
+          "type": "array"
+        },
+        "checklist": {
+          "items": {
+            "$ref": "#/$defs/ItemChecklist"
+          },
+          "minItems": 3,
+          "title": "Checklist",
+          "type": "array"
+        },
+        "motivos_recusa_padrao": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Motivos Recusa Padrao",
+          "type": "array"
+        }
+      },
+      "required": [
+        "tempo_minimo_segundos",
+        "checklist",
+        "motivos_recusa_padrao"
+      ],
+      "title": "CriteriosRevisao",
+      "type": "object"
+    },
+    "Excecao": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^X[0-9]{2}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "descricao": {
+          "title": "Descricao",
+          "type": "string"
+        },
+        "condicoes": {
+          "items": {
+            "$ref": "#/$defs/Condicao"
+          },
+          "minItems": 1,
+          "title": "Condicoes",
+          "type": "array"
+        },
+        "acao": {
+          "$ref": "#/$defs/AcaoExcecao"
+        },
+        "nota": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Nota"
+        }
+      },
+      "required": [
+        "id",
+        "descricao",
+        "condicoes",
+        "acao"
+      ],
+      "title": "Excecao",
+      "type": "object"
+    },
+    "FaixaAcordo": {
+      "additionalProperties": false,
+      "properties": {
+        "grupo_comarcas": {
+          "title": "Grupo Comarcas",
+          "type": "string"
+        },
+        "comarcas": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Comarcas",
+          "type": "array"
+        },
+        "valor_min": {
+          "minimum": 0,
+          "title": "Valor Min",
+          "type": "number"
+        },
+        "valor_max": {
+          "minimum": 0,
+          "title": "Valor Max",
+          "type": "number"
+        },
+        "moeda": {
+          "const": "BRL",
+          "default": "BRL",
+          "title": "Moeda",
+          "type": "string"
+        },
+        "base": {
+          "description": "como a faixa foi obtida (ex.: média de condenação na carteira)",
+          "title": "Base",
+          "type": "string"
+        },
+        "calibrar": {
+          "default": true,
+          "title": "Calibrar",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "grupo_comarcas",
+        "comarcas",
+        "valor_min",
+        "valor_max",
+        "base"
+      ],
+      "title": "FaixaAcordo",
+      "type": "object"
+    },
+    "Fundamentacao": {
+      "additionalProperties": false,
+      "properties": {
+        "dispositivos": {
+          "items": {
+            "$ref": "#/$defs/ReferenciaLegal"
+          },
+          "title": "Dispositivos",
+          "type": "array"
+        },
+        "precedentes": {
+          "items": {
+            "$ref": "#/$defs/ReferenciaLegal"
+          },
+          "title": "Precedentes",
+          "type": "array"
+        },
+        "argumentos_chave": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Argumentos Chave",
+          "type": "array"
+        }
+      },
+      "required": [
+        "argumentos_chave"
+      ],
+      "title": "Fundamentacao",
+      "type": "object"
+    },
+    "GatilhosClassificacao": {
+      "additionalProperties": false,
+      "description": "Como M1/M9 reconhecem que um processo pertence a esta tipologia.",
+      "properties": {
+        "assuntos_cnj": {
+          "items": {
+            "$ref": "#/$defs/AssuntoCnj"
+          },
+          "minItems": 1,
+          "title": "Assuntos Cnj",
+          "type": "array"
+        },
+        "classes_cnj": {
+          "items": {
+            "$ref": "#/$defs/AssuntoCnj"
+          },
+          "title": "Classes Cnj",
+          "type": "array"
+        },
+        "palavras_chave": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Palavras Chave",
+          "type": "array"
+        },
+        "palavras_que_excluem": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Palavras Que Excluem",
+          "type": "array"
+        },
+        "confianca_minima": {
+          "default": 0.8,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Confianca Minima",
+          "type": "number"
+        }
+      },
+      "required": [
+        "assuntos_cnj",
+        "palavras_chave"
+      ],
+      "title": "GatilhosClassificacao",
+      "type": "object"
+    },
+    "ItemChecklist": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^R[0-9]{2}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "item": {
+          "title": "Item",
+          "type": "string"
+        },
+        "bloqueante": {
+          "default": true,
+          "title": "Bloqueante",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "item"
+      ],
+      "title": "ItemChecklist",
+      "type": "object"
+    },
+    "Lado": {
+      "enum": [
+        "defesa",
+        "autor"
+      ],
+      "title": "Lado",
+      "type": "string"
+    },
+    "Metadata": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "description": "slug único do playbook",
+          "pattern": "^[a-z0-9][a-z0-9-]{2,79}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "nome": {
+          "title": "Nome",
+          "type": "string"
+        },
+        "tipologia": {
+          "description": "valor gravado em cases.typology / theses.typology",
+          "pattern": "^[a-z0-9_]{3,60}$",
+          "title": "Tipologia",
+          "type": "string"
+        },
+        "tribunal": {
+          "description": "TJPA, TRT8…",
+          "pattern": "^[A-Z]{2,6}[0-9]{0,2}$",
+          "title": "Tribunal",
+          "type": "string"
+        },
+        "reu_tipo": {
+          "description": "ex.: instituicao_financeira_regional",
+          "title": "Reu Tipo",
+          "type": "string"
+        },
+        "lado": {
+          "$ref": "#/$defs/Lado",
+          "default": "defesa"
+        },
+        "tipo_peca_padrao": {
+          "default": "contestacao",
+          "description": "drafts.draft_type",
+          "title": "Tipo Peca Padrao",
+          "type": "string"
+        },
+        "versao": {
+          "minimum": 1,
+          "title": "Versao",
+          "type": "integer"
+        },
+        "supera_versao": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Supera Versao"
+        },
+        "autor_nome": {
+          "title": "Autor Nome",
+          "type": "string"
+        },
+        "autor_oab": {
+          "description": "formato 'PA 12724'",
+          "pattern": "^[A-Z]{2}\\s?\\d{1,6}[A-Z]?$",
+          "title": "Autor Oab",
+          "type": "string"
+        },
+        "criado_em": {
+          "format": "date-time",
+          "title": "Criado Em",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/PlaybookStatus",
+          "default": "rascunho"
+        },
+        "aprovado_por_nome": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Aprovado Por Nome"
+        },
+        "aprovado_por_oab": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Z]{2}\\s?\\d{1,6}[A-Z]?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Aprovado Por Oab"
+        },
+        "aprovado_em": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Aprovado Em"
+        },
+        "descricao": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Descricao"
+        },
+        "observacoes": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Observacoes"
+        }
+      },
+      "required": [
+        "id",
+        "nome",
+        "tipologia",
+        "tribunal",
+        "reu_tipo",
+        "versao",
+        "autor_nome",
+        "autor_oab",
+        "criado_em"
+      ],
+      "title": "Metadata",
+      "type": "object"
+    },
+    "Metrica": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^M[0-9]{2}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "nome": {
+          "title": "Nome",
+          "type": "string"
+        },
+        "definicao": {
+          "title": "Definicao",
+          "type": "string"
+        },
+        "meta": {
+          "title": "Meta",
+          "type": "string"
+        },
+        "fonte": {
+          "title": "Fonte",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "nome",
+        "definicao",
+        "meta",
+        "fonte"
+      ],
+      "title": "Metrica",
+      "type": "object"
+    },
+    "ModeloPeca": {
+      "additionalProperties": false,
+      "properties": {
+        "tipo": {
+          "default": "contestacao",
+          "title": "Tipo",
+          "type": "string"
+        },
+        "formato_saida": {
+          "default": "markdown",
+          "enum": [
+            "markdown",
+            "docx"
+          ],
+          "title": "Formato Saida",
+          "type": "string"
+        },
+        "regra_citacao": {
+          "default": "Toda afirmação de fato cita document_page_id (draft_citations). Sem página, sem afirmação.",
+          "title": "Regra Citacao",
+          "type": "string"
+        },
+        "secoes": {
+          "items": {
+            "$ref": "#/$defs/SecaoPeca"
+          },
+          "minItems": 3,
+          "title": "Secoes",
+          "type": "array"
+        },
+        "estilo": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Estilo",
+          "type": "array"
+        }
+      },
+      "required": [
+        "secoes"
+      ],
+      "title": "ModeloPeca",
+      "type": "object"
+    },
+    "Operador": {
+      "description": "Operadores das condições de aplicação, avaliados sobre campos do dossiê (M5).",
+      "enum": [
+        "==",
+        "!=",
+        ">",
+        ">=",
+        "<",
+        "<=",
+        "in",
+        "not_in",
+        "existe",
+        "nao_existe",
+        "contem",
+        "nao_contem"
+      ],
+      "title": "Operador",
+      "type": "string"
+    },
+    "OrigemCampo": {
+      "enum": [
+        "extracao",
+        "subsidio",
+        "publicacao",
+        "antifraude",
+        "calculado"
+      ],
+      "title": "OrigemCampo",
+      "type": "string"
+    },
+    "PlaybookStatus": {
+      "enum": [
+        "rascunho",
+        "em_revisao",
+        "aprovado",
+        "superado"
+      ],
+      "title": "PlaybookStatus",
+      "type": "string"
+    },
+    "Prova": {
+      "additionalProperties": false,
+      "properties": {
+        "tipo_documento": {
+          "description": "valor de documents.kind / document_pages.page_type",
+          "title": "Tipo Documento",
+          "type": "string"
+        },
+        "descricao": {
+          "title": "Descricao",
+          "type": "string"
+        },
+        "origem": {
+          "$ref": "#/$defs/OrigemCampo",
+          "default": "subsidio"
+        },
+        "obrigatoria": {
+          "default": true,
+          "title": "Obrigatoria",
+          "type": "boolean"
+        },
+        "peso": {
+          "default": 1.0,
+          "description": "peso no score de evidência (M6)",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Peso",
+          "type": "number"
+        }
+      },
+      "required": [
+        "tipo_documento",
+        "descricao"
+      ],
+      "title": "Prova",
+      "type": "object"
+    },
+    "ReferenciaLegal": {
+      "additionalProperties": false,
+      "description": "Dispositivo, súmula, tema ou precedente. `conferido=False` até o advogado validar.",
+      "properties": {
+        "ref": {
+          "title": "Ref",
+          "type": "string"
+        },
+        "tipo": {
+          "enum": [
+            "dispositivo",
+            "sumula",
+            "tema",
+            "precedente",
+            "doutrina",
+            "norma_regulatoria"
+          ],
+          "title": "Tipo",
+          "type": "string"
+        },
+        "para_que_serve": {
+          "title": "Para Que Serve",
+          "type": "string"
+        },
+        "conferido": {
+          "default": false,
+          "title": "Conferido",
+          "type": "boolean"
+        },
+        "nota": {
+          "default": "[A CONFERIR pelo advogado-dono]",
+          "title": "Nota",
+          "type": "string"
+        }
+      },
+      "required": [
+        "ref",
+        "tipo",
+        "para_que_serve"
+      ],
+      "title": "ReferenciaLegal",
+      "type": "object"
+    },
+    "RegraAcordo": {
+      "additionalProperties": false,
+      "properties": {
+        "condicoes": {
+          "items": {
+            "$ref": "#/$defs/Condicao"
+          },
+          "minItems": 1,
+          "title": "Condicoes",
+          "type": "array"
+        },
+        "racional": {
+          "title": "Racional",
+          "type": "string"
+        }
+      },
+      "required": [
+        "condicoes",
+        "racional"
+      ],
+      "title": "RegraAcordo",
+      "type": "object"
+    },
+    "SecaoPeca": {
+      "additionalProperties": false,
+      "properties": {
+        "ordem": {
+          "minimum": 1,
+          "title": "Ordem",
+          "type": "integer"
+        },
+        "id": {
+          "pattern": "^[a-z][a-z0-9_]{1,60}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "titulo": {
+          "title": "Titulo",
+          "type": "string"
+        },
+        "obrigatoria": {
+          "default": true,
+          "title": "Obrigatoria",
+          "type": "boolean"
+        },
+        "teses_vinculadas": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Teses Vinculadas",
+          "type": "array"
+        },
+        "instrucoes": {
+          "title": "Instrucoes",
+          "type": "string"
+        },
+        "exige_citacao_de_pagina": {
+          "default": false,
+          "title": "Exige Citacao De Pagina",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "ordem",
+        "id",
+        "titulo",
+        "instrucoes"
+      ],
+      "title": "SecaoPeca",
+      "type": "object"
+    },
+    "Severidade": {
+      "enum": [
+        "info",
+        "low",
+        "medium",
+        "high"
+      ],
+      "title": "Severidade",
+      "type": "string"
+    },
+    "SinaisAcordo": {
+      "additionalProperties": false,
+      "properties": {
+        "politica": {
+          "title": "Politica",
+          "type": "string"
+        },
+        "quando_acordar": {
+          "items": {
+            "$ref": "#/$defs/RegraAcordo"
+          },
+          "minItems": 1,
+          "title": "Quando Acordar",
+          "type": "array"
+        },
+        "quando_nao_acordar": {
+          "items": {
+            "$ref": "#/$defs/RegraAcordo"
+          },
+          "title": "Quando Nao Acordar",
+          "type": "array"
+        },
+        "faixas_valor": {
+          "items": {
+            "$ref": "#/$defs/FaixaAcordo"
+          },
+          "minItems": 1,
+          "title": "Faixas Valor",
+          "type": "array"
+        },
+        "alcadas": {
+          "items": {
+            "$ref": "#/$defs/Alcada"
+          },
+          "minItems": 1,
+          "title": "Alcadas",
+          "type": "array"
+        },
+        "decisao_final": {
+          "default": "A decisão de acordar é do advogado/cliente; a plataforma só sinaliza.",
+          "title": "Decisao Final",
+          "type": "string"
+        }
+      },
+      "required": [
+        "politica",
+        "quando_acordar",
+        "faixas_valor",
+        "alcadas"
+      ],
+      "title": "SinaisAcordo",
+      "type": "object"
+    },
+    "Tese": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "description": "T01, T01.1…",
+          "pattern": "^T[0-9]{2}(\\.[0-9]{1,2})*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "nome": {
+          "title": "Nome",
+          "type": "string"
+        },
+        "categoria": {
+          "$ref": "#/$defs/CategoriaTese"
+        },
+        "ordem": {
+          "minimum": 1,
+          "title": "Ordem",
+          "type": "integer"
+        },
+        "pai": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "id da tese-mãe (theses.parent_id)",
+          "title": "Pai"
+        },
+        "resumo": {
+          "title": "Resumo",
+          "type": "string"
+        },
+        "condicoes_aplicacao": {
+          "description": "conjunção (AND) sobre campos do dossiê",
+          "items": {
+            "$ref": "#/$defs/Condicao"
+          },
+          "minItems": 1,
+          "title": "Condicoes Aplicacao",
+          "type": "array"
+        },
+        "provas_necessarias": {
+          "items": {
+            "$ref": "#/$defs/Prova"
+          },
+          "title": "Provas Necessarias",
+          "type": "array"
+        },
+        "provas_que_afastam": {
+          "items": {
+            "$ref": "#/$defs/Prova"
+          },
+          "title": "Provas Que Afastam",
+          "type": "array"
+        },
+        "fundamentacao": {
+          "$ref": "#/$defs/Fundamentacao"
+        },
+        "pedidos": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Pedidos",
+          "type": "array"
+        },
+        "pedidos_subsidiarios": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Pedidos Subsidiarios",
+          "type": "array"
+        },
+        "risco_se_mal_aplicada": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Risco Se Mal Aplicada"
+        },
+        "ativa": {
+          "default": true,
+          "title": "Ativa",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "nome",
+        "categoria",
+        "ordem",
+        "resumo",
+        "condicoes_aplicacao",
+        "fundamentacao",
+        "pedidos"
+      ],
+      "title": "Tese",
+      "type": "object"
+    },
+    "TipoCampo": {
+      "enum": [
+        "texto",
+        "numero",
+        "booleano",
+        "data",
+        "lista",
+        "valor_monetario"
+      ],
+      "title": "TipoCampo",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Raiz do arquivo `*.playbook.yaml`.",
+  "properties": {
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "metadata": {
+      "$ref": "#/$defs/Metadata"
+    },
+    "gatilhos_classificacao": {
+      "$ref": "#/$defs/GatilhosClassificacao"
+    },
+    "campos_dossie_obrigatorios": {
+      "items": {
+        "$ref": "#/$defs/CampoDossie"
+      },
+      "minItems": 1,
+      "title": "Campos Dossie Obrigatorios",
+      "type": "array"
+    },
+    "teses": {
+      "items": {
+        "$ref": "#/$defs/Tese"
+      },
+      "minItems": 1,
+      "title": "Teses",
+      "type": "array"
+    },
+    "excecoes": {
+      "items": {
+        "$ref": "#/$defs/Excecao"
+      },
+      "title": "Excecoes",
+      "type": "array"
+    },
+    "sinais_acordo": {
+      "$ref": "#/$defs/SinaisAcordo"
+    },
+    "antifraude": {
+      "$ref": "#/$defs/Antifraude"
+    },
+    "modelo_peca": {
+      "$ref": "#/$defs/ModeloPeca"
+    },
+    "criterios_revisao": {
+      "$ref": "#/$defs/CriteriosRevisao"
+    },
+    "metricas": {
+      "items": {
+        "$ref": "#/$defs/Metrica"
+      },
+      "minItems": 1,
+      "title": "Metricas",
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "metadata",
+    "gatilhos_classificacao",
+    "campos_dossie_obrigatorios",
+    "teses",
+    "sinais_acordo",
+    "antifraude",
+    "modelo_peca",
+    "criterios_revisao",
+    "metricas"
+  ],
+  "title": "Águia Peregrina — Playbook de teses (M0)",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aguia-peregrina.fbs.adv.br/schemas/playbook-1.0.json"
+}
