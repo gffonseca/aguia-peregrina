@@ -80,7 +80,9 @@ class TenantMiddleware(BaseHTTPMiddleware):
     exempt_paths = ("/health", "/docs", "/openapi.json", "/redoc", "/auth/login", "/auth/mfa")
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
-        if request.url.path in self.exempt_paths or request.url.path.startswith("/docs"):
+        if request.url.path in self.exempt_paths or request.url.path.startswith(
+            ("/docs", "/health/")
+        ):
             return await call_next(request)
         raw = request.headers.get(TENANT_HEADER)
         if raw is None and getattr(request.state, "user", None) is not None:
