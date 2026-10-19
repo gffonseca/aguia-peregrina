@@ -25,6 +25,8 @@ class Settings(BaseSettings):
     workflow_engine: Literal["in_process", "hatchet"] = "in_process"
     hatchet_client_token: str | None = None
 
+    # auto: usa LiteLLM se instalado; fake: respostas determinísticas (sem chaves); live: força LiteLLM
+    llm_mode: Literal["auto", "fake", "live"] = "auto"
     litellm_config: str = "litellm_config.yaml"
     llm_default_model: str = "claude-sonnet"
     llm_small_model: str = "claude-haiku"

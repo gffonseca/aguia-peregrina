@@ -55,7 +55,15 @@ def prompt_hash(messages: list[dict[str, Any]]) -> str:
 class LLMClient:
     def __init__(self, *, fake: bool | None = None) -> None:
         self.settings = get_settings()
-        self.fake = (not LITELLM_AVAILABLE) if fake is None else fake
+        if fake is None:
+            mode = self.settings.llm_mode
+            if mode == "fake":
+                fake = True
+            elif mode == "live":
+                fake = False
+            else:
+                fake = not LITELLM_AVAILABLE
+        self.fake = fake
 
     # ------------------------------------------------------------------ core
     def complete(
