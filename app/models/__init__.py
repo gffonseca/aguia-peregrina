@@ -1,0 +1,72 @@
+"""Importa todos os modelos para que `Base.metadata` fique completo (Alembic autogenerate)."""
+
+from app.models.audit import AuditLog
+from app.models.base import Base
+from app.models.credit import (
+    Cedente,
+    CollectionEvent,
+    Contract,
+    CreditAsset,
+    Portfolio,
+    PricingRun,
+)
+from app.models.jurimetria import JmAward, JmCollection, JmDuration, JmOutcome, JmReversal
+from app.models.litigation import (
+    Case,
+    CaseParty,
+    Client,
+    Document,
+    DocumentPage,
+    Dossier,
+    Draft,
+    DraftCitation,
+    ErpWriteback,
+    Extraction,
+    Filing,
+    FraudCheck,
+    GtTask,
+    LlmCall,
+    Outcome,
+    Publication,
+    Review,
+    Thesis,
+    ThesisVersion,
+)
+from app.models.tenant import Tenant, User
+
+__all__ = [
+    "AuditLog",
+    "Base",
+    "Case",
+    "CaseParty",
+    "Cedente",
+    "Client",
+    "CollectionEvent",
+    "Contract",
+    "CreditAsset",
+    "Document",
+    "DocumentPage",
+    "Dossier",
+    "Draft",
+    "DraftCitation",
+    "ErpWriteback",
+    "Extraction",
+    "Filing",
+    "FraudCheck",
+    "GtTask",
+    "JmAward",
+    "JmCollection",
+    "JmDuration",
+    "JmOutcome",
+    "JmReversal",
+    "LlmCall",
+    "Outcome",
+    "Portfolio",
+    "PricingRun",
+    "Publication",
+    "Review",
+    "Tenant",
+    "Thesis",
+    "ThesisVersion",
+    "User",
+]

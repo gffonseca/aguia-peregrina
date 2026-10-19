@@ -1,0 +1,78 @@
+# Gateway LiteLLM — Águia Peregrina
+#
+# Regras:
+#  * Todo tráfego de LLM passa por este catálogo (nomes lógicos, não nomes de vendor).
+#  * ZDR (zero data retention): só use chaves/contas com contrato enterprise ou
+#    configuração de "no training / zero retention". Documente a evidência em docs/DECISIONS.md.
+#    - Anthropic: contas API comerciais não treinam com dados; ZDR formal disponível em
+#      contratos enterprise — exigir por escrito antes de processar autos reais.
+#    - OpenAI: API não treina por padrão; ZDR mediante aprovação de conta enterprise.
+#  * Dados pessoais de autos só saem para modelos marcados com `zdr: true` em metadata.
+#  * Cada chamada é registrada em `llm_calls` (model, prompt_hash, tokens, latency, cost).
+
+model_list:
+  - model_name: claude-sonnet
+    litellm_params:
+      model: anthropic/claude-sonnet-4-5
+      api_key: os.environ/ANTHROPIC_API_KEY
+      max_tokens: 8192
+    model_info:
+      zdr: true
+      purpose: "dossiê, minuta, extração estruturada"
+
+  - model_name: claude-haiku
+    litellm_params:
+      model: anthropic/claude-haiku-4-5
+      api_key: os.environ/ANTHROPIC_API_KEY
+      max_tokens: 4096
+    model_info:
+      zdr: true
+      purpose: "classificação de páginas, resumo de publicações (M9), OCR por visão"
+
+  - model_name: claude-opus
+    litellm_params:
+      model: anthropic/claude-opus-4-1
+      api_key: os.environ/ANTHROPIC_API_KEY
+    model_info:
+      zdr: true
+      purpose: "revisão sênior simulada em evals (M11)"
+
+  - model_name: gpt-4o
+    litellm_params:
+      model: openai/gpt-4o
+      api_key: os.environ/OPENAI_API_KEY
+    model_info:
+      zdr: false   # mude para true somente após ZDR aprovado na conta
+      purpose: "segunda opinião em evals; não usar com autos até ZDR"
+
+  - model_name: gpt-4o-mini
+    litellm_params:
+      model: openai/gpt-4o-mini
+      api_key: os.environ/OPENAI_API_KEY
+    model_info:
+      zdr: false
+      purpose: "tarefas baratas sem dado pessoal"
+
+  - model_name: text-embedding
+    litellm_params:
+      model: openai/text-embedding-3-small
+      api_key: os.environ/OPENAI_API_KEY
+    model_info:
+      zdr: false
+      purpose: "embeddings pgvector de peças próprias (sem dados de terceiros até ZDR)"
+
+litellm_settings:
+  drop_params: true
+  num_retries: 2
+  request_timeout: 120
+  set_verbose: false
+  success_callback: []   # o log fica no app (tabela llm_calls), não em SaaS externo
+
+router_settings:
+  routing_strategy: simple-shuffle
+  fallbacks:
+    - claude-sonnet: ["claude-haiku"]
+    - claude-haiku: ["claude-sonnet"]
+
+general_settings:
+  master_key: os.environ/LITELLM_PROXY_KEY

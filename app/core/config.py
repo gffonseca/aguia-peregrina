@@ -1,0 +1,60 @@
+"""Configuração via variáveis de ambiente (pydantic-settings)."""
+
+from __future__ import annotations
+
+from functools import lru_cache
+from typing import Literal
+
+from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+
+    app_env: Literal["dev", "test", "staging", "prod"] = "dev"
+    app_name: str = "aguia-peregrina"
+    secret_key: str = Field(default="dev-only-change-me", min_length=8)
+    log_level: str = "INFO"
+
+    database_url: str = "sqlite:///./dev.db"
+    db_app_role: str = "aguia_app"
+
+    redis_url: str = "redis://localhost:6379/0"
+
+    workflow_engine: Literal["in_process", "hatchet"] = "in_process"
+    hatchet_client_token: str | None = None
+
+    litellm_config: str = "litellm_config.yaml"
+    llm_default_model: str = "claude-sonnet"
+    llm_small_model: str = "claude-haiku"
+    litellm_proxy_url: str | None = None
+    litellm_proxy_key: str | None = None
+    anthropic_api_key: str | None = None
+    openai_api_key: str | None = None
+
+    review_min_seconds_default: int = 600
+    review_min_seconds_contestacao: int = 900
+
+    publications_provider: Literal["comunica_pje", "solucionare"] = "comunica_pje"
+    solucionare_api_key: str | None = None
+    datajud_api_key: str | None = None
+
+    s3_endpoint: str | None = None
+    s3_bucket: str | None = None
+    s3_access_key: str | None = None
+    s3_secret_key: str | None = None
+
+    @property
+    def is_sqlite(self) -> bool:
+        return self.database_url.startswith("sqlite")
+
+    def review_min_seconds(self, draft_type: str) -> int:
+        if draft_type == "contestacao":
+            return self.review_min_seconds_contestacao
+        return self.review_min_seconds_default
+
+
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()
