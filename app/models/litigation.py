@@ -164,6 +164,10 @@ class Draft(TenantModel):
         String(20), default="generated"
     )  # generated|in_review|approved|rejected|exported
 
+    citations: Mapped[list[DraftCitation]] = relationship(
+        "DraftCitation", primaryjoin="Draft.id == DraftCitation.draft_id", viewonly=True
+    )
+
 
 class DraftCitation(TenantModel):
     __tablename__ = "draft_citations"
