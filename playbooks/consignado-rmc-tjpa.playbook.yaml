@@ -1,12 +1,15 @@
 # =============================================================================
 # Águia Peregrina — M0 Playbook — Consignado / RMC não reconhecido (defesa) — TJPA
 # =============================================================================
-# EM REVISÃO (sessão 1 em 2026-10-19 — decisões 1–16 aplicadas; ver metadata.revisoes
-# e a seção "Decisões da revisão" do .md). Nenhuma citação legal, número, prazo ou valor
-# aqui foi conferido por advogado — o levantamento com fonte está previsto para 2026-10-20. Todo item marcado "[A CONFERIR pelo advogado-dono]"
-# e `conferido: false` precisa ser validado (texto vigente, número do tema,
-# ementa, modulação, jurisprudência atual do TJPA) antes de o status virar
-# `aprovado`. O validador recusa `status: aprovado` enquanto houver pendência.
+# EM REVISÃO (sessão 1 em 2026-10-19: decisões 1–16; sessão 2 em 2026-10-20: referências
+# conferidas contra o levantamento de 19/10/2026 e teses T01/T05/T06.1/T08/T09 ajustadas —
+# ver metadata.revisoes e a seção "Decisões da revisão" do .md). Toda referência legal com
+# `conferido: true` traz na `nota` a fonte e a data da conferência (sessão 2). O status só
+# vira `aprovado` com aprovado_por_oab + aprovado_em; o validador recusa `aprovado` enquanto
+# houver referência legal ou assunto CNJ `conferido: false`.
+#
+# Jurisprudência do TJPA: o portal (https://jurisprudencia.tjpa.jus.br/) não expõe URL estável
+# por acórdão — conferir pelo nº CNJ na aba "Processo" (ou API buscar-por-numero-processo).
 #
 # Fonte da verdade: este YAML. A versão em prosa (consignado-rmc-tjpa.playbook.md)
 # é derivada e serve para leitura/comentário de quem não edita YAML.
@@ -24,8 +27,8 @@ metadata:
   tipo_peca_padrao: contestacao
   versao: 1
   supera_versao: null
-  autor_nome: "[A PREENCHER — advogado-dono da tipologia]"
-  autor_oab: "PA 00000"
+  autor_nome: "Gustavo Fonseca"
+  autor_oab: "PA 12724"
   criado_em: 2026-10-19T12:00:00-03:00
   status: em_revisao
   aprovado_por_nome: null
@@ -37,15 +40,21 @@ metadata:
     ou cartão benefício (RCC), pedindo declaração de inexistência do débito, devolução
     (em dobro) dos descontos e dano moral. Réu: instituição financeira regional cliente da FBS.
   observacoes: >-
-    Em revisão. Números de temas repetitivos, súmulas, artigos e faixas de valor continuam
-    placeholders (`conferido: false`); o levantamento com fonte será feito e validado na sessão
-    de 2026-10-20. Pendências abertas após a sessão 1: prazo prescricional (T05) e postura em
-    RMC (T06.1) aguardam levantamento de jurisprudência do TJPA (12 meses); faixas de acordo
-    são provisórias; disponibilidade de log/biometria/TED a confirmar com o cliente.
+    Em revisão (sessão 2 aplicada em 2026-10-20). Referências legais conferidas contra o
+    levantamento de 19/10/2026 (STJ, Planalto, CNJ e portal de jurisprudência do TJPA,
+    out/2025–out/2026). Pendências que restam: (i) Tema 929/STJ (REsp 1.963.770) reafirmado
+    em set/2026 sem modulação — acórdão pendente de publicação; o M9 (monitoramento de
+    publicações) deve acompanhar e disparar a revisão de T09; (ii) faixas de acordo seguem
+    provisórias até dados da carteira (90 dias de piloto); (iii) disponibilidade de
+    log/biometria/TED a confirmar com o cliente; (iv) classes CNJ (7 e 436) e metas das
+    métricas não foram objeto do levantamento.
   revisoes:
     - data: 2026-10-19
       por: "Gustavo Fonseca OAB/PA 12.724"
       resumo: "Sessão 1 de revisão: decisões 1–16"
+    - data: 2026-10-20
+      por: "Gustavo Fonseca OAB/PA 12.724"
+      resumo: "Sessão 2: referências validadas, T01/T05/T06.1/T08/T09 ajustados"
   piloto:
     cliente_piloto: null
     plano: >-
@@ -56,15 +65,20 @@ metadata:
 # -----------------------------------------------------------------------------
 # GATILHOS DE CLASSIFICAÇÃO (M1/M9)
 # -----------------------------------------------------------------------------
+# Códigos TPU conferidos em 20/10/2026 pelos metadados dos acórdãos do portal do TJPA
+# (facetas de assunto, out/2025–out/2026). Não existe assunto TPU específico para "RMC":
+# o TJPA autua cartão consignado como 9585/7772, 11806 ou 11811 — por isso a palavra-chave.
 gatilhos_classificacao:
   assuntos_cnj:
-    - { codigo: "11806", nome: "Empréstimo consignado [A CONFERIR pelo advogado-dono — código TPU]", conferido: false }
-    - { codigo: "7771", nome: "Indenização por dano moral — contratos bancários [A CONFERIR pelo advogado-dono]", conferido: false }
-    - { codigo: "7780", nome: "Cartão de crédito / RMC [A CONFERIR pelo advogado-dono]", conferido: false }
-    - { codigo: "10433", nome: "Inexistência de relação jurídica / débito [A CONFERIR pelo advogado-dono]", conferido: false }
+    - { codigo: "11806", nome: "Empréstimo consignado", conferido: true }
+    - { codigo: "9607", nome: "Contratos bancários", conferido: true }
+    - { codigo: "9585", nome: "Cartão de crédito (ramo Contratos bancários) — usado para RMC/RCC", conferido: true }
+    - { codigo: "7772", nome: "Cartão de crédito (ramo Contratos de consumo) — usado para RMC/RCC", conferido: true }
+    - { codigo: "10433", nome: "Indenização por dano moral", conferido: true }
+    - { codigo: "11811", nome: "Práticas abusivas", conferido: true }
   classes_cnj:
-    - { codigo: "7", nome: "Procedimento Comum Cível [A CONFERIR pelo advogado-dono]", conferido: false }
-    - { codigo: "436", nome: "Procedimento do Juizado Especial Cível [A CONFERIR pelo advogado-dono]", conferido: false }
+    - { codigo: "7", nome: "Procedimento Comum Cível [não coberto pelo levantamento de 19/10/2026 — conferir no SGT/CNJ]", conferido: false }
+    - { codigo: "436", nome: "Procedimento do Juizado Especial Cível [não coberto pelo levantamento de 19/10/2026 — conferir no SGT/CNJ]", conferido: false }
   palavras_chave:
     - "empréstimo consignado"
     - "consignado não contratado"
@@ -97,15 +111,16 @@ campos_dossie_obrigatorios:
   - { campo: valor_contrato, tipo: valor_monetario, origem: subsidio, descricao: "Valor liberado/limite do contrato", obrigatorio: true }
   - { campo: data_contrato, tipo: data, origem: subsidio, descricao: "Data da contratação", obrigatorio: true }
   - { campo: data_primeiro_desconto, tipo: data, origem: subsidio, descricao: "Primeira parcela descontada", obrigatorio: true }
+  - { campo: data_ultimo_desconto, tipo: data, origem: subsidio, descricao: "Último desconto efetivado (ou data-base, se os descontos continuam) — termo inicial do prazo do CDC 27 na linha dominante STJ/TJPA (trato sucessivo)", obrigatorio: false }
   - { campo: data_ajuizamento, tipo: data, origem: extracao, descricao: "Data de distribuição", obrigatorio: true }
-  - { campo: data_ciencia_inequivoca, tipo: data, origem: calculado, descricao: "Data presumida de ciência do desconto (= data_primeiro_desconto salvo prova diversa)", obrigatorio: true }
+  - { campo: data_ciencia_inequivoca, tipo: data, origem: calculado, descricao: "Data presumida de ciência do desconto (= data_primeiro_desconto salvo prova diversa) — usada só como argumento acessório em T05 (linha minoritária do STJ), não como termo da tese principal", obrigatorio: true }
   - { campo: autor_idade, tipo: numero, origem: extracao, descricao: "Idade do autor na data do ajuizamento", obrigatorio: false }
   - { campo: autor_beneficiario_inss, tipo: booleano, origem: extracao, descricao: "Autor é aposentado/pensionista do INSS", obrigatorio: true }
   - { campo: autor_nega_contratacao, tipo: booleano, origem: extracao, descricao: "Inicial nega totalmente a contratação (vs. alega vício de consentimento)", obrigatorio: true, bloqueia_minuta_se_ausente: true }
   - { campo: autor_alega_vicio_rmc, tipo: booleano, origem: extracao, descricao: "Autor diz que pensou contratar consignado e recebeu cartão RMC/RCC", obrigatorio: false }
   - { campo: autor_pede_gratuidade, tipo: booleano, origem: extracao, descricao: "Pedido de justiça gratuita", obrigatorio: true }
-  - { campo: renda_declarada_autor, tipo: valor_monetario, origem: extracao, descricao: "Renda mensal que consta dos autos (benefício/holerite)", obrigatorio: false }
-  - { campo: inicial_atende_requisitos_tema_1198, tipo: booleano, origem: extracao, descricao: "Inicial traz os documentos exigidos pelo precedente do STJ sobre emenda em ações de consignado [A CONFERIR pelo advogado-dono]", obrigatorio: true }
+  - { campo: renda_declarada_autor, tipo: valor_monetario, origem: extracao, descricao: "Renda mensal que consta dos autos (benefício/holerite) — gatilho interno de T01; não é argumento da peça", obrigatorio: false }
+  - { campo: inicial_atende_requisitos_tema_1198, tipo: booleano, origem: extracao, descricao: "Inicial traz procuração atualizada/com poderes específicos, comprovante de residência atual, extratos do período e individualização do contrato — elementos que o Tema 1.198/STJ autoriza o juiz a exigir em emenda quando há indícios de litigância abusiva", obrigatorio: true }
   - { campo: reclamacao_administrativa_previa, tipo: booleano, origem: subsidio, descricao: "Houve SAC/ouvidoria/consumidor.gov antes da ação", obrigatorio: false }
   # --- subsídios do cliente (M3) ---
   - { campo: contrato_localizado, tipo: booleano, origem: subsidio, descricao: "Cliente localizou o instrumento contratual", obrigatorio: true, bloqueia_minuta_se_ausente: true }
@@ -119,6 +134,7 @@ campos_dossie_obrigatorios:
   - { campo: ted_comprovante_localizado, tipo: booleano, origem: subsidio, descricao: "Comprovante de TED/PIX/ordem de pagamento juntável", obrigatorio: true, disponibilidade: "a confirmar com cliente" }
   - { campo: extratos_mostram_uso, tipo: booleano, origem: subsidio, descricao: "Extratos mostram saque/uso do valor creditado", obrigatorio: false }
   - { campo: rmc_houve_saque_ou_compra, tipo: booleano, origem: subsidio, descricao: "No RMC/RCC, houve saque autorizado ou compras no cartão", obrigatorio: false }
+  - { campo: rmc_tce_localizado, tipo: booleano, origem: subsidio, descricao: "No RMC/RCC: Termo de Consentimento Esclarecido (TCE) / termo de adesão com destaque do produto cartão, da reserva de margem e do CET, assinado pelo autor — pilar da validade do RMC no TJPA", obrigatorio: false }
   - { campo: descontos_parcelas_n, tipo: numero, origem: subsidio, descricao: "Nº de parcelas já descontadas", obrigatorio: true }
   - { campo: audio_sac_disponivel, tipo: booleano, origem: subsidio, descricao: "Há gravação de SAC/telemarketing com o autor", obrigatorio: false }
   - { campo: contratos_ativos_autor_n, tipo: numero, origem: subsidio, descricao: "Nº de contratos do autor com o cliente", obrigatorio: true }
@@ -132,6 +148,7 @@ campos_dossie_obrigatorios:
   - { campo: data_procuracao, tipo: data, origem: extracao, descricao: "Data da procuração juntada", obrigatorio: true }
   - { campo: comprovante_endereco_titular, tipo: texto, origem: extracao, descricao: "autor | terceiro | ausente", obrigatorio: true }
   - { campo: indicio_fraude_contra_autor, tipo: booleano, origem: calculado, descricao: "Sinais de que a fraude pode ter sido real (IP/geo incompatível, conta de terceiro, sem biometria)", obrigatorio: true }
+  - { campo: hipotese_afastamento_dano_moral, tipo: texto, origem: calculado, descricao: "contratacao_provada | inercia_prolongada | rmc_credito_recebido | nenhuma — única situação em que T08 (negação do dano) entra na peça; derivado de T06 aplicável com dossiê completo, de reclamacao_administrativa_previa/descontos_parcelas_n (inércia) ou de tipo_produto RMC + valor_creditado_conta_autor", obrigatorio: true }
 
 # -----------------------------------------------------------------------------
 # ÁRVORE DE TESES
@@ -144,63 +161,80 @@ teses:
     ordem: 1
     pai: null
     resumo: >-
-      O autor pede gratuidade mas há elementos nos autos (renda, contratos, padrão de consumo)
-      que afastam a presunção de hipossuficiência; requer-se intimação para comprovar.
+      O autor pede gratuidade, mas há elementos concretos nos autos (renda e patrimônio
+      documentados, extratos, padrão de contratação, veículos/imóveis) que afastam a presunção
+      relativa de hipossuficiência. A peça argumenta só com esses elementos e requer o
+      procedimento do art. 99, § 2º (intimação para comprovar), além de pesquisa patrimonial
+      (Infojud/Renajud). Decisão de 20/10/2026: nenhum critério objetivo de renda (3 SM ou
+      faixa de IR) é afirmado na peça — o TJPA veda critério fixo. O gatilho por renda abaixo
+      é interno, só para decidir se vale levantar a preliminar.
     condicoes_aplicacao:
       - { campo: autor_pede_gratuidade, operador: "==", valor: true }
-      - { campo: renda_declarada_autor, operador: ">", valor: 4554.0, nota: "~3 salários mínimos [A CONFERIR pelo advogado-dono — valor e critério local]" }
+      - { campo: renda_declarada_autor, operador: ">", valor: 4554.0, nota: "gatilho INTERNO (≈ 3 salários mínimos de 2025); decide apenas se a preliminar é levantada; a peça nunca cita esse limiar como critério — TJPA veda critério objetivo fixo (AI 0820042-02.2025.8.14.0000)" }
     provas_necessarias:
       - { tipo_documento: extrato_beneficio, descricao: "Histórico de créditos/HISCRE ou holerite", origem: extracao, obrigatoria: true, peso: 0.9 }
       - { tipo_documento: extrato_bancario, descricao: "Extratos com movimentação incompatível com hipossuficiência", origem: subsidio, obrigatoria: false, peso: 0.6 }
+      - { tipo_documento: contrato, descricao: "Outros contratos ativos do autor com o cliente (volume de crédito tomado)", origem: subsidio, obrigatoria: false, peso: 0.5 }
+      - { tipo_documento: pesquisa_patrimonial, descricao: "Infojud/Renajud/veículos/imóveis — requerida ao juízo (Rec. CNJ 159/2024, Anexo B, item 4) ou já constante dos autos", origem: publicacao, obrigatoria: false, peso: 0.8 }
     provas_que_afastam:
-      - { tipo_documento: declaracao_hipossuficiencia, descricao: "Renda ≤ limite usado pelo TJPA e ausência de outros sinais", origem: extracao, obrigatoria: false, peso: 0.8 }
+      - { tipo_documento: declaracao_hipossuficiencia, descricao: "Só há a declaração e a renda do benefício, sem nenhum outro elemento concreto nos autos (presunção do art. 99, § 3º prevalece)", origem: extracao, obrigatoria: false, peso: 0.8 }
     fundamentacao:
       dispositivos:
-        - { ref: "CPC, art. 98 a 100", tipo: dispositivo, para_que_serve: "presunção relativa e impugnação à gratuidade", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
-        - { ref: "CPC, art. 99, § 2º", tipo: dispositivo, para_que_serve: "juiz pode indeferir se houver elementos que evidenciem falta de pressupostos", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CPC, arts. 98 a 100", tipo: dispositivo, para_que_serve: "presunção relativa (art. 99, § 3º) e impugnação à gratuidade (art. 100)", conferido: true, nota: "Conferido 20/10/2026 — texto legal vigente (Lei 13.105/2015, Planalto)" }
+        - { ref: "CPC, art. 99, § 2º", tipo: dispositivo, para_que_serve: "indeferimento só após intimação para comprovar, quando houver nos autos elementos que evidenciem falta de pressupostos", conferido: true, nota: "Conferido 20/10/2026 — texto legal vigente; é o procedimento que o TJPA exige antes de indeferir (AI 0820042-02.2025.8.14.0000)" }
+        - { ref: "CPC, art. 98, § 6º", tipo: dispositivo, para_que_serve: "parcelamento das custas (pedido subsidiário)", conferido: true, nota: "Conferido 20/10/2026 — texto legal vigente" }
       precedentes:
-        - { ref: "STJ — critério de renda para gratuidade [tema/REsp A CONFERIR]", tipo: precedente, para_que_serve: "parâmetro objetivo de renda", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
-        - { ref: "TJPA — jurisprudência das Câmaras Cíveis sobre impugnação [A CONFERIR]", tipo: precedente, para_que_serve: "critério local", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "TJPA, AgInt no AI 0820042-02.2025.8.14.0000, 2ª Turma de Direito Público, Rel. Des. Mairton Marques Carneiro, j. 04/05/2026, publ. 12/05/2026", tipo: precedente, para_que_serve: "veda critérios objetivos fixos de renda para a gratuidade; exige análise individualizada e prévia observância do art. 99, § 2º — por isso a impugnação aponta elementos concretos e pede intimação, nunca um limiar de renda", conferido: true, nota: "Conferido 20/10/2026 — portal de jurisprudência do TJPA (buscar pelo nº CNJ)" }
+        - { ref: "TJPA, AI 0802127-03.2026.8.14.0000, 2ª Turma de Direito Público, Rel. Des. Mairton Marques Carneiro, j. 18/05/2026", tipo: precedente, para_que_serve: "risco — DIRPF com renda anual tributável de R$ 17.414,67 sem imposto a pagar, veículos em nome da parte e advogado particular não afastam a presunção; calibra o que conta como elemento concreto", conferido: true, nota: "Conferido 20/10/2026 — portal de jurisprudência do TJPA" }
+        - { ref: "CNJ, Recomendação nº 159, de 23/10/2024, Anexo B, item 4", tipo: norma_regulatoria, para_que_serve: "respalda o pedido de comprovação da situação socioeconômica por Infojud/Renajud", conferido: true, nota: "Conferido 20/10/2026 — https://atos.cnj.jus.br/atos/detalhar/5822 (texto integral: espelho TJAC, SEI 14934/2024)" }
       argumentos_chave:
-        - "A presunção do art. 99, § 3º, é relativa e cede diante de prova em contrário."
-        - "Renda e padrão de contratação do autor evidenciam capacidade de arcar com custas."
-        - "Pedido: intimação para comprovar hipossuficiência, sob pena de revogação."
+        - "A presunção do art. 99, § 3º, é relativa e cede diante de elementos concretos dos autos: renda documentada, extratos, volume de crédito contratado, patrimônio (veículos/imóveis)."
+        - "Não se invoca limiar de renda: pede-se a análise individualizada que o próprio TJPA exige, com intimação do autor para comprovar (art. 99, § 2º)."
+        - "Requer-se pesquisa patrimonial (Infojud/Renajud) nos termos da Rec. CNJ 159/2024, Anexo B, item 4."
     pedidos:
-      - "Revogação/indeferimento da gratuidade ou intimação do autor para comprová-la."
+      - "Intimação do autor para comprovar a hipossuficiência (CPC, art. 99, § 2º), com pesquisa Infojud/Renajud; revogação/indeferimento da gratuidade se não comprovada."
     pedidos_subsidiarios:
-      - "Parcelamento das custas (CPC, art. 98, § 6º) [A CONFERIR pelo advogado-dono]."
-    risco_se_mal_aplicada: "Impugnar gratuidade de aposentado com um salário mínimo irrita o juízo e enfraquece a credibilidade da defesa."
+      - "Parcelamento das custas (CPC, art. 98, § 6º)."
+    risco_se_mal_aplicada: "Impugnar gratuidade de aposentado com um salário mínimo, ou com base em limiar fixo de renda, contraria a orientação do TJPA (AI 0820042-02.2025.8.14.0000), irrita o juízo e enfraquece a credibilidade da defesa."
     ativa: true
 
   - id: T02
-    nome: "Emenda da inicial — requisitos do precedente do STJ para ações de consignado (Tema 1.198)"
+    nome: "Emenda da inicial — Tema 1.198/STJ (litigância abusiva) e requisitos do CPC"
     categoria: preliminar
     ordem: 2
     pai: null
     resumo: >-
-      A inicial não traz os documentos/requisitos mínimos fixados pelo STJ para ações que discutem
-      empréstimo consignado (procuração e comprovante de endereço atualizados, extratos do período,
-      indicação precisa do contrato etc.) — pede-se emenda, sob pena de indeferimento.
+      Há indícios de litigância abusiva (petição padronizada, procuração antiga ou genérica,
+      comprovante de residência ausente/de terceiro, múltiplas ações) e a inicial não traz os
+      elementos mínimos que o Tema 1.198/STJ autoriza o juiz a exigir, de modo fundamentado e
+      proporcional: procuração atualizada/com poderes específicos, comprovante de residência
+      atual, extratos do período e individualização do contrato. Pede-se emenda fundamentada
+      e proporcional — NUNCA cópia do contrato (o autor nega tê-lo firmado) e NÃO extinção
+      direta (o TJPA está dividido e anula extinções sem prévia oportunidade de emenda).
     condicoes_aplicacao:
       - { campo: inicial_atende_requisitos_tema_1198, operador: "==", valor: false }
     provas_necessarias:
       - { tipo_documento: peticao_inicial, descricao: "Inicial e anexos (para apontar o que falta)", origem: extracao, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: relatorio_antifraude, descricao: "Indícios de abuso (peticao_padronizada, procuracao_antiga, comprovante_endereco_terceiro, concentracao_advogado_mes) — o Tema 1.198 exige indícios para fundamentar a emenda", origem: antifraude, obrigatoria: true, peso: 0.9 }
     provas_que_afastam:
       - { tipo_documento: despacho, descricao: "Juízo já determinou emenda ou declarou a inicial apta", origem: publicacao, obrigatoria: false, peso: 1.0 }
     fundamentacao:
       dispositivos:
-        - { ref: "CPC, arts. 319, 320, 321 e 330", tipo: dispositivo, para_que_serve: "requisitos da inicial e emenda", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CPC, arts. 319, 320, 321 e 330", tipo: dispositivo, para_que_serve: "requisitos da inicial e emenda (art. 321: prazo de 15 dias com indicação precisa do que corrigir)", conferido: true, nota: "Conferido 20/10/2026 — texto legal vigente" }
       precedentes:
-        - { ref: "STJ, Tema repetitivo 1.198 (número e tese exata A CONFERIR)", tipo: tema, para_que_serve: "requisitos documentais mínimos nas ações sobre consignado; enfrentamento de litigância em massa", conferido: false, nota: "[A CONFERIR pelo advogado-dono — conferir número, tese firmada, modulação e se se aplica ao caso]" }
-        - { ref: "CNJ, Recomendação sobre litigância predatória (nº A CONFERIR)", tipo: norma_regulatoria, para_que_serve: "respaldo para exigências documentais", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "STJ, Tema repetitivo 1.198 — REsp 2.021.665/MS, Corte Especial, Rel. Min. Moura Ribeiro, j. 13/03/2025, publ. DJEN 11/06/2026", tipo: tema, para_que_serve: "tese: constatados indícios de litigância abusiva, o juiz pode exigir, de modo fundamentado e com razoabilidade, a emenda da inicial para demonstrar interesse de agir e autenticidade da postulação, respeitadas as regras do ônus da prova. Voto: exigir cópia do contrato é inadequado em declaratória de inexistência; extratos, comprovante de residência e procuração atualizada são exigíveis conforme o caso; não cabe exigir juntada das iniciais de outras ações", conferido: true, nota: "Conferido 20/10/2026 — acórdão: https://portal.trt3.jus.br/internet/jurisprudencia/stj-repetitivos/downloads/acordao-tema1198.pdf; origem IRDR 16/TJMS (ações de consignado em massa)" }
+        - { ref: "CNJ, Recomendação nº 159, de 23/10/2024 (Anexo A: condutas potencialmente abusivas — itens 5, 6, 11, 13; Anexo B: medidas — itens 2, 4, 8, 9, 14, 15)", tipo: norma_regulatoria, para_que_serve: "respaldo para exigências documentais proporcionais e para a oitiva do autor; é orientativa (TJPA 3ª T., Ap. 0808446-17.2024.8.14.0045)", conferido: true, nota: "Conferido 20/10/2026 — https://atos.cnj.jus.br/atos/detalhar/5822; 'comprovante de residência' não é citado nominalmente (ver itens A5, B9 e B14)" }
+        - { ref: "TJPA, Ap. 0800038-32.2026.8.14.0121, 1ª Turma de Direito Privado, Rel. Des. Alex Pinheiro Centeno, j. 15/06/2026 (e Ap. 0800044-39.2026.8.14.0121, j. 27/07/2026)", tipo: precedente, para_que_serve: "linha que admite a emenda fundada no Tema 1.198 e na Rec. CNJ 159 diante de múltiplas demandas, e mantém o indeferimento se descumprida", conferido: true, nota: "Conferido 20/10/2026 — portal de jurisprudência do TJPA" }
+        - { ref: "TJPA, Ap. 0802538-44.2025.8.14.0012, 3ª Turma de Direito Privado, Rel. Desa. Anete Marques Penna de Carvalho, j. 16/06/2026; Ap. 0800798-60.2025.8.14.0009, 2ª Turma de Direito Privado, Rel. Desa. Gleide Pereira de Moura, j. 05/05/2026", tipo: precedente, para_que_serve: "risco — indícios não autorizam indeferimento imediato sem emenda; exigências fora dos arts. 319/320 (procuração 'com validade', extratos) são vistas como formalismo; por isso o pedido é de emenda proporcional, não de extinção", conferido: true, nota: "Conferido 20/10/2026 — portal de jurisprudência do TJPA" }
       argumentos_chave:
-        - "A inicial é genérica e não individualiza o contrato impugnado nem junta os documentos exigidos pelo precedente vinculante."
-        - "A ausência inviabiliza o contraditório e a localização dos subsídios pelo réu."
+        - "Há indícios concretos de abuso (apontar os flags confirmados) e a inicial é genérica: não individualiza o contrato impugnado nem traz procuração atualizada e comprovante de residência atual."
+        - "O Tema 1.198/STJ autoriza o juízo a exigir, fundamentadamente e com proporcionalidade, a emenda para demonstrar interesse de agir e autenticidade da postulação."
+        - "Pedido proporcional: procuração atualizada com poderes específicos, comprovante de residência atual em nome do autor e ratificação pessoal da ação; não se pede cópia do contrato nem a juntada de outras iniciais."
     pedidos:
-      - "Intimação do autor para emendar a inicial, sob pena de indeferimento (CPC, art. 321)."
+      - "Intimação do autor para emendar a inicial (CPC, art. 321), de forma fundamentada e proporcional, juntando procuração atualizada com poderes específicos, comprovante de residência atual e ratificação pessoal da propositura."
     pedidos_subsidiarios:
       - "Suspensão do prazo de defesa até a emenda, se ainda cabível."
-    risco_se_mal_aplicada: "Se a inicial já atende aos requisitos, a preliminar soa protelatória."
+    risco_se_mal_aplicada: "Pedir extinção direta, cópia do contrato ou documentos sem relação com os indícios: a 2ª T. (Gleide Moura) e parte da 3ª T. (Filomena Buarque; Anete Penna) anulam por formalismo excessivo; se a inicial já atende aos requisitos, a preliminar soa protelatória."
     ativa: true
 
   - id: T03
@@ -217,8 +251,9 @@ teses:
       - { tipo_documento: peticao_inicial, descricao: "Contratos distintos (número/data/valor) comprovadamente diferentes", origem: extracao, obrigatoria: false, peso: 1.0 }
     fundamentacao:
       dispositivos:
-        - { ref: "CPC, art. 337, VI e VII, §§ 1º a 4º", tipo: dispositivo, para_que_serve: "litispendência e coisa julgada", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
-        - { ref: "CPC, art. 485, V", tipo: dispositivo, para_que_serve: "extinção sem mérito", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CPC, art. 337, VI e VII, §§ 1º a 4º", tipo: dispositivo, para_que_serve: "litispendência e coisa julgada", conferido: true, nota: "Conferido 20/10/2026 — texto legal vigente" }
+        - { ref: "CPC, art. 485, V", tipo: dispositivo, para_que_serve: "extinção sem mérito", conferido: true, nota: "Conferido 20/10/2026 — texto legal vigente" }
+        - { ref: "CPC, art. 55", tipo: dispositivo, para_que_serve: "conexão (pedido subsidiário)", conferido: true, nota: "Conferido 20/10/2026 — texto legal vigente" }
       precedentes: []
       argumentos_chave:
         - "Tríplice identidade demonstrada documentalmente."
@@ -243,7 +278,7 @@ teses:
     provas_que_afastam: []
     fundamentacao:
       dispositivos:
-        - { ref: "CPC, art. 337, VII e § 4º; art. 502 e 508", tipo: dispositivo, para_que_serve: "coisa julgada material e eficácia preclusiva", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CPC, art. 337, VII e § 4º; arts. 502 e 508", tipo: dispositivo, para_que_serve: "coisa julgada material e eficácia preclusiva", conferido: true, nota: "Conferido 20/10/2026 — texto legal vigente" }
       precedentes: []
       argumentos_chave:
         - "Questão já decidida com trânsito em julgado; vedada a rediscussão."
@@ -260,8 +295,10 @@ teses:
     pai: null
     resumo: >-
       O autor ajuizou ações separadas para cada contrato/desconto com a mesma causa de pedir remota,
-      multiplicando honorários e dano moral. Pede-se reunião por conexão, reconhecimento de abuso
-      e consideração do conjunto para fins de dano moral e sucumbência.
+      multiplicando honorários e dano moral. Pede-se reunião por conexão, emenda fundamentada e
+      proporcional (Tema 1.198) e consideração do conjunto para fins de dano moral e sucumbência.
+      Não se pede extinção direta nem cópia do contrato; o TJPA trata o fracionamento por contrato
+      como faculdade da parte (3ª T.) e o Tema 1.198 veda exigir a juntada das outras iniciais.
     condicoes_aplicacao:
       - { campo: acoes_mesmo_autor_mesmo_reu_n, operador: ">=", valor: 2 }
     provas_necessarias:
@@ -270,59 +307,75 @@ teses:
       - { tipo_documento: peticao_inicial, descricao: "Contratos com causas de pedir realmente distintas (datas/fatos diversos)", origem: extracao, obrigatoria: false, peso: 0.7 }
     fundamentacao:
       dispositivos:
-        - { ref: "CPC, arts. 55, 58 e 59", tipo: dispositivo, para_que_serve: "conexão e prevenção", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
-        - { ref: "CPC, arts. 5º, 6º, 77 e 80", tipo: dispositivo, para_que_serve: "boa-fé processual e litigância de má-fé", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CPC, arts. 55, 58 e 59", tipo: dispositivo, para_que_serve: "conexão e prevenção", conferido: true, nota: "Conferido 20/10/2026 — texto legal vigente" }
+        - { ref: "CPC, arts. 5º, 6º, 77 e 80", tipo: dispositivo, para_que_serve: "boa-fé processual e litigância de má-fé", conferido: true, nota: "Conferido 20/10/2026 — texto legal vigente" }
       precedentes:
-        - { ref: "STJ / TJPA — precedentes sobre fracionamento de demandas e abuso do direito de ação [A CONFERIR]", tipo: precedente, para_que_serve: "caracterização do fracionamento abusivo", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
-        - { ref: "CNJ — Recomendação sobre litigância predatória; nota técnica do Centro de Inteligência do TJPA [A CONFERIR]", tipo: norma_regulatoria, para_que_serve: "instrumentos de gestão do abuso", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "STJ, Tema repetitivo 1.198 — REsp 2.021.665/MS, Corte Especial, Rel. Min. Moura Ribeiro, j. 13/03/2025, publ. DJEN 11/06/2026", tipo: tema, para_que_serve: "base da emenda fundamentada quando há indícios de abuso; limite: não cabe exigir a juntada das iniciais de outras ações (litisconsórcio é faculdade)", conferido: true, nota: "Conferido 20/10/2026 — acórdão: https://portal.trt3.jus.br/internet/jurisprudencia/stj-repetitivos/downloads/acordao-tema1198.pdf" }
+        - { ref: "CNJ, Recomendação nº 159, de 23/10/2024 — Anexo A, item 6 (fracionamento) e Anexo B, item 8 (gestão contra o fracionamento)", tipo: norma_regulatoria, para_que_serve: "caracteriza o fracionamento como conduta potencialmente abusiva e indica medidas de gestão", conferido: true, nota: "Conferido 20/10/2026 — https://atos.cnj.jus.br/atos/detalhar/5822" }
+        - { ref: "TJPA, Cijepa — Nota Técnica 06/2022 (DJ 15/12/2022), que adere à NT 01/2022 do CIJMG; Painel de Monitoramento de Potenciais Anomalias Processuais do TJPA (citado em Ap. 0808445-32.2024.8.14.0045, 3ª T., Rel. Desa. Kátia Parente Sena, j. 08/09/2026)", tipo: norma_regulatoria, para_que_serve: "instrumentos institucionais de gestão do abuso no TJPA (painel, marcação no PJe, assunto 8865)", conferido: true, nota: "Conferido 20/10/2026 — NT 06/2022: https://portaltj-hml.tjrj.jus.br/documents/93577919/225363000/2.1_Anexo_Nota_Tecnica_06-2022-CI-TJPA.pdf; acórdão: portal do TJPA. No TJPA a ferramenta citada é o Painel; 'NUMOPEDE' é nome usado na nota mineira" }
+        - { ref: "TJPA, 2ª Turma Recursal Permanente, RI 0800686-51.2025.8.14.0087, Rel. Juiz Charles Menezes Barros, j. 16/06/2026", tipo: precedente, para_que_serve: "reconhece 'litigância fragmentada' e aplica multa por má-fé (mantendo a procedência) — mostra que o conjunto das ações pode pesar na sucumbência", conferido: true, nota: "Conferido 20/10/2026 — portal de jurisprudência do TJPA" }
+        - { ref: "TJPA, Ap. 0802538-44.2025.8.14.0012, 3ª Turma de Direito Privado, Rel. Desa. Anete Marques Penna de Carvalho, j. 16/06/2026", tipo: precedente, para_que_serve: "risco — discutir contratos distintos em ações separadas é faculdade da parte; indícios não autorizam indeferimento imediato sem emenda", conferido: true, nota: "Conferido 20/10/2026 — portal de jurisprudência do TJPA" }
       argumentos_chave:
         - "Um só fato gerador alegado (fraude no benefício) foi pulverizado em N ações."
-        - "O fracionamento multiplica custos, honorários e indenizações pelo mesmo suposto dano."
+        - "O fracionamento multiplica custos, honorários e indenizações pelo mesmo suposto dano; o conjunto deve ser considerado para dano moral único e sucumbência."
+        - "Pedido proporcional: reunião no juízo prevento e emenda nos termos do Tema 1.198 (procuração atualizada, comprovante de residência, ratificação) — sem pedir extinção direta nem cópia do contrato."
     pedidos:
-      - "Reunião dos feitos no juízo prevento; reconhecimento do fracionamento abusivo para fins de dano moral único e sucumbência."
+      - "Reunião dos feitos no juízo prevento; emenda fundamentada e proporcional (Tema 1.198); reconhecimento do fracionamento para fins de dano moral único e sucumbência."
     pedidos_subsidiarios:
       - "Fixação de dano moral, se houver, considerando o conjunto das ações."
-    risco_se_mal_aplicada: "Acusar fracionamento onde há contratos e fatos realmente distintos."
+    risco_se_mal_aplicada: "Acusar fracionamento onde há contratos e fatos realmente distintos; pedir extinção direta (TJPA dividido: mantêm 1ª T. e 3ª T./Kátia Sena; anulam 2ª T./Gleide Moura e 3ª T./Filomena Buarque e Anete Penna)."
     pendencia: null
     providencias_escalonadas:
-      - { nivel: a, descricao: "Padrão: pedido de reunião por conexão + depoimento pessoal + exibição de documentos (na própria peça).", autorizacao_dupla: false }
-      - { nivel: b, descricao: "Comunicação institucional do padrão de fracionamento ao Cijepa/NUMOPEDE do TJPA, sem imputar conduta a pessoa.", autorizacao_dupla: true }
+      - { nivel: a, descricao: "Padrão (na peça): reunião por conexão + emenda fundamentada e proporcional (procuração atualizada, comprovante de residência, ratificação pessoal) citando Painel de Anomalias do TJPA, Tema 1.198 e Rec. CNJ 159 + depoimento pessoal + exibição de documentos. Nunca cópia do contrato; não pedir extinção direta.", autorizacao_dupla: false }
+      - { nivel: b, descricao: "Comunicação institucional do padrão de fracionamento ao Cijepa/NUMOPEDE do TJPA (Painel de Monitoramento de Potenciais Anomalias Processuais), sem imputar conduta a pessoa.", autorizacao_dupla: true }
       - { nivel: c, descricao: "Representação à OAB-PA, só em casos extremos.", autorizacao_dupla: true }
     ativa: true
 
   # ---------------------------------------------------------------- PREJUDICIAL
   - id: T05
-    nome: "Prescrição da pretensão (e decadência, se o caso)"
+    nome: "Prescrição da pretensão — CDC, art. 27 (5 anos, trato sucessivo)"
     categoria: prejudicial
     ordem: 6
     pai: null
     resumo: >-
-      Entre a ciência inequívoca do desconto (primeira parcela) e o ajuizamento transcorreu prazo
-      superior ao prescricional aplicável. O prazo e o termo inicial (incluindo discussão sobre
-      trato sucessivo) devem ser definidos pelo advogado-dono.
+      Tese principal (decisão de 20/10/2026, alinhada à linha dominante do STJ e do TJPA): o prazo
+      é o quinquenal do CDC, art. 27, em relação de trato sucessivo, contado do último desconto —
+      prescrita a pretensão quando o último desconto é anterior a cinco anos do ajuizamento.
+      Tese subsidiária: prescrição das parcelas anteriores ao quinquênio contado retroativamente
+      do ajuizamento (prescrição "parcelar", maioria da 1ª e da 3ª Turmas). O termo inicial no
+      1º desconto (mútuo como obrigação única) fica apenas como argumento acessório, não como
+      tese. CC 205 e 206, § 3º, V, são citados só para registrar que ficam afastados; a peça não
+      sustenta prazo trienal nem decadência do CC 178 (sistematicamente rejeitados no TJPA).
     condicoes_aplicacao:
-      - { campo: data_ciencia_inequivoca, operador: existe }
+      - { campo: data_primeiro_desconto, operador: existe }
       - { campo: data_ajuizamento, operador: existe }
     provas_necessarias:
-      - { tipo_documento: extrato_beneficio, descricao: "HISCRE/extrato de consignações com a data do primeiro desconto", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: extrato_beneficio, descricao: "HISCRE/extrato de consignações com as datas do primeiro e do último desconto", origem: subsidio, obrigatoria: true, peso: 1.0 }
     provas_que_afastam:
       - { tipo_documento: reclamacao_administrativa, descricao: "Reclamação/SAC que interrompa ou demonstre ciência posterior", origem: subsidio, obrigatoria: false, peso: 0.6 }
+      - { tipo_documento: extrato_beneficio, descricao: "Descontos iniciados há menos de 5 anos do ajuizamento (nem a parcelar se aplica)", origem: subsidio, obrigatoria: false, peso: 1.0 }
     fundamentacao:
       dispositivos:
-        - { ref: "CDC, art. 27 (5 anos, fato do serviço) × CC, art. 206, § 3º, IV/V (3 anos) × CC, art. 205 (10 anos)", tipo: dispositivo, para_que_serve: "definir o prazo aplicável — divergência que o advogado-dono deve resolver para a tipologia", conferido: false, nota: "[A CONFERIR pelo advogado-dono — qual prazo o TJPA aplica a declaratória c/c repetição e dano moral em consignado]" }
-        - { ref: "CDC, art. 26", tipo: dispositivo, para_que_serve: "decadência para vício (se a inicial alegar vício do serviço)", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CDC, art. 27", tipo: dispositivo, para_que_serve: "prazo quinquenal da pretensão de reparação por fato do serviço, contado do conhecimento do dano e da autoria — prazo aplicável (tese principal)", conferido: true, nota: "Conferido 20/10/2026 — texto legal vigente, sem alteração pela Lei 14.905/2024 (Planalto, L8078 compilado)" }
+        - { ref: "CC, arts. 205 e 206, § 3º, V", tipo: dispositivo, para_que_serve: "AFASTADOS — registrar que o prazo decenal/trienal do CC não se aplica à relação de consumo (STJ e TJPA aplicam CDC 27); a peça não sustenta prazo trienal", conferido: true, nota: "Conferido 20/10/2026 — texto legal vigente (Planalto, L10406 compilada); TJPA rejeita sistematicamente a tese trienal e a decadência do CC 178 (levantamento B1)" }
+        - { ref: "CPC, art. 487, II", tipo: dispositivo, para_que_serve: "extinção com resolução de mérito pela prescrição", conferido: true, nota: "Conferido 20/10/2026 — texto legal vigente" }
       precedentes:
-        - { ref: "STJ — termo inicial em descontos sucessivos (trato sucessivo × ato único) [A CONFERIR]", tipo: precedente, para_que_serve: "termo inicial", conferido: false, nota: "[A CONFERIR pelo advogado-dono — risco: tese de trato sucessivo costuma afastar a prescrição total]" }
+        - { ref: "STJ, AgInt no AREsp 1.056.534/MS (4ª T., Rel. Min. Luis Felipe Salomão, DJe 03/05/2017); AgInt no AREsp 1.130.505/MS (3ª T., Rel. Min. Marco Aurélio Bellizze, DJe 13/11/2017); AgInt no AREsp 1.478.001/MS (3ª T., Rel. Min. Moura Ribeiro, DJe 21/08/2019); AgInt no AREsp 1.728.230/MS (3ª T., Rel. Min. Marco Aurélio Bellizze, DJe 15/03/2021)", tipo: precedente, para_que_serve: "linha dominante do STJ (sem repetitivo): prazo quinquenal do CDC 27 com termo inicial no último desconto/pagamento (trato sucessivo)", conferido: true, nota: "Conferido 20/10/2026 — fonte: Mazzola/Pinheiro, CNB-SP 27/01/2025 (https://cnbsp.org.br/2025/01/27/artigo-termo-inicial-da-prescricao-nas-acoes-de-consumo-sobre-contratos-de-mutuo-quitados-em-parcelas-por-marcelo-mazzola-e-rodrigo-pinheiro/); não há precedente vinculante" }
+        - { ref: "STJ, AgInt no REsp 1.791.165/RJ (4ª T., Rel. Min. Maria Isabel Gallotti, DJe 19/11/2019); AgInt no AREsp 2.439.042/MG (3ª T., Rel. Min. Moura Ribeiro, DJe 11/04/2024)", tipo: precedente, para_que_serve: "ARGUMENTO ACESSÓRIO (não é tese): linha minoritária que trata o mútuo como obrigação única, com termo inicial no 1º desconto", conferido: true, nota: "Conferido 20/10/2026 — mesma fonte (CNB-SP 27/01/2025); usar só como reforço, nunca como pedido autônomo" }
+        - { ref: "TJPA, EDcl na Ap. 0004156-73.2019.8.14.0107, 1ª Turma de Direito Privado, Rel. Desa. Antonieta Maria Ferrari Mileo, j. 23/02/2026", tipo: precedente, para_que_serve: "trato sucessivo; CDC 27; prescritas as parcelas anteriores aos 5 anos do ajuizamento (descontos 2010–2015); compensação em execução — tese subsidiária (parcelar)", conferido: true, nota: "Conferido 20/10/2026 — portal de jurisprudência do TJPA" }
+        - { ref: "TJPA, EDcl 0805230-14.2024.8.14.0024, 3ª Turma de Direito Privado, Rel. Desa. Maria Filomena de Almeida Buarque, j. 18/11/2025", tipo: precedente, para_que_serve: "CDC 27 incide parcela a parcela, sem atingir o fundo de direito; compensação devida (CC 170 e 368) — tese subsidiária (parcelar)", conferido: true, nota: "Conferido 20/10/2026 — portal de jurisprudência do TJPA" }
+        - { ref: "TJPA, AgInt na Ap. 0878013-80.2023.8.14.0301, 1ª Turma de Direito Privado, Rel. Desa. Antonieta Maria Ferrari Mileo, j. 02/02/2026; AgInt na Ap. 0800235-73.2024.8.14.0018, 3ª Turma de Direito Privado, Rel. Desa. Maria Filomena de Almeida Buarque, j. 03/03/2026", tipo: precedente, para_que_serve: "risco — prazo quinquenal contado do último desconto: enquanto os descontos persistem não há prescrição (afasta também a decadência do CC 178)", conferido: true, nota: "Conferido 20/10/2026 — portal de jurisprudência do TJPA" }
       argumentos_chave:
-        - "Termo inicial (tese principal): a ciência inequívoca ocorre com o primeiro desconto, visível no extrato do benefício — pretensão única, não renovada a cada parcela."
-        - "Termo inicial (tese subsidiária): se o juízo adotar trato sucessivo, prescrição das parcelas anteriores ao prazo contado retroativamente do ajuizamento."
-        - "O prazo (5, 3 ou 10 anos) será fixado após o levantamento da jurisprudência do TJPA; até lá a peça não afirma prazo."
+        - "Tese principal: prazo quinquenal do CDC, art. 27, em relação de trato sucessivo, contado do último desconto — se o último desconto é anterior a 5 anos do ajuizamento, a pretensão está prescrita."
+        - "Tese subsidiária: ainda que se conte parcela a parcela, estão prescritas as parcelas anteriores aos 5 anos que precedem o ajuizamento (prescrição parcelar — 1ª e 3ª Turmas do TJPA)."
+        - "Argumento acessório: o extrato do benefício torna o desconto visível desde a 1ª parcela; há linha do STJ que trata o mútuo como obrigação única (AgInt no REsp 1.791.165/RJ) — reforço, não pedido autônomo."
+        - "Registro: a peça não sustenta prazo trienal (CC 206, § 3º, V) nem decadência (CC 178), afastados pelo TJPA."
     pedidos:
-      - "Reconhecimento da prescrição e extinção com resolução de mérito (CPC, art. 487, II)."
+      - "Reconhecimento da prescrição quinquenal (CDC, art. 27) e extinção com resolução de mérito (CPC, art. 487, II), quando o último desconto for anterior a 5 anos do ajuizamento."
     pedidos_subsidiarios:
-      - "Prescrição parcial das parcelas anteriores ao prazo legal."
-    risco_se_mal_aplicada: "Em descontos de trato sucessivo o juízo pode considerar a pretensão renovada a cada parcela; a tese total raramente prospera sozinha."
-    pendencia: "prazo (CDC 27 × CC 206 §3º × CC 205) aguarda levantamento TJPA 12 meses"
+      - "Prescrição das parcelas anteriores ao quinquênio contado retroativamente do ajuizamento, com reflexo na repetição."
+    risco_se_mal_aplicada: "Parte da 1ª e da 3ª Turmas conta o prazo do último desconto: com descontos em curso não há prescrição alguma; a prejudicial total só prospera com descontos cessados há mais de 5 anos. Nenhuma decisão do TJPA (out/2025–out/2026) aplicou prazo trienal ou decadência em favor do banco."
+    pendencia: null
     ativa: true
 
   # ---------------------------------------------------------------- MÉRITO
@@ -334,14 +387,16 @@ teses:
     resumo: >-
       O contrato existe, foi celebrado pelo próprio autor por canal digital ou físico, com
       autenticação robusta (biometria facial, assinatura eletrônica, token, geolocalização,
-      IP/dispositivo) e trilha de auditoria. O réu desincumbe-se do ônus de provar a autenticidade.
+      IP/dispositivo) e trilha de auditoria. O réu desincumbe-se do ônus de provar a autenticidade
+      (Tema 1.061) com o dossiê digital completo, que no TJPA dispensa perícia; certificação
+      ICP-Brasil é desnecessária (MP 2.200-2, art. 10, § 2º; REsp 2.197.156/SP).
     condicoes_aplicacao:
       - { campo: contrato_localizado, operador: "==", valor: true }
       - { campo: contrato_assinatura_tipo, operador: in, valor: [biometria_facial, assinatura_digital_icp, assinatura_eletronica_simples, digital_telefone, fisica] }
     provas_necessarias:
       - { tipo_documento: contrato, descricao: "Instrumento contratual/termo de adesão com dados do autor", origem: subsidio, obrigatoria: true, peso: 1.0 }
-      - { tipo_documento: log_autenticacao, descricao: "Trilha de auditoria: IP, dispositivo, data/hora, hash da assinatura", origem: subsidio, obrigatoria: true, peso: 0.9 }
-      - { tipo_documento: biometria, descricao: "Selfie/biometria facial com documento e score", origem: subsidio, obrigatoria: false, peso: 0.9 }
+      - { tipo_documento: log_autenticacao, descricao: "Trilha de auditoria: IP, dispositivo, data/hora, hash/relatório da assinatura", origem: subsidio, obrigatoria: true, peso: 0.9 }
+      - { tipo_documento: biometria, descricao: "Selfie/biometria facial com prova de vida (liveness), documento e score", origem: subsidio, obrigatoria: false, peso: 0.9 }
       - { tipo_documento: geolocalizacao, descricao: "Lat/long no momento da contratação", origem: subsidio, obrigatoria: false, peso: 0.6 }
       - { tipo_documento: documento_identidade, descricao: "Cópia de RG/CNH apresentada na contratação", origem: subsidio, obrigatoria: false, peso: 0.6 }
       - { tipo_documento: audio_sac, descricao: "Gravação de confirmação/telemarketing com o autor", origem: subsidio, obrigatoria: false, peso: 0.7 }
@@ -350,69 +405,125 @@ teses:
       - { tipo_documento: log_autenticacao, descricao: "IP/geolocalização em outra UF ou incompatível com o autor", origem: subsidio, obrigatoria: false, peso: 1.0 }
       - { tipo_documento: boletim_ocorrencia, descricao: "BO de roubo/perda de documentos anterior à contratação", origem: extracao, obrigatoria: false, peso: 0.8 }
       - { tipo_documento: laudo_pericial, descricao: "Assinatura física impugnada sem possibilidade de perícia favorável", origem: extracao, obrigatoria: false, peso: 1.0 }
-      - { tipo_documento: contrato, descricao: "Contrato com dados divergentes (nome, CPF, endereço) ou ilegível", origem: subsidio, obrigatoria: false, peso: 0.9 }
+      - { tipo_documento: contrato, descricao: "Contrato com dados divergentes (nome, CPF, endereço) ou ilegível; ou apenas telas sistêmicas/BDN sem biometria, IP ou terminal", origem: subsidio, obrigatoria: false, peso: 0.9 }
     fundamentacao:
       dispositivos:
-        - { ref: "CC, arts. 104, 107 e 421-422", tipo: dispositivo, para_que_serve: "validade do negócio e liberdade de forma", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
-        - { ref: "MP 2.200-2/2001, art. 10, § 2º; Lei 14.063/2020", tipo: dispositivo, para_que_serve: "validade da assinatura eletrônica não ICP quando admitida pelas partes", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
-        - { ref: "Lei 10.820/2003 e regulamentação do INSS (IN sobre consignação) [A CONFERIR]", tipo: dispositivo, para_que_serve: "regime do consignado e exigências de contratação", conferido: false, nota: "[A CONFERIR pelo advogado-dono — conferir IN vigente e exigências de biometria/canal]" }
-        - { ref: "CPC, arts. 373, II, 411 e 429, II", tipo: dispositivo, para_que_serve: "ônus da prova e autenticidade de documento", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CC, arts. 104, 107 e 421-422", tipo: dispositivo, para_que_serve: "validade do negócio e liberdade de forma", conferido: true, nota: "Conferido 20/10/2026 — texto legal vigente" }
+        - { ref: "MP 2.200-2/2001, art. 10, § 2º; Lei 14.063/2020, art. 4º", tipo: dispositivo, para_que_serve: "validade de meio eletrônico de comprovação de autoria/integridade sem certificado ICP-Brasil, desde que admitido pelas partes; níveis de assinatura eletrônica (simples/avançada/qualificada) como parâmetro", conferido: true, nota: "Conferido 20/10/2026 — https://www.planalto.gov.br/ccivil_03/mpv/antigas_2001/2200-2.htm e https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2020/lei/L14063.htm. Ressalva: a Lei 14.063 rege interações com entes públicos (art. 1º) — citar como parâmetro analógico, não como regra direta do contrato privado" }
+        - { ref: "Lei 10.820/2003 (art. 6º, § 5º, red. Lei 14.601/2023: margem de 45% = 35% empréstimos + 5% cartão consignado/RMC + 5% cartão benefício/RCC); IN PRES/INSS 138/2022, alterada até a IN PRES/INSS 213, de 17/08/2026 (biometria com prova de vida)", tipo: dispositivo, para_que_serve: "regime do consignado e exigências regulamentares de contratação; as exigências de biometria/autorização expressa são recentes (2025–2026) e não retroagem a contratos anteriores", conferido: true, nota: "Conferido 20/10/2026 — https://www.planalto.gov.br/ccivil_03/leis/2003/l10.820.htm; MP 1.355/2026 (40%) perdeu a vigência em 31/08/2026 — margem voltou a 45%; IN 213/2026: DOU extra 19/08/2026 (texto oficial não lido — fonte COAD 20/08/2026). A Lei 14.509/2022 trata de servidores federais e NÃO altera o art. 6º da Lei 10.820 — não citar" }
+        - { ref: "CPC, arts. 370, 373, II, 411 e 429, II", tipo: dispositivo, para_que_serve: "ônus da prova, autenticidade de documento e indeferimento de perícia inútil (art. 370)", conferido: true, nota: "Conferido 20/10/2026 — texto legal vigente" }
       precedentes:
-        - { ref: "STJ, Súmula 297", tipo: sumula, para_que_serve: "CDC aplicável — reconhecer e enfrentar", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
-        - { ref: "STJ, Súmula 479", tipo: sumula, para_que_serve: "risco — fortuito interno em fraude de terceiro; usar para delimitar: só incide se houver fraude", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
-        - { ref: "STJ, Tema 1.061 (ônus da prova da autenticidade de assinatura impugnada)", tipo: tema, para_que_serve: "risco — cabe ao banco provar; por isso logs/biometria são essenciais", conferido: false, nota: "[A CONFERIR pelo advogado-dono — número e tese exata]" }
-        - { ref: "TJPA — acórdãos que admitem contratação por biometria/assinatura eletrônica [A CONFERIR]", tipo: precedente, para_que_serve: "jurisprudência local favorável", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "STJ, Súmula 297", tipo: sumula, para_que_serve: "CDC aplicável às instituições financeiras — reconhecer e enfrentar", conferido: true, nota: "Conferido 20/10/2026 — enunciado vigente (https://scon.stj.jus.br/SCON/sumstj/); citada em TJPA AgInt 0800235-73.2024.8.14.0018 (3ª T., 03/03/2026)" }
+        - { ref: "STJ, Súmula 479", tipo: sumula, para_que_serve: "risco — responsabilidade objetiva por fortuito interno em fraude de terceiro; usar para delimitar: só incide se houver fraude", conferido: true, nota: "Conferido 20/10/2026 — enunciado vigente; citada em TJPA Ap. 0801238-04.2021.8.14.0104 (2ª T., 03/02/2026)" }
+        - { ref: "STJ, Tema repetitivo 1.061 — REsp 1.846.649/MA, 2ª Seção, Rel. Min. Marco Aurélio Bellizze, j. 24/11/2021", tipo: tema, para_que_serve: "risco — impugnada a autenticidade da assinatura, cabe ao banco provar (CPC 6º, 369, 429, II); por isso logs/biometria são essenciais. O TJPA entende que o Tema não impõe perícia quando o dossiê digital é completo", conferido: true, nota: "Conferido 20/10/2026 — https://juris.damasio.com.br/temas/stj/1061; data de publicação diverge nas fontes (DJe 09/12/2021 × 07/02/2022) — citar sem data de publicação ou conferir no site do STJ" }
+        - { ref: "STJ, REsp 2.197.156/SP, 3ª Turma, Rel. Min. Nancy Andrighi, j. 03/03/2026 (Informativo 880)", tipo: precedente, para_que_serve: "consignado contratado digitalmente sem ICP-Brasil é válido; art. 10, § 2º, da MP 2.200-2 admite aceitação tácita de meios digitais (selfie, geolocalização, envio de documentos)", conferido: true, nota: "Conferido 20/10/2026 — ConJur 17/04/2026 (https://www.conjur.com.br/2026-abr-17/validade-dos-contratos-bancarios-digitais-sem-certificacao-icp-brasil/)" }
+        - { ref: "TJPA, Ap. 0802924-08.2024.8.14.0013, 3ª Turma de Direito Privado, Rel. Desa. Anete Marques Penna de Carvalho, j. 07/04/2026; Ap. 0804017-84.2025.8.14.0008, 1ª Turma de Direito Privado, Rel. Des. Alex Pinheiro Centeno, j. 14/09/2026; AgInt 0803239-24.2024.8.14.0017, 2ª Turma de Direito Privado, Rel. Desa. Luana de Nazareth A. H. Santalices, j. 02/06/2026; Ap. 0800212-94.2024.8.14.0029, 2ª Turma de Direito Privado, Rel. Des. Ricardo Ferreira Nunes, j. 30/06/2026", tipo: precedente, para_que_serve: "jurisprudência local dominante (1ª, 2ª e 3ª Turmas): biometria facial + geolocalização/IP/token + documentos + TED provam a contratação; dispensa de perícia não é cerceamento; 'Tema 1061 não implica imperiosidade da perícia'; ICP-Brasil desnecessário", conferido: true, nota: "Conferido 20/10/2026 — portal de jurisprudência do TJPA (buscar cada nº CNJ)" }
+        - { ref: "TJPA, Ap. 0800322-10.2025.8.14.0110, 3ª Turma de Direito Privado, Rel. Des. Vanderley de Oliveira Silva, j. 21/07/2026", tipo: precedente, para_que_serve: "biometria + prova de vida + TED; portabilidade posterior = ratificação tácita (CC 174) e venire contra factum proprium", conferido: true, nota: "Conferido 20/10/2026 — portal de jurisprudência do TJPA" }
+        - { ref: "TJPA, Ap. 0800274-05.2023.8.14.0051, 3ª Turma de Direito Privado, Rel. Desa. Kátia Parente Sena, j. 01/09/2026", tipo: precedente, para_que_serve: "risco — impugnação específica da assinatura/biometria + pedido de perícia na inicial + banco só com telas e comprovante de depósito = sentença anulada para perícia (Tema 1.061, art. 429, II). Exige dossiê completo, não telas", conferido: true, nota: "Conferido 20/10/2026 — portal de jurisprudência do TJPA" }
       argumentos_chave:
-        - "A trilha de auditoria (IP, dispositivo, data/hora, biometria, geolocalização) prova a autoria do autor."
-        - "O contrato observa as exigências regulatórias do consignado e foi averbado no benefício com anuência."
+        - "A trilha de auditoria (IP, dispositivo, data/hora, biometria com prova de vida, geolocalização, relatório de assinatura) prova a autoria do autor; a negativa genérica não a infirma."
+        - "O contrato observa as exigências regulatórias do consignado vigentes à época e foi averbado no benefício com anuência; exigências posteriores (biometria obrigatória, IN 213/2026) não retroagem."
+        - "Certificação ICP-Brasil é desnecessária (MP 2.200-2, art. 10, § 2º; REsp 2.197.156/SP); com dossiê digital completo, a perícia é dispensável (art. 370; Tema 1.061 não a impõe)."
         - "Inexiste defeito do serviço; a Súmula 479 pressupõe fraude, que não houve."
     pedidos:
       - "Improcedência dos pedidos declaratório, condenatório e indenizatório."
     pedidos_subsidiarios:
       - "Em caso de dúvida sobre a autenticidade, produção de prova pericial (grafotécnica ou técnica sobre os logs)."
-    risco_se_mal_aplicada: "Afirmar contratação válida sem log/biometria anexos viola a regra de citação e expõe o cliente à Súmula 479."
+    risco_se_mal_aplicada: "Afirmar contratação válida sem log/biometria anexos viola a regra de citação e expõe o cliente à Súmula 479; juntar só telas sistêmicas leva à anulação para perícia (Ap. 0800274-05.2023.8.14.0051)."
     ativa: true
 
   - id: T06.1
-    nome: "RMC/RCC — regularidade do cartão consignado e distinção do empréstimo"
+    nome: "RMC/RCC — validade do cartão consignado com TCE, CCB, biometria, faturas e TED"
     categoria: merito
     ordem: 8
     pai: T06
     resumo: >-
-      Quando o produto é cartão consignado com reserva de margem (RMC) ou cartão benefício (RCC),
-      a contratação específica desse produto foi informada e aceita; houve saque/compra; a
-      reserva de margem é legal. Enfrenta a tese de "achei que era empréstimo".
+      Regra condicional (decisão de 20/10/2026). Quando o produto é cartão consignado (RMC) ou
+      cartão benefício (RCC) E o cliente entrega TCE/termo de adesão com destaque do produto,
+      CCB, biometria/assinatura válida, faturas e TED ao autor, defende-se a validade do cartão:
+      o autor foi informado, aderiu e recebeu o crédito; a reserva de margem é legal e a
+      conversão em consignado comum é impossível (modalidades distintas). Se faltar TCE ou prova
+      da informação, esta tese não entra: a esteira vai para T06.1.1 (subsidiária) e sinaliza
+      acordo (X09).
     condicoes_aplicacao:
       - { campo: tipo_produto, operador: in, valor: [rmc, rcc, cartao_beneficio] }
       - { campo: contrato_localizado, operador: "==", valor: true }
+      - { campo: rmc_tce_localizado, operador: "==", valor: true }
+      - { campo: valor_creditado_conta_autor, operador: "==", valor: true }
     provas_necessarias:
-      - { tipo_documento: contrato, descricao: "Termo de adesão ao cartão com destaque para RMC/RCC e CET", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: contrato, descricao: "TCE/termo de adesão ao cartão com destaque de RMC/RCC, reserva de margem e CET, e CCB", origem: subsidio, obrigatoria: true, peso: 1.0 }
       - { tipo_documento: fatura_cartao, descricao: "Faturas e comprovante de saque autorizado/compras", origem: subsidio, obrigatoria: true, peso: 0.9 }
+      - { tipo_documento: comprovante_ted, descricao: "TED/crédito do saque em conta do autor", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: biometria, descricao: "Biometria facial/assinatura eletrônica válida na adesão", origem: subsidio, obrigatoria: false, peso: 0.8 }
       - { tipo_documento: autorizacao_inss, descricao: "Autorização de reserva de margem no benefício", origem: subsidio, obrigatoria: false, peso: 0.6 }
     provas_que_afastam:
       - { tipo_documento: fatura_cartao, descricao: "Nenhum uso do cartão além do saque inicial; descontos perpétuos sem amortização", origem: subsidio, obrigatoria: false, peso: 0.9 }
-      - { tipo_documento: contrato, descricao: "Termo sem destaque informativo do produto RMC (dever de informação)", origem: subsidio, obrigatoria: false, peso: 0.9 }
+      - { tipo_documento: contrato, descricao: "Termo sem destaque informativo do produto RMC (dever de informação) — a biometria prova a assinatura, não a informação (TJPA 3ª T.)", origem: subsidio, obrigatoria: false, peso: 0.9 }
     fundamentacao:
       dispositivos:
-        - { ref: "Lei 10.820/2003, art. 6º, § 5º (RMC) e legislação do cartão benefício [A CONFERIR]", tipo: dispositivo, para_que_serve: "legalidade da reserva de margem", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
-        - { ref: "CDC, arts. 6º, III, 31 e 46", tipo: dispositivo, para_que_serve: "dever de informação — enfrentar", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "Lei 10.820/2003, art. 6º, § 5º (red. Lei 14.601/2023): 5% da margem para cartão de crédito consignado (RMC) e 5% para cartão consignado de benefício (RCC)", tipo: dispositivo, para_que_serve: "legalidade da reserva de margem para os dois cartões", conferido: true, nota: "Conferido 20/10/2026 — https://www.planalto.gov.br/ccivil_03/leis/2003/l10.820.htm (45% = 35 + 5 + 5; MP 1.355/2026 caducou em 31/08/2026)" }
+        - { ref: "CDC, arts. 6º, III, 31 e 46", tipo: dispositivo, para_que_serve: "dever de informação — enfrentar: o TCE assinado com destaque do produto cumpre a informação", conferido: true, nota: "Conferido 20/10/2026 — texto legal vigente (Planalto, L8078 compilado)" }
       precedentes:
-        - { ref: "TJPA — orientação sobre RMC (validade × conversão em consignado comum) [A CONFERIR]", tipo: precedente, para_que_serve: "saber se o tribunal converte RMC em empréstimo e com que taxa", conferido: false, nota: "[A CONFERIR pelo advogado-dono — risco alto: muitos tribunais convertem]" }
+        - { ref: "TJPA, Ap. 0803213-13.2025.8.14.0107, 1ª Turma de Direito Privado, Rel. Des. Alex Pinheiro Centeno, j. 28/09/2026", tipo: precedente, para_que_serve: "termo de adesão, TCE, CCB, biometria facial, faturas e TED provam contratação informada do RMC; improcedência mantida", conferido: true, nota: "Conferido 20/10/2026 — portal de jurisprudência do TJPA (acórdão cita IN INSS 28/2008 e 39/2009)" }
+        - { ref: "TJPA, Ap. 0813629-20.2024.8.14.0028, 3ª Turma de Direito Privado, Rel. Des. Alvaro José Norat de Vasconcelos, j. 01/09/2026", tipo: precedente, para_que_serve: "contrato identifica expressamente o RMC e o crédito (R$ 1.076) está provado: conversão impossível (modalidades distintas); improcedência", conferido: true, nota: "Conferido 20/10/2026 — portal de jurisprudência do TJPA" }
+        - { ref: "TJPA, Ap. 0902391-37.2022.8.14.0301, 3ª Turma de Direito Privado, Rel. Des. João Batista Lopes do Nascimento, j. 30/06/2026; Ap. 0800675-50.2025.8.14.0110, 3ª Turma de Direito Privado, Rel. Desa. Anete Marques Penna de Carvalho, j. 14/07/2026", tipo: precedente, para_que_serve: "risco — biometria/formalização eletrônica não supre o dever de informação sobre o RMC; sem TCE a 3ª T. converte", conferido: true, nota: "Conferido 20/10/2026 — portal de jurisprudência do TJPA" }
       argumentos_chave:
-        - "O autor aderiu expressamente ao cartão, sacou e/ou usou o limite; a informação foi clara."
-        - "A reserva de margem é prevista em lei e autorizada no benefício."
+        - "O autor aderiu expressamente ao cartão (TCE/CCB com destaque do produto e do CET), sacou/usou o limite e recebeu o crédito por TED em conta própria; a informação foi clara."
+        - "A reserva de margem é prevista em lei (Lei 10.820/2003, art. 6º, § 5º) e autorizada no benefício."
+        - "Cartão consignado e empréstimo consignado são modalidades distintas: não cabe conversão (Ap. 0813629-20.2024.8.14.0028)."
     pedidos:
       - "Improcedência; manutenção do contrato de cartão consignado."
     pedidos_subsidiarios:
-      - "Se convertido em empréstimo consignado comum, aplicação da taxa média de mercado da época e compensação dos valores pagos, sem repetição em dobro."
-    risco_se_mal_aplicada: "Em casos sem uso do cartão o TJPA tende a reconhecer vício de informação; avaliar acordo."
-    pendencia: "postura em RMC/RCC (conversão em consignado comum, taxa aplicável, repetição em dobro) aguarda levantamento TJPA 12 meses; estrutura mantida"
+      - "Se ainda assim convertido, aplicação da taxa média de mercado do BACEN da época, repetição simples e compensação dos valores creditados (ver T06.1.1)."
+    risco_se_mal_aplicada: "Defender validade do RMC sem TCE/prova da informação: a 1ª e a 2ª Turmas convertem com repetição em dobro e dano moral de R$ 3.000; a esteira deve ir para T06.1.1 + acordo."
+    pendencia: null
+    ativa: true
+
+  - id: T06.1.1
+    nome: "RMC/RCC sem TCE ou sem prova da informação — subsidiária: conversão à taxa média BACEN, repetição simples, compensação (e sinal de acordo)"
+    categoria: subsidiaria
+    ordem: 9
+    pai: T06.1
+    resumo: >-
+      Ramo subsidiário da regra condicional de T06.1 (decisão de 20/10/2026). Quando falta o TCE
+      ou a prova da informação clara sobre o produto cartão, o TJPA (dominante nas Turmas de
+      Direito Privado) reconhece erro substancial/falha informacional e converte o contrato em
+      empréstimo consignado comum à taxa média de mercado do BACEN. A defesa então pede, em
+      caráter subsidiário, a conversão (conservação do negócio, CC 170) com taxa média BACEN,
+      repetição simples do excedente e compensação dos valores creditados — e a esteira sinaliza
+      acordo (X09). Atenção: a 2ª Turma Recursal rejeita a conversão (nulidade sem conversão).
+    condicoes_aplicacao:
+      - { campo: tipo_produto, operador: in, valor: [rmc, rcc, cartao_beneficio] }
+      - { campo: rmc_tce_localizado, operador: "==", valor: false }
+    provas_necessarias:
+      - { tipo_documento: comprovante_ted, descricao: "TED/crédito do saque em conta do autor (base da compensação)", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: fatura_cartao, descricao: "Faturas e histórico de descontos (base do recálculo)", origem: subsidio, obrigatoria: true, peso: 0.8 }
+    provas_que_afastam:
+      - { tipo_documento: comprovante_ted, descricao: "Crédito em conta de terceiro ou sem comprovante idôneo (nada a compensar; X02/X07)", origem: subsidio, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CC, arts. 138, 139, 170 e 368", tipo: dispositivo, para_que_serve: "erro substancial (que o TJPA reconhece) e conservação/conversão do negócio com compensação — fundamentos que a defesa usa para limitar os efeitos", conferido: true, nota: "Conferido 20/10/2026 — texto legal vigente; são os artigos citados nos acórdãos do TJPA (EDcl 0805230-14.2024.8.14.0024)" }
+        - { ref: "CDC, art. 42, parágrafo único", tipo: dispositivo, para_que_serve: "repetição em dobro só sem engano justificável — sustentar repetição simples", conferido: true, nota: "Conferido 20/10/2026 — texto legal vigente" }
+      precedentes:
+        - { ref: "TJPA, AgInt 0812585-97.2023.8.14.0028, j. 02/02/2026, e AgInt 0800567-41.2023.8.14.0029, j. 09/02/2026, ambos da 1ª Turma de Direito Privado, Rel. Desa. Antonieta Maria Ferrari Mileo", tipo: precedente, para_que_serve: "conversão com a taxa média de mercado divulgada pelo Banco Central; risco: repetição em dobro e dano moral de R$ 3.000", conferido: true, nota: "Conferido 20/10/2026 — portal de jurisprudência do TJPA" }
+        - { ref: "TJPA, AgInt 0814170-87.2023.8.14.0028, 2ª Turma de Direito Privado, Rel. Desa. Luana de Nazareth A. H. Santalices, j. 24/03/2026; AgInt 0800235-73.2024.8.14.0018, 3ª Turma de Direito Privado, Rel. Desa. Maria Filomena de Almeida Buarque, j. 03/03/2026; Ap. 0902391-37.2022.8.14.0301, 3ª Turma de Direito Privado, Rel. Des. João Batista Lopes do Nascimento, j. 30/06/2026", tipo: precedente, para_que_serve: "conversão com restituição SIMPLES do excesso e compensação — precedentes favoráveis ao pedido subsidiário", conferido: true, nota: "Conferido 20/10/2026 — portal de jurisprudência do TJPA" }
+        - { ref: "TJPA, 2ª Turma Recursal Permanente, RI 0800613-16.2024.8.14.0087, Rel. Juiz Charles Menezes Barros, j. 28/11/2025", tipo: precedente, para_que_serve: "risco — nos Juizados a 2ª TR rejeita a conversão (nulidade do RCC sem conversão, dobro, compensação); nos JEC o subsidiário deve focar em compensação e repetição simples", conferido: true, nota: "Conferido 20/10/2026 — portal de jurisprudência do TJPA" }
+      argumentos_chave:
+        - "Se reconhecido o vício de informação, a solução é a conservação do negócio (CC 170): conversão em empréstimo consignado comum à taxa média de mercado do BACEN da época."
+        - "Repetição simples do excedente (engano justificável; CDC 42, p. ú.), com compensação integral dos valores efetivamente creditados ao autor (CC 368 e 884)."
+        - "Dano moral indevido quando o crédito foi recebido e usado (Ap. 0800054-39.2024.8.14.0029) — ver T08."
+    pedidos:
+      - "Subsidiariamente à validade do cartão: conversão em consignado comum à taxa média BACEN, repetição simples do excedente e compensação dos valores creditados."
+    pedidos_subsidiarios:
+      - "Nos Juizados (2ª TR): compensação dos valores creditados e repetição simples, ainda que sem conversão."
+    risco_se_mal_aplicada: "Pedir conversão como tese principal (confessa o vício) ou sem comprovante de crédito (nada a compensar)."
+    pendencia: null
     ativa: true
 
   - id: T07
     nome: "Recebimento e utilização dos valores pelo autor (TED/PIX em conta própria e extratos)"
     categoria: merito
-    ordem: 9
+    ordem: 10
     pai: null
     resumo: >-
       O valor do contrato foi creditado em conta de titularidade do autor e utilizado, o que é
@@ -422,18 +533,19 @@ teses:
       - { campo: valor_creditado_conta_autor, operador: "==", valor: true }
       - { campo: conta_credito_titularidade, operador: "==", valor: autor }
     provas_necessarias:
-      - { tipo_documento: comprovante_ted, descricao: "Comprovante de TED/PIX/ordem de pagamento com agência/conta do autor", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: comprovante_ted, descricao: "Comprovante de TED/PIX/ordem de pagamento com agência/conta do autor, vinculado ao contrato", origem: subsidio, obrigatoria: true, peso: 1.0 }
       - { tipo_documento: extrato_bancario, descricao: "Extrato da conta do autor mostrando crédito e saques/uso", origem: subsidio, obrigatoria: false, peso: 0.9 }
       - { tipo_documento: extrato_beneficio, descricao: "Histórico de descontos sem contestação por N meses", origem: subsidio, obrigatoria: false, peso: 0.5 }
     provas_que_afastam:
-      - { tipo_documento: comprovante_ted, descricao: "Crédito em conta de terceiro ou conta aberta na mesma data da contratação", origem: subsidio, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: comprovante_ted, descricao: "Crédito em conta de terceiro ou conta aberta na mesma data da contratação; ou mera alegação de depósito/telas sem comprovante idôneo", origem: subsidio, obrigatoria: false, peso: 1.0 }
       - { tipo_documento: extrato_bancario, descricao: "Saque integral imediato em praça distante do domicílio", origem: subsidio, obrigatoria: false, peso: 0.8 }
     fundamentacao:
       dispositivos:
-        - { ref: "CC, arts. 884 a 886", tipo: dispositivo, para_que_serve: "enriquecimento sem causa", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
-        - { ref: "CC, art. 187 e art. 422 (venire contra factum proprium)", tipo: dispositivo, para_que_serve: "comportamento contraditório", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CC, arts. 884 a 886", tipo: dispositivo, para_que_serve: "enriquecimento sem causa", conferido: true, nota: "Conferido 20/10/2026 — texto legal vigente" }
+        - { ref: "CC, arts. 174, 187 e 422 (venire contra factum proprium)", tipo: dispositivo, para_que_serve: "comportamento contraditório e ratificação tácita", conferido: true, nota: "Conferido 20/10/2026 — texto legal vigente" }
       precedentes:
-        - { ref: "STJ / TJPA — improcedência quando comprovado crédito em conta do autor [A CONFERIR]", tipo: precedente, para_que_serve: "efeito probatório da TED", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "TJPA, Ap. 0802924-08.2024.8.14.0013, 3ª Turma de Direito Privado, Rel. Desa. Anete Marques Penna de Carvalho, j. 07/04/2026; Ap. 0800322-10.2025.8.14.0110, 3ª Turma de Direito Privado, Rel. Des. Vanderley de Oliveira Silva, j. 21/07/2026", tipo: precedente, para_que_serve: "biometria + TED em conta do autor = contratação válida; uso posterior (portabilidade) = ratificação tácita e venire", conferido: true, nota: "Conferido 20/10/2026 — portal de jurisprudência do TJPA" }
+        - { ref: "TJPA, 1ª Turma Recursal Permanente, RI 0806610-27.2024.8.14.0039, Rel. Juiz Lucio Barreto Guerreiro, j. 25/11/2025; 2ª Turma Recursal Permanente, RI 0801592-89.2022.8.14.0008, Rel. Juíza Monica Maués Naif Daibes, j. 03/03/2026", tipo: precedente, para_que_serve: "risco/efeito probatório — só o crédito provado por TED vinculado ao contrato é considerado; outros TEDs sem vínculo e mera alegação de depósito não bastam", conferido: true, nota: "Conferido 20/10/2026 — portal de jurisprudência do TJPA" }
       argumentos_chave:
         - "O crédito na conta do autor, seguido de uso, demonstra ciência e proveito do contrato."
         - "Os descontos ocorreram por N meses sem qualquer reclamação administrativa."
@@ -445,83 +557,141 @@ teses:
     ativa: true
 
   - id: T08
-    nome: "Ausência de dano moral — mero aborrecimento / ausência de prova do abalo"
+    nome: "Ausência de dano moral — só nas hipóteses de afastamento reconhecidas pelo TJPA"
     categoria: merito
-    ordem: 10
+    ordem: 11
     pai: null
     resumo: >-
-      Ainda que se reconheça algum desconto indevido, não há dano moral in re ipsa em desconto de
-      pequena monta prontamente reparável; ausência de prova de abalo extraordinário.
+      Decisão de 20/10/2026: o TJPA presume o dano moral (in re ipsa, verba alimentar) em desconto
+      indevido de benefício, inclusive em RMC por falha informacional. A negação do dano só entra
+      na peça nas três hipóteses em que o próprio TJPA o afasta: (1) contratação provada (T06 com
+      dossiê completo); (2) inércia prolongada do consumidor; (3) RMC com crédito recebido. Fora
+      delas, não se nega o dano — vai-se direto ao quantum (T08.1). Nunca argumentar "mero
+      aborrecimento" em benefício mínimo comprometido.
     condicoes_aplicacao:
       - { campo: valor_dano_moral_pedido, operador: ">", valor: 0 }
+      - { campo: hipotese_afastamento_dano_moral, operador: in, valor: [contratacao_provada, inercia_prolongada, rmc_credito_recebido] }
     provas_necessarias:
-      - { tipo_documento: extrato_beneficio, descricao: "Proporção do desconto frente ao benefício", origem: subsidio, obrigatoria: true, peso: 0.7 }
+      - { tipo_documento: comprovante_ted, descricao: "Prova do crédito recebido (hipóteses 1 e 3)", origem: subsidio, obrigatoria: false, peso: 0.9 }
+      - { tipo_documento: extrato_beneficio, descricao: "Tempo decorrido entre o 1º desconto e a primeira reclamação/ajuizamento (hipótese 2 — inércia)", origem: subsidio, obrigatoria: false, peso: 0.8 }
+      - { tipo_documento: log_autenticacao, descricao: "Dossiê de autenticação completo (hipótese 1)", origem: subsidio, obrigatoria: false, peso: 0.9 }
     provas_que_afastam:
-      - { tipo_documento: reclamacao_administrativa, descricao: "Reclamação prévia ignorada pelo réu por longo período", origem: subsidio, obrigatoria: false, peso: 0.8 }
+      - { tipo_documento: reclamacao_administrativa, descricao: "Reclamação prévia tempestiva ignorada pelo réu (afasta a inércia)", origem: subsidio, obrigatoria: false, peso: 0.8 }
       - { tipo_documento: extrato_beneficio, descricao: "Desconto que comprometeu parcela relevante de benefício de um salário mínimo (mínimo existencial)", origem: subsidio, obrigatoria: false, peso: 0.9 }
     fundamentacao:
       dispositivos:
-        - { ref: "CC, arts. 186, 927 e 944", tipo: dispositivo, para_que_serve: "pressupostos da responsabilidade e proporcionalidade", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CC, arts. 186, 927 e 944", tipo: dispositivo, para_que_serve: "pressupostos da responsabilidade e proporcionalidade", conferido: true, nota: "Conferido 20/10/2026 — texto legal vigente" }
       precedentes:
-        - { ref: "STJ — dano moral não presumido em desconto indevido de baixo valor × TJPA — orientação local (in re ipsa em consignado de aposentado?) [A CONFERIR]", tipo: precedente, para_que_serve: "saber se o TJPA presume o dano nesta tipologia", conferido: false, nota: "[A CONFERIR pelo advogado-dono — risco: há tribunais que presumem]" }
-        - { ref: "TJPA — faixa usual de dano moral em consignado não reconhecido por comarca [A CONFERIR]", tipo: precedente, para_que_serve: "quantum subsidiário", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "TJPA, Ap. 0800054-39.2024.8.14.0029, 3ª Turma de Direito Privado, Rel. Des. João Batista Lopes do Nascimento, j. 14/04/2026", tipo: precedente, para_que_serve: "hipótese 3 — RMC nulo, mas sem dano moral porque o crédito foi recebido", conferido: true, nota: "Conferido 20/10/2026 — portal de jurisprudência do TJPA" }
+        - { ref: "TJPA, 1ª Turma Recursal Permanente, RI 0806610-27.2024.8.14.0039, Rel. Juiz Lucio Barreto Guerreiro, j. 25/11/2025", tipo: precedente, para_que_serve: "hipótese 2 — afasta o dano moral pela inércia prolongada da consumidora (mantida a nulidade e a compensação)", conferido: true, nota: "Conferido 20/10/2026 — portal de jurisprudência do TJPA" }
+        - { ref: "TJPA, Ap. 0802924-08.2024.8.14.0013, 3ª Turma de Direito Privado, Rel. Desa. Anete Marques Penna de Carvalho, j. 07/04/2026", tipo: precedente, para_que_serve: "hipótese 1 — contratação provada por biometria + geolocalização + TED: improcedência integral", conferido: true, nota: "Conferido 20/10/2026 — portal de jurisprudência do TJPA" }
+        - { ref: "TJPA, Ap. 0803062-39.2025.8.14.0045, 3ª Turma de Direito Privado, Rel. Desa. Maria Filomena de Almeida Buarque, j. 31/03/2026 (desconto de R$ 79 em pensão; R$ 5.000 mantidos, in re ipsa)", tipo: precedente, para_que_serve: "risco — fora das três hipóteses o TJPA presume o dano mesmo em desconto pequeno; não negar o dano nesses casos", conferido: true, nota: "Conferido 20/10/2026 — portal de jurisprudência do TJPA" }
       argumentos_chave:
-        - "Ausência de prova de repercussão concreta; mero dissabor."
-        - "Subsidiariamente, quantum moderado, proporcional ao valor descontado e à duração."
+        - "Hipótese 1: provada a contratação pelo próprio autor, não há ato ilícito nem dano."
+        - "Hipótese 2: o autor conviveu com os descontos por N meses/anos sem qualquer reclamação administrativa; a inércia prolongada afasta o abalo alegado."
+        - "Hipótese 3: no RMC com crédito recebido e utilizado, eventual falha informacional não gera dano moral (Ap. 0800054-39.2024.8.14.0029)."
     pedidos:
       - "Improcedência do pedido de dano moral."
     pedidos_subsidiarios:
-      - "Fixação em patamar moderado (faixa do TJPA [A CONFERIR]); juros e correção pelo índice legal vigente a partir do arbitramento (Súmula 362 STJ [A CONFERIR])."
-    risco_se_mal_aplicada: "Chamar de 'mero aborrecimento' desconto que consome parte relevante de benefício mínimo de idoso soa insensível e piora o quantum."
-    pendencia: null  # estratégia confirmada em 2026-10-19: negação do dano + subsidiário quantum moderado
+      - "Quantum nos termos de T08.1."
+    risco_se_mal_aplicada: "Negar o dano fora das três hipóteses contraria a jurisprudência dominante (in re ipsa) e piora o quantum; chamar de 'mero aborrecimento' desconto que consome parte de benefício mínimo de idoso soa insensível."
+    pendencia: null
+    ativa: true
+
+  - id: T08.1
+    nome: "Quantum do dano moral — parâmetro R$ 3.000 (faixa TJPA R$ 3–5 mil) e Tema 1.435/STJ"
+    categoria: subsidiaria
+    ordem: 12
+    pai: T08
+    resumo: >-
+      Sempre que houver pedido de dano moral: quantum moderado e proporcional, com parâmetro
+      R$ 3.000 (moda das 1ª e 3ª Turmas, Belém e interior), faixa observada no TJPA de R$ 3.000 a
+      R$ 5.000 (mínimo R$ 1.000 na 2ª T.; Turmas Recursais até R$ 8.000). Registrar a afetação do
+      Tema 1.435/STJ (dano moral in re ipsa em desconto indevido de benefício) — a suspensão alcança
+      só REsp/AREsp: NÃO pedir sobrestamento no 1º grau; usar na fase recursal. Juros e correção do
+      arbitramento (Súmula 362). Quando T08 se aplica, T08.1 é subsidiária; fora das hipóteses de
+      T08, é a única linha sobre dano moral.
+    condicoes_aplicacao:
+      - { campo: valor_dano_moral_pedido, operador: ">", valor: 0 }
+    provas_necessarias:
+      - { tipo_documento: extrato_beneficio, descricao: "Proporção do desconto frente ao benefício e duração", origem: subsidio, obrigatoria: true, peso: 0.7 }
+    provas_que_afastam: []
+    fundamentacao:
+      dispositivos:
+        - { ref: "CC, art. 944", tipo: dispositivo, para_que_serve: "indenização medida pela extensão do dano (proporcionalidade)", conferido: true, nota: "Conferido 20/10/2026 — texto legal vigente" }
+      precedentes:
+        - { ref: "TJPA, AgInt 0878013-80.2023.8.14.0301, 1ª Turma de Direito Privado, Rel. Desa. Antonieta Maria Ferrari Mileo, j. 02/02/2026 (Belém, R$ 3.000); AgInt 0800132-68.2025.8.14.0103, 3ª Turma de Direito Privado, Rel. Desa. Maria Filomena de Almeida Buarque, j. 07/04/2026 (interior, R$ 3.000); Ap. 0801423-06.2022.8.14.0040, 3ª Turma de Direito Privado, Rel. Desa. Anete Marques Penna de Carvalho, j. 07/04/2026 (Parauapebas, reduz para R$ 3.000)", tipo: precedente, para_que_serve: "parâmetro de R$ 3.000 — moda do TJPA em consignado/RMC, sem diferença sistemática Belém × interior", conferido: true, nota: "Conferido 20/10/2026 — portal de jurisprudência do TJPA (levantamento B3, 14 acórdãos out/2025–out/2026)" }
+        - { ref: "TJPA, Ap. 0000049-74.2014.8.14.0005, 2ª Turma de Direito Privado, Rel. Des. Ricardo Ferreira Nunes, j. 15/09/2026 (reduz de R$ 10.000 para R$ 5.000); Ap. 0800987-68.2023.8.14.0054, 3ª Turma de Direito Privado, Rel. Desa. Maria Filomena de Almeida Buarque, j. 23/06/2026 (R$ 5.000; negada majoração a R$ 10.000); Ap. 0801768-31.2023.8.14.0009, 2ª Turma de Direito Privado, Rel. Desa. Gleide Pereira de Moura, j. 02/12/2025 (R$ 1.000, método bifásico)", tipo: precedente, para_que_serve: "teto usual de R$ 5.000 (o TJPA reduz valores de R$ 10.000) e piso de R$ 1.000 — balizas para pedir redução", conferido: true, nota: "Conferido 20/10/2026 — portal de jurisprudência do TJPA" }
+        - { ref: "STJ, Tema repetitivo 1.435 — REsp 2.219.864/MG (e REsp 2.232.327/SC, 2.232.320/SC, 2.219.822/MG), Rel. Min. Maria Isabel Gallotti, afetação comunicada em 18/05/2026", tipo: tema, para_que_serve: "questão afetada: se há dano moral presumido (in re ipsa) em descontos indevidos em benefício previdenciário; suspensão só de REsp/AREsp (2º grau e STJ) — NÃO pedir sobrestamento no 1º grau; registrar a controvérsia e usar na fase recursal", conferido: true, nota: "Conferido 20/10/2026 — decisão de afetação: https://www.trf3.jus.br/documentos/nuge/DR/STJ/2026/Decisa_o-Tema_-1435-STJ.pdf; o TJPA ainda não cita o Tema nas ementas da amostra" }
+        - { ref: "STJ, Súmula 362", tipo: sumula, para_que_serve: "correção monetária do dano moral desde o arbitramento", conferido: true, nota: "Conferido 20/10/2026 — enunciado vigente (https://scon.stj.jus.br/SCON/sumstj/)" }
+      argumentos_chave:
+        - "Quantum moderado e proporcional ao valor descontado e à duração: parâmetro de R$ 3.000, conforme a jurisprudência dominante do TJPA (1ª e 3ª Turmas), que reduz arbitramentos de R$ 10.000 para R$ 5.000."
+        - "A própria existência do dano presumido está afetada no Tema 1.435/STJ — registrar para fins recursais (sem pedido de sobrestamento no 1º grau)."
+        - "Correção monetária desde o arbitramento (Súmula 362) e juros pelo índice legal vigente."
+    pedidos:
+      - "Fixação do dano moral, se devido, em patamar moderado (parâmetro R$ 3.000; faixa do TJPA R$ 3.000–5.000), com correção desde o arbitramento (Súmula 362)."
+    pedidos_subsidiarios:
+      - "Redução de qualquer arbitramento superior a R$ 5.000; em sede recursal, sobrestamento pelo Tema 1.435/STJ (REsp/AREsp)."
+    risco_se_mal_aplicada: "Pedir sobrestamento no 1º grau com base no Tema 1.435 (a suspensão não alcança) ou sugerir valor abaixo do piso observado soa protelatório."
+    pendencia: null
     ativa: true
 
   # ---------------------------------------------------------------- SUBSIDIÁRIAS
   - id: T09
     nome: "Compensação / devolução dos valores creditados e repetição simples (não em dobro)"
     categoria: subsidiaria
-    ordem: 11
+    ordem: 13
     pai: null
     resumo: >-
       Se declarado inexistente o contrato, o valor disponibilizado ao autor deve ser compensado/
-      restituído ao réu; a repetição das parcelas, se devida, é simples, por ausência de má-fé
-      (observada a modulação do STJ sobre o art. 42 do CDC).
+      restituído ao réu (o TJPA determina a compensação de forma praticamente uniforme, desde que
+      o crédito esteja provado por TED idôneo); a repetição das parcelas, se devida, é simples, por
+      engano justificável — e, enquanto o TJPA aplicar a modulação do EAREsp 676.608/RS, limitada
+      ao período posterior a 30/03/2021. A modulação é mantida como argumento sob monitoramento
+      (Tema 929 — ver pendência).
     condicoes_aplicacao:
       - { campo: valor_creditado_conta_autor, operador: "==", valor: true }
     provas_necessarias:
-      - { tipo_documento: comprovante_ted, descricao: "Prova do crédito e do valor líquido", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: comprovante_ted, descricao: "Prova do crédito e do valor líquido, vinculada ao contrato", origem: subsidio, obrigatoria: true, peso: 1.0 }
       - { tipo_documento: extrato_beneficio, descricao: "Total já descontado", origem: subsidio, obrigatoria: true, peso: 0.8 }
     provas_que_afastam:
-      - { tipo_documento: comprovante_ted, descricao: "Crédito em conta de terceiro (não há o que compensar do autor)", origem: subsidio, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: comprovante_ted, descricao: "Crédito em conta de terceiro, ou sem comprovante idôneo (não há o que compensar)", origem: subsidio, obrigatoria: false, peso: 1.0 }
     fundamentacao:
       dispositivos:
-        - { ref: "CC, arts. 368 a 380 e 884", tipo: dispositivo, para_que_serve: "compensação e enriquecimento sem causa", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
-        - { ref: "CDC, art. 42, parágrafo único", tipo: dispositivo, para_que_serve: "repetição em dobro só sem engano justificável", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CC, arts. 170, 368 a 380 e 884", tipo: dispositivo, para_que_serve: "conservação do negócio, compensação e enriquecimento sem causa", conferido: true, nota: "Conferido 20/10/2026 — texto legal vigente; artigos citados pelo TJPA (EDcl 0805230-14.2024.8.14.0024)" }
+        - { ref: "CDC, art. 42, parágrafo único", tipo: dispositivo, para_que_serve: "repetição em dobro só sem engano justificável", conferido: true, nota: "Conferido 20/10/2026 — texto legal vigente" }
       precedentes:
-        - { ref: "STJ, EAREsp 676.608 (modulação: dobro independe de má-fé para cobranças após 30/03/2021) [A CONFERIR]", tipo: precedente, para_que_serve: "delimitar quando cabe o dobro — risco para contratos posteriores à modulação", conferido: false, nota: "[A CONFERIR pelo advogado-dono — número, data da modulação e aplicação a consignado]" }
+        - { ref: "STJ, EAREsp 676.608/RS, Corte Especial, Rel. Min. Og Fernandes, j. 21/10/2020, DJe 30/03/2021", tipo: precedente, para_que_serve: "dobro independe de má-fé (basta conduta contrária à boa-fé objetiva); modulação: para contratos de consumo sem serviço público, só cobranças posteriores à publicação (30/03/2021) — delimita quando cabe o dobro", conferido: true, nota: "Conferido 20/10/2026 — 30/03/2021 é a data de PUBLICAÇÃO (DJe), não do julgamento. ALERTA: Tema 929 (REsp 1.963.770/CE, Rel. Min. Humberto Martins) reafirmado pela Corte Especial na sessão virtual de 08–15/09/2026 SEM modulação — fonte secundária (JusDocs 02/10/2026), acórdão pendente de publicação; ver pendencia" }
+        - { ref: "TJPA, AgInt 0800672-18.2023.8.14.0029, 1ª Turma de Direito Privado, Rel. Desa. Antonieta Maria Ferrari Mileo, j. 03/11/2025", tipo: precedente, para_que_serve: "o TJPA ainda aplica a modulação do EAREsp 676.608/RS ('restituição simples e em dobro conforme modulação do STJ')", conferido: true, nota: "Conferido 20/10/2026 — portal de jurisprudência do TJPA" }
+        - { ref: "TJPA, EDcl na Ap. 0004156-73.2019.8.14.0107, 1ª Turma de Direito Privado, j. 23/02/2026; AgInt 0815385-04.2022.8.14.0006, 2ª Turma de Direito Privado, Rel. Desa. Luana de Nazareth A. H. Santalices, j. 10/03/2026; EDcl 0805230-14.2024.8.14.0024, 3ª Turma de Direito Privado, j. 18/11/2025; 1ª Turma Recursal Permanente, RI 0800328-57.2025.8.14.0032, Rel. Juíza Silvia Mara Bentes de Souza Costa, j. 25/05/2026", tipo: precedente, para_que_serve: "compensação dos valores efetivamente creditados (em regra em liquidação/execução) — linha dominante e praticamente uniforme no TJPA", conferido: true, nota: "Conferido 20/10/2026 — portal de jurisprudência do TJPA (levantamento B6)" }
+        - { ref: "TJPA, 1ª Turma Recursal Permanente, RI 0806610-27.2024.8.14.0039, j. 25/11/2025; 2ª Turma Recursal Permanente, RI 0801592-89.2022.8.14.0008, j. 03/03/2026", tipo: precedente, para_que_serve: "risco — sem TED/comprovante idôneo vinculado ao contrato o TJPA nega a compensação", conferido: true, nota: "Conferido 20/10/2026 — portal de jurisprudência do TJPA" }
       argumentos_chave:
-        - "Vedado o enriquecimento sem causa: o autor não pode ficar com o valor creditado e receber as parcelas."
-        - "Ausência de má-fé/engano justificável afasta a dobra; subsidiariamente, dobra limitada ao período pós-modulação."
+        - "Vedado o enriquecimento sem causa: o autor não pode ficar com o valor creditado e receber as parcelas; compensação dos valores efetivamente creditados (comprovados por TED nominal)."
+        - "Engano justificável afasta a dobra (CDC 42, p. ú.); subsidiariamente, dobra limitada ao período posterior a 30/03/2021 (modulação do EAREsp 676.608/RS, que o TJPA ainda aplica)."
     pedidos:
       - "Compensação do valor creditado com eventual condenação; repetição simples."
     pedidos_subsidiarios:
-      - "Se dobra for reconhecida, limitação ao período admitido pela modulação do STJ."
-    risco_se_mal_aplicada: "Pedir compensação sem prova de crédito ao autor."
+      - "Se a dobra for reconhecida, limitação às cobranças posteriores a 30/03/2021 (modulação do EAREsp 676.608/RS)."
+    risco_se_mal_aplicada: "Pedir compensação sem prova de crédito ao autor; insistir na modulação depois que o acórdão do Tema 929 for publicado sem ela."
+    pendencia: "Tema 929 (REsp 1.963.770) reafirmado em set/2026 sem modulação — acórdão pendente; revisar ao publicar. M9 (monitoramento) deve acompanhar a publicação e abrir revisão de T09 (argumento da modulação e pedido subsidiário)."
     ativa: true
 
   # ---------------------------------------------------------------- SINAL (não é argumento autônomo)
   - id: T10
     nome: "Sinais de litigância predatória — providências processuais"
     categoria: sinal
-    ordem: 12
+    ordem: 14
     pai: null
     resumo: >-
-      Não é uma tese de mérito; é uma escalada de providências em três níveis — (a) padrão:
-      depoimento pessoal + exibição de documentos, na peça; (b) comunicação institucional do
-      padrão ao Cijepa/NUMOPEDE do TJPA; (c) representação à OAB-PA em casos extremos. O nível (a)
-      só entra na peça se o advogado-revisor confirmar os flags do M4; (b) e (c) exigem dupla
-      autorização por escrito (sócio FBS + jurídico do cliente) registrada na plataforma. Jamais
-      rotular o autor ou o advogado como fraudador.
+      Não é uma tese de mérito; é uma escalada de providências em três níveis — (a) padrão, na
+      peça: emenda fundamentada e proporcional (procuração atualizada, comprovante de residência,
+      ratificação pessoal) citando o Painel de Monitoramento de Potenciais Anomalias Processuais
+      do TJPA, o Tema 1.198 e a Rec. CNJ 159, mais depoimento pessoal e exibição de documentos;
+      (b) comunicação institucional do padrão ao Cijepa/NUMOPEDE do TJPA; (c) representação à
+      OAB-PA em casos extremos. NUNCA pedir cópia do contrato; NÃO pedir extinção direta (TJPA
+      dividido). O nível (a) só entra na peça se o advogado-revisor confirmar os flags do M4;
+      (b) e (c) exigem dupla autorização por escrito (sócio FBS + jurídico do cliente) registrada
+      na plataforma. Jamais rotular o autor ou o advogado como fraudador.
     condicoes_aplicacao:
       - { campo: acoes_mesmo_advogado_mes_n, operador: ">=", valor: 10, nota: "nível 'atencao' da checagem concentracao_advogado_mes (≥ 10/mês); 'forte' é ≥ 30/mês — ver antifraude" }
     provas_necessarias:
@@ -530,20 +700,24 @@ teses:
       - { tipo_documento: relatorio_antifraude, descricao: "Flags não confirmados por advogado com OAB", origem: antifraude, obrigatoria: false, peso: 1.0 }
     fundamentacao:
       dispositivos:
-        - { ref: "CPC, arts. 77, 80, 139, III e 385", tipo: dispositivo, para_que_serve: "poderes do juiz, boa-fé, depoimento pessoal", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CPC, arts. 77, 80, 139, III, 321 e 385", tipo: dispositivo, para_que_serve: "poderes do juiz, boa-fé, emenda e depoimento pessoal", conferido: true, nota: "Conferido 20/10/2026 — texto legal vigente" }
       precedentes:
-        - { ref: "CNJ — Recomendação sobre litigância predatória; TJPA — Centro de Inteligência/NUMOPEDE [A CONFERIR]", tipo: norma_regulatoria, para_que_serve: "canal institucional para comunicar padrões", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "STJ, Tema repetitivo 1.198 — REsp 2.021.665/MS, Corte Especial, Rel. Min. Moura Ribeiro, j. 13/03/2025, publ. DJEN 11/06/2026", tipo: tema, para_que_serve: "autoriza a emenda fundamentada e proporcional diante de indícios de litigância abusiva; veda exigir cópia do contrato em declaratória de inexistência", conferido: true, nota: "Conferido 20/10/2026 — acórdão: https://portal.trt3.jus.br/internet/jurisprudencia/stj-repetitivos/downloads/acordao-tema1198.pdf" }
+        - { ref: "CNJ, Recomendação nº 159, de 23/10/2024 (Anexos A e B)", tipo: norma_regulatoria, para_que_serve: "catálogo de condutas potencialmente abusivas e de medidas (oitiva do autor — B2; renovação de documentos — B9; divergência de endereço — B14)", conferido: true, nota: "Conferido 20/10/2026 — https://atos.cnj.jus.br/atos/detalhar/5822" }
+        - { ref: "TJPA, Cijepa — Nota Técnica 06/2022 (DJ 15/12/2022); Painel de Monitoramento de Potenciais Anomalias Processuais do TJPA", tipo: norma_regulatoria, para_que_serve: "canal institucional para comunicar padrões (nível b) e ferramenta citada pelos acórdãos do TJPA", conferido: true, nota: "Conferido 20/10/2026 — https://portaltj-hml.tjrj.jus.br/documents/93577919/225363000/2.1_Anexo_Nota_Tecnica_06-2022-CI-TJPA.pdf (espelho TJRJ; o site do TJPA não respondeu)" }
+        - { ref: "TJPA, Ap. 0808445-32.2024.8.14.0045 e Ap. 0804916-89.2024.8.14.0017, 3ª Turma de Direito Privado, Rel. Desa. Kátia Parente Sena, j. 08/09/2026; Ap. 0800038-32.2026.8.14.0121, 1ª Turma de Direito Privado, Rel. Des. Alex Pinheiro Centeno, j. 15/06/2026", tipo: precedente, para_que_serve: "linha que admite emenda com comparecimento pessoal, comprovante de residência, CPF, declaração de próprio punho e ratificação da procuração, com apoio no Painel de Anomalias, no Tema 1.198 e na Rec. CNJ 159", conferido: true, nota: "Conferido 20/10/2026 — portal de jurisprudência do TJPA" }
+        - { ref: "TJPA, Ap. 0800798-60.2025.8.14.0009, 2ª Turma de Direito Privado, Rel. Desa. Gleide Pereira de Moura, j. 05/05/2026; Ap. 0800040-02.2026.8.14.0121, 3ª Turma de Direito Privado, Rel. Desa. Anete Marques Penna de Carvalho, j. 04/08/2026; Ap. 0808446-17.2024.8.14.0045, 3ª Turma de Direito Privado, Rel. Desa. Maria Filomena de Almeida Buarque, j. 24/02/2026", tipo: precedente, para_que_serve: "risco — linha que anula extinções por formalismo: extratos/CNIS são prova, não pressuposto; procuração 'com validade' não tem respaldo; Rec. 159 é orientativa; Tema 1.198 exige fundamentação individualizada", conferido: true, nota: "Conferido 20/10/2026 — portal de jurisprudência do TJPA" }
       argumentos_chave:
-        - "Nível (a): requerer depoimento pessoal do autor para confirmar ciência da ação e da procuração."
-        - "Nível (a): requerer exibição de comprovante de residência atual, documento com foto e extratos."
+        - "Nível (a): emenda fundamentada e proporcional — procuração atualizada com poderes específicos, comprovante de residência atual e ratificação pessoal da ação — com base no Painel de Anomalias do TJPA, no Tema 1.198 e na Rec. CNJ 159; sem pedir cópia do contrato nem extinção direta."
+        - "Nível (a): requerer depoimento pessoal do autor para confirmar ciência da ação e da procuração, e exibição de documento com foto e extratos."
         - "Nível (b), fora da peça: comunicar o padrão ao Cijepa/NUMOPEDE do TJPA sem imputar conduta a pessoa determinada — só com dupla autorização."
     pedidos:
-      - "Depoimento pessoal do autor sob pena de confissão; exibição de documentos; demais providências que o juízo entender cabíveis."
+      - "Emenda fundamentada e proporcional (CPC, art. 321; Tema 1.198); depoimento pessoal do autor sob pena de confissão; exibição de documentos; demais providências que o juízo entender cabíveis."
     pedidos_subsidiarios: []
-    risco_se_mal_aplicada: "Acusação de má-fé sem lastro gera condenação do réu e dano reputacional; só entra na peça após decisão humana registrada."
+    risco_se_mal_aplicada: "Acusação de má-fé sem lastro gera condenação do réu e dano reputacional; pedir extinção direta ou cópia do contrato é anulado por parte do TJPA; só entra na peça após decisão humana registrada."
     pendencia: null
     providencias_escalonadas:
-      - { nivel: a, descricao: "Padrão (na peça): depoimento pessoal do autor + exibição de documentos. Requer flags do M4 confirmados por human_decide.", autorizacao_dupla: false }
+      - { nivel: a, descricao: "Padrão (na peça): emenda fundamentada e proporcional (procuração atualizada, comprovante de residência, ratificação pessoal) citando Painel de Anomalias do TJPA + Tema 1.198 + Rec. CNJ 159; depoimento pessoal do autor + exibição de documentos. Nunca cópia do contrato; não pedir extinção direta. Requer flags do M4 confirmados por human_decide.", autorizacao_dupla: false }
       - { nivel: b, descricao: "Comunicação institucional do padrão ao Cijepa/NUMOPEDE do TJPA (fora da peça; linguagem neutra; sem imputar conduta a pessoa). Requer nível 'forte' (≥ 30 ações/mês) ou padrão equivalente.", autorizacao_dupla: true }
       - { nivel: c, descricao: "Representação à OAB-PA — só em casos extremos, com dossiê de evidências.", autorizacao_dupla: true }
     ativa: true
@@ -573,7 +747,7 @@ excecoes:
     condicoes:
       - { campo: indicio_fraude_contra_autor, operador: "==", valor: true }
     acao: sinalizar_acordo
-    nota: "Sinalizar acordo imediato (confirmado em 2026-10-19). Defender contratação válida aqui é temerário (Súmula 479 [A CONFERIR])."
+    nota: "Sinalizar acordo imediato (confirmado em 2026-10-19). Defender contratação válida aqui é temerário (Súmula 479/STJ — conferida em 20/10/2026)."
   - id: X04
     descricao: "Autor possivelmente falecido antes da procuração/ajuizamento"
     condicoes:
@@ -609,6 +783,17 @@ excecoes:
       Sem regra fixa de valor (decisão de 2026-10-19): o revisor avalia custo da perícia ×
       valor do contrato e decide entre defender com perícia e sinalizar acordo. Não é exceção
       automática de acordo.
+  - id: X09
+    descricao: "RMC/RCC sem TCE / sem prova da informação clara sobre o produto cartão"
+    condicoes:
+      - { campo: tipo_produto, operador: in, valor: [rmc, rcc, cartao_beneficio] }
+      - { campo: rmc_tce_localizado, operador: "==", valor: false }
+    acao: sinalizar_acordo
+    nota: >-
+      Decisão de 2026-10-20: sem TCE o TJPA converte em consignado comum (taxa média BACEN) com
+      repetição em dobro na 1ª/2ª Turmas e dano moral de R$ 3.000; a 2ª Turma Recursal nem
+      converte. T06.1 fica desativada; a minuta segue com T06.1.1 (subsidiária) e a esteira
+      sinaliza acordo. A decisão de acordar é do cliente (fluxo_aprovacao).
 
 # -----------------------------------------------------------------------------
 # SINAIS DE ACORDO
@@ -618,19 +803,24 @@ sinais_acordo:
     Defender quando há contrato + trilha de autenticação + crédito em conta do autor. Acordar cedo
     (antes da audiência/contestação, quando o cliente autorizar) quando falta qualquer um desses
     três pilares ou há indício de fraude real (regra dos três pilares confirmada em 2026-10-19).
+    Em RMC/RCC o TCE é um quarto pilar (decisão de 2026-10-20): sem ele, sinalizar acordo.
     Exceção: autor serial (≥ 3 ações contra o réu) — não acordar salvo decisão do cliente.
     Toda proposta de acordo passa pelo jurídico do cliente; a FBS recomenda com valor sugerido
     e faixa. Faixas abaixo são provisórias e serão recalibradas com dados da carteira.
   quando_acordar:
     - condicoes:
         - { campo: contrato_localizado, operador: "==", valor: false }
-      racional: "Sem contrato, o ônus do Tema 1.061 [A CONFERIR] não é vencido."
+      racional: "Sem contrato, o ônus do Tema 1.061/STJ (REsp 1.846.649/MA) não é vencido."
     - condicoes:
         - { campo: conta_credito_titularidade, operador: "!=", valor: autor }
       racional: "Crédito a terceiro = fraude provável; condenação com dano moral e dobro."
     - condicoes:
         - { campo: indicio_fraude_contra_autor, operador: "==", valor: true }
       racional: "Fortuito interno; defender só aumenta sucumbência."
+    - condicoes:
+        - { campo: tipo_produto, operador: in, valor: [rmc, rcc, cartao_beneficio] }
+        - { campo: rmc_tce_localizado, operador: "==", valor: false }
+      racional: "RMC/RCC sem TCE: conversão dominante no TJPA (taxa média BACEN, dobro na 1ª/2ª T., dano moral R$ 3.000); 2ª TR nem converte (X09)."
   quando_nao_acordar:
     - condicoes:
         - { campo: contrato_assinatura_tipo, operador: in, valor: [biometria_facial, assinatura_digital_icp] }
@@ -645,7 +835,7 @@ sinais_acordo:
       valor_min: 1000.0
       valor_max: 4000.0
       moeda: BRL
-      base: "ILUSTRATIVO — substituir pela média de condenação (dano moral + repetição) da carteira do cliente, 12 meses (painel M10/M05)"
+      base: "ILUSTRATIVO — substituir pela média de condenação (dano moral + repetição) da carteira do cliente, 12 meses (painel M10/M05). Referência externa: dano moral observado no TJPA out/2025–out/2026 = R$ 3.000–5.000 (ver nota_calibracao)"
       calibrar: true
       provisorio: true
       recalibrar_em_dias: 90
@@ -654,7 +844,7 @@ sinais_acordo:
       valor_min: 1500.0
       valor_max: 5000.0
       moeda: BRL
-      base: "ILUSTRATIVO — recalibrar com a média de condenação da carteira (painel M10/M05)"
+      base: "ILUSTRATIVO — recalibrar com a média de condenação da carteira (painel M10/M05). Referência externa: dano moral observado no TJPA out/2025–out/2026 = R$ 3.000–5.000 (ver nota_calibracao)"
       calibrar: true
       provisorio: true
       recalibrar_em_dias: 90
@@ -663,14 +853,20 @@ sinais_acordo:
       valor_min: 1500.0
       valor_max: 6000.0
       moeda: BRL
-      base: "ILUSTRATIVO — comarcas do interior do PA tendem a condenações maiores em consignado; confirmar com dados (painel M10/M05)"
+      base: "ILUSTRATIVO — recalibrar com dados (painel M10/M05). Referência externa: dano moral observado no TJPA out/2025–out/2026 = R$ 3.000–5.000, sem diferença sistemática Belém × interior (ver nota_calibracao)"
       calibrar: true
       provisorio: true
       recalibrar_em_dias: 90
   nota_calibracao: >-
     Faixas marcadas `provisorio: true` são ilustrativas. O painel M10 (métrica M05 — condenação
     média por comarca) recalibra cada faixa com a média de condenação da carteira; prazo de
-    recalibração: 90 dias a partir do início do piloto.
+    recalibração: 90 dias a partir do início do piloto. Faixa de condenação observada no TJPA
+    nos últimos 12 meses (levantamento de 19/10/2026, item B3, 14 acórdãos out/2025–out/2026):
+    dano moral dominante em R$ 3.000–5.000 (moda R$ 3.000 nas 1ª e 3ª Turmas, Belém e interior;
+    mínimo R$ 1.000 na 2ª Turma/Gleide Moura; Turmas Recursais até R$ 8.000), sem diferença
+    sistemática entre Região Metropolitana e interior — a hipótese de que o interior condena
+    mais não se confirmou na amostra. Somar a repetição (simples ou em dobro conforme T09) e
+    descontar a compensação dos valores creditados ao estimar a exposição de cada caso.
   alcadas: []
   fluxo_aprovacao:
     recomendacao: "A FBS recomenda o acordo com valor sugerido e faixa (grupo de comarcas), fundamentando nos sinais do dossiê."
@@ -748,8 +944,8 @@ antifraude:
       implementada_em_m4: false
       calibrar: true
     - codigo: gratuidade_x_renda
-      descricao: "Pedido de gratuidade com renda declarada acima do parâmetro"
-      parametros: { limite_salarios_minimos: 5, nota: "[A CONFERIR pelo advogado-dono] parâmetro do TJPA" }
+      descricao: "Pedido de gratuidade com renda declarada acima do parâmetro — flag de triagem INTERNA (decide se T01 é avaliada); a peça não cita o parâmetro"
+      parametros: { limite_salarios_minimos: 5, nota: "parâmetro interno de triagem (decisão de 2026-10-20); o TJPA veda critério objetivo fixo (AI 0820042-02.2025.8.14.0000, 2ª T. Dir. Público, 04/05/2026) — a impugnação usa elementos concretos (Infojud/Renajud, extratos, patrimônio)" }
       severidade: medium
       evidencia_esperada: "renda extraída e fonte"
       implementada_em_m4: true
@@ -786,22 +982,22 @@ modelo_peca:
   secoes:
     - { ordem: 1, id: enderecamento, titulo: "Endereçamento, qualificação e tempestividade", obrigatoria: true, teses_vinculadas: [], instrucoes: "Juízo, vara, número CNJ, partes; informar data da citação e tempestividade.", exige_citacao_de_pagina: false }
     - { ordem: 2, id: sintese, titulo: "Síntese da demanda", obrigatoria: true, teses_vinculadas: [], instrucoes: "Resumir pedidos e causa de pedir em até 8 linhas, sem adjetivos.", exige_citacao_de_pagina: true }
-    - { ordem: 3, id: preliminares, titulo: "Preliminares", obrigatoria: false, teses_vinculadas: [T01, T02, T03, T03.1, T04], instrucoes: "Uma subseção por tese aplicável, na ordem do playbook. Omitir a seção se nenhuma se aplicar.", exige_citacao_de_pagina: true }
-    - { ordem: 4, id: prejudicial, titulo: "Prejudicial de mérito — prescrição", obrigatoria: false, teses_vinculadas: [T05], instrucoes: "Só se o prazo definido pelo advogado-dono tiver transcorrido; apresentar a parcial como subsidiária.", exige_citacao_de_pagina: true }
+    - { ordem: 3, id: preliminares, titulo: "Preliminares", obrigatoria: false, teses_vinculadas: [T01, T02, T03, T03.1, T04], instrucoes: "Uma subseção por tese aplicável, na ordem do playbook. Omitir a seção se nenhuma se aplicar. T01 só com elementos concretos (nunca limiar de renda); T02/T04: emenda proporcional, nunca cópia do contrato nem extinção direta.", exige_citacao_de_pagina: true }
+    - { ordem: 4, id: prejudicial, titulo: "Prejudicial de mérito — prescrição", obrigatoria: false, teses_vinculadas: [T05], instrucoes: "Prazo do CDC 27 (5 anos, trato sucessivo, termo no último desconto). Total só se o último desconto for anterior a 5 anos do ajuizamento; sempre apresentar a parcelar como subsidiária. Não sustentar prazo trienal nem decadência.", exige_citacao_de_pagina: true }
     - { ordem: 5, id: fatos, titulo: "Dos fatos — a contratação", obrigatoria: true, teses_vinculadas: [], instrucoes: "Linha do tempo do dossiê: proposta, autenticação, formalização, averbação, crédito, descontos, reclamação (se houve), ajuizamento. Cada evento com página.", exige_citacao_de_pagina: true }
-    - { ordem: 6, id: merito_contratacao, titulo: "Do mérito — validade da contratação", obrigatoria: true, teses_vinculadas: [T06, T06.1], instrucoes: "Descrever a trilha de autenticação com as provas anexas; enfrentar Súmula 479 e Tema 1.061 [A CONFERIR] expressamente.", exige_citacao_de_pagina: true }
-    - { ordem: 7, id: merito_recebimento, titulo: "Do recebimento e utilização dos valores", obrigatoria: false, teses_vinculadas: [T07], instrucoes: "Somente se conta_credito_titularidade == autor. Citar comprovante de TED e extrato.", exige_citacao_de_pagina: true }
-    - { ordem: 8, id: dano_moral, titulo: "Da inexistência de dano moral", obrigatoria: true, teses_vinculadas: [T08], instrucoes: "Tom respeitoso; nunca minimizar a condição do autor; quantum subsidiário com faixa do TJPA.", exige_citacao_de_pagina: false }
-    - { ordem: 9, id: subsidiarios, titulo: "Pedidos subsidiários — compensação, repetição simples, juros", obrigatoria: true, teses_vinculadas: [T09], instrucoes: "Compensação do valor creditado; repetição simples; termo inicial de juros/correção; impugnar dobro com a modulação.", exige_citacao_de_pagina: true }
-    - { ordem: 10, id: providencias, titulo: "Providências processuais", obrigatoria: false, teses_vinculadas: [T10], instrucoes: "Só com flags confirmados por human_decide. Linguagem neutra; sem imputar fraude a pessoa.", exige_citacao_de_pagina: true }
-    - { ordem: 11, id: provas, titulo: "Das provas", obrigatoria: true, teses_vinculadas: [], instrucoes: "Protestar por depoimento pessoal, perícia (grafotécnica/técnica em logs) e juntada; especificar.", exige_citacao_de_pagina: false }
+    - { ordem: 6, id: merito_contratacao, titulo: "Do mérito — validade da contratação", obrigatoria: true, teses_vinculadas: [T06, T06.1, T06.1.1], instrucoes: "Descrever a trilha de autenticação com as provas anexas; enfrentar Súmula 479 e Tema 1.061 expressamente; citar REsp 2.197.156/SP (ICP-Brasil desnecessário). RMC: T06.1 só com TCE + CCB + biometria + faturas + TED; sem TCE, T06.1.1 como subsidiária (conversão à taxa média BACEN, repetição simples, compensação).", exige_citacao_de_pagina: true }
+    - { ordem: 7, id: merito_recebimento, titulo: "Do recebimento e utilização dos valores", obrigatoria: false, teses_vinculadas: [T07], instrucoes: "Somente se conta_credito_titularidade == autor. Citar comprovante de TED (vinculado ao contrato) e extrato.", exige_citacao_de_pagina: true }
+    - { ordem: 8, id: dano_moral, titulo: "Do dano moral", obrigatoria: true, teses_vinculadas: [T08, T08.1], instrucoes: "Tom respeitoso; nunca minimizar a condição do autor. Negar o dano (T08) só nas três hipóteses de afastamento do TJPA; fora delas, ir direto ao quantum (T08.1: parâmetro R$ 3.000, faixa R$ 3–5 mil; registrar Tema 1.435/STJ sem pedir sobrestamento no 1º grau).", exige_citacao_de_pagina: false }
+    - { ordem: 9, id: subsidiarios, titulo: "Pedidos subsidiários — compensação, repetição simples, juros", obrigatoria: true, teses_vinculadas: [T09], instrucoes: "Compensação do valor creditado (TED nominal); repetição simples; termo inicial de juros/correção; impugnar dobro com a modulação do EAREsp 676.608/RS enquanto o TJPA a aplicar (monitorar Tema 929).", exige_citacao_de_pagina: true }
+    - { ordem: 10, id: providencias, titulo: "Providências processuais", obrigatoria: false, teses_vinculadas: [T10], instrucoes: "Só com flags confirmados por human_decide. Linguagem neutra; sem imputar fraude a pessoa. Emenda proporcional; nunca cópia do contrato; não pedir extinção direta.", exige_citacao_de_pagina: true }
+    - { ordem: 11, id: provas, titulo: "Das provas", obrigatoria: true, teses_vinculadas: [], instrucoes: "Protestar por depoimento pessoal, perícia (grafotécnica/técnica em logs) e juntada; especificar. Em T01, requerer Infojud/Renajud.", exige_citacao_de_pagina: false }
     - { ordem: 12, id: pedidos, titulo: "Dos pedidos", obrigatoria: true, teses_vinculadas: [], instrucoes: "Consolidar na ordem: preliminares, prejudicial, improcedência, subsidiários, sucumbência, intimações.", exige_citacao_de_pagina: false }
     - { ordem: 13, id: anexos, titulo: "Rol de documentos", obrigatoria: true, teses_vinculadas: [], instrucoes: "Listar cada documento anexo com o tipo do playbook (contrato, log_autenticacao, comprovante_ted…).", exige_citacao_de_pagina: false }
   estilo:
     - "Português formal; frases curtas; sem adjetivação do autor ou do advogado adverso."
     - "Nenhuma afirmação de fato sem página dos autos ou documento anexo identificado."
     - "Referências legais só as conferidas no playbook; nunca inventar número de tema, súmula ou acórdão."
-    - "Idoso/beneficiário do INSS: tom respeitoso obrigatório (Estatuto da Pessoa Idosa [A CONFERIR])."
+    - "Idoso/beneficiário do INSS: tom respeitoso obrigatório (Estatuto da Pessoa Idosa — Lei 10.741/2003)."
 
 # -----------------------------------------------------------------------------
 # CRITÉRIOS DE REVISÃO (M7)
@@ -833,14 +1029,15 @@ criterios_revisao:
   checklist:
     - { id: R01, item: "Cada fato da peça tem citação de página dos autos ou documento anexo identificado", bloqueante: true }
     - { id: R02, item: "Todas as referências legais citadas estão marcadas como conferidas no playbook (nenhum placeholder sobrou no texto)", bloqueante: true }
-    - { id: R03, item: "T06 só foi usada com contrato + log/biometria anexos", bloqueante: true }
+    - { id: R03, item: "T06 só foi usada com contrato + log/biometria anexos; T06.1 só com TCE + CCB + faturas + TED", bloqueante: true }
     - { id: R04, item: "T07/T09 só foram usadas com comprovante de crédito em conta do PRÓPRIO autor", bloqueante: true }
     - { id: R05, item: "Nenhuma expressão imputa fraude/má-fé ao autor ou ao advogado sem flag confirmado por human_decide", bloqueante: true }
     - { id: R06, item: "Produto correto (consignado × RMC × RCC) e valores/datas batem com o dossiê", bloqueante: true }
     - { id: R07, item: "Pedidos subsidiários presentes (compensação, repetição simples, quantum)", bloqueante: true }
-    - { id: R08, item: "Tom respeitoso com autor idoso/beneficiário; sem 'mero aborrecimento' em benefício mínimo comprometido", bloqueante: false }
+    - { id: R08, item: "Tom respeitoso com autor idoso/beneficiário; sem 'mero aborrecimento' em benefício mínimo comprometido; dano negado só nas três hipóteses de T08", bloqueante: false }
     - { id: R09, item: "Sinal de acordo avaliado e registrado (defender × acordar) antes de protocolar; se acordo, recomendação FBS (valor + faixa) enviada ao jurídico do cliente", bloqueante: false }
     - { id: R10, item: "Providências de nível (b)/(c) (comunicação ao Cijepa/NUMOPEDE, OAB-PA) só com dupla autorização por escrito registrada na plataforma", bloqueante: true }
+    - { id: R11, item: "T01 não cita limiar de renda; T02/T04/T10 não pedem cópia do contrato ao autor nem extinção direta; T08.1 não pede sobrestamento pelo Tema 1.435 no 1º grau", bloqueante: true }
   motivos_recusa_padrao:
     - "Fato sem prova citável"
     - "Tese aplicada sem prova necessária"
@@ -848,17 +1045,18 @@ criterios_revisao:
     - "Produto/valores/datas divergentes do dossiê"
     - "Linguagem imputa fraude sem decisão humana"
     - "Caso deveria ir para acordo/escalada, não para contestação padrão"
+    - "Pedido vedado pelo playbook (cópia do contrato, extinção direta, limiar de renda, sobrestamento em 1º grau)"
 
 # -----------------------------------------------------------------------------
 # MÉTRICAS (M10/M11)
 # -----------------------------------------------------------------------------
 metricas:
-  - { id: M01, nome: "Tempo médio de revisão por contestação", definicao: "média de reviews.review_seconds para drafts desta tipologia", meta: "< 30 min com qualidade [A CONFERIR]", fonte: reviews }
-  - { id: M02, nome: "Aprovação sem alteração substancial", definicao: "% de reviews aprovadas com substantial_change = false", meta: "> 60 % após 200 casos [A CONFERIR]", fonte: reviews }
-  - { id: M03, nome: "Subsídios faltantes detectados antes da defesa", definicao: "% de casos com exceção X01/X07 aberta antes de gerar minuta", meta: "> 90 %", fonte: "dossiers + excecoes" }
-  - { id: M04, nome: "Taxa de êxito por tese × comarca", definicao: "outcomes.result ∈ {improcedente, parcial} por thesis_version_id e comarca vs. baseline FBS", meta: "≥ baseline + 10 p.p. [A CONFERIR]", fonte: outcomes }
-  - { id: M05, nome: "Condenação média (dano moral + repetição) por comarca", definicao: "média de outcomes.award_value por comarca; alimenta faixas_valor", meta: "queda de 20 % vs. baseline [A CONFERIR]", fonte: outcomes }
-  - { id: M06, nome: "Custo de tokens por processo", definicao: "soma de llm_calls.cost_usd por case_id", meta: "< US$ 2 por contestação [A CONFERIR]", fonte: llm_calls }
+  - { id: M01, nome: "Tempo médio de revisão por contestação", definicao: "média de reviews.review_seconds para drafts desta tipologia", meta: "< 30 min com qualidade [meta a confirmar no piloto]", fonte: reviews }
+  - { id: M02, nome: "Aprovação sem alteração substancial", definicao: "% de reviews aprovadas com substantial_change = false", meta: "> 60 % após 200 casos [meta a confirmar no piloto]", fonte: reviews }
+  - { id: M03, nome: "Subsídios faltantes detectados antes da defesa", definicao: "% de casos com exceção X01/X07/X09 aberta antes de gerar minuta", meta: "> 90 %", fonte: "dossiers + excecoes" }
+  - { id: M04, nome: "Taxa de êxito por tese × comarca", definicao: "outcomes.result ∈ {improcedente, parcial} por thesis_version_id e comarca vs. baseline FBS", meta: "≥ baseline + 10 p.p. [meta a confirmar no piloto]", fonte: outcomes }
+  - { id: M05, nome: "Condenação média (dano moral + repetição) por comarca", definicao: "média de outcomes.award_value por comarca; alimenta faixas_valor", meta: "queda de 20 % vs. baseline [meta a confirmar no piloto]; referência externa TJPA 12 meses: dano moral R$ 3.000–5.000", fonte: outcomes }
+  - { id: M06, nome: "Custo de tokens por processo", definicao: "soma de llm_calls.cost_usd por case_id", meta: "< US$ 2 por contestação [meta a confirmar no piloto]", fonte: llm_calls }
   - { id: M07, nome: "Concordância modelo × revisor sênior", definicao: "gt_tasks.agreement_score médio (amostra semanal)", meta: "> 0,85", fonte: gt_tasks }
   - { id: M08, nome: "Flags antifraude confirmados por humano", definicao: "% de fraud_checks com result = flag e human_decision = confirmed", meta: "monitorar precisão; recalibrar parâmetros se < 50 %", fonte: fraud_checks }
   - { id: M09, nome: "Acordos sinalizados × realizados", definicao: "casos com sinal de acordo vs. outcomes.result = acordo e valor médio", meta: "calibrar faixas_valor trimestralmente", fonte: outcomes }

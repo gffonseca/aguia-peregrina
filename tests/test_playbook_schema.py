@@ -59,15 +59,20 @@ def test_consignado_content_matches_spec() -> None:
         "autor_falecido",
         "procuracao_antiga",
     } <= codigos
-    # Rascunho: toda referência legal ainda está marcada para conferência.
-    assert pb.referencias_nao_conferidas()
-    assert all(
-        not r.conferido
-        for t in pb.teses
-        for r in (*t.fundamentacao.dispositivos, *t.fundamentacao.precedentes)
-    )
+    # Sessão 2 (20/10/2026): toda referência legal conferida, com fonte na nota; nenhum
+    # placeholder sobrou nas refs nem nos assuntos CNJ.
+    assert pb.referencias_nao_conferidas() == []
+    for t in pb.teses:
+        for r in (*t.fundamentacao.dispositivos, *t.fundamentacao.precedentes):
+            assert r.conferido and "A CONFERIR" not in r.nota and "Conferido" in r.nota, (
+                t.id,
+                r.ref,
+            )
+    assert all(a.conferido for a in pb.gatilhos_classificacao.assuntos_cnj)
     # Subtese aponta para a mãe e a árvore é navegável.
     assert pb.tese("T06.1").pai == "T06"
+    assert pb.tese("T06.1.1").pai == "T06.1"
+    assert pb.tese("T08.1").pai == "T08"
     assert pb.criterios_revisao.tempo_minimo_segundos >= 900
 
 
@@ -77,13 +82,13 @@ def test_consignado_encodes_review_session_1_decisions() -> None:
     assert pb.metadata.status == "em_revisao"
     assert pb.metadata.aprovado_em is None
     assert pb.metadata.versao == 1
-    assert [r.data.isoformat() for r in pb.metadata.revisoes] == ["2026-10-19"]
+    assert [r.data.isoformat() for r in pb.metadata.revisoes][0] == "2026-10-19"
     assert "12.724" in pb.metadata.revisoes[0].por
     assert pb.metadata.piloto is not None and pb.metadata.piloto.cliente_piloto is None
 
-    # 2 e 4: pendências de levantamento TJPA em T05 e T06.1
-    assert "TJPA" in (pb.tese("T05").pendencia or "")
-    assert "TJPA" in (pb.tese("T06.1").pendencia or "")
+    # 2 e 4: as pendências de levantamento TJPA em T05 e T06.1 foram fechadas na sessão 2
+    assert pb.tese("T05").pendencia is None
+    assert pb.tese("T06.1").pendencia is None
     assert pb.tese("T06.1").pai == "T06"  # 1: RMC segue como subtese
 
     # 5: escalada em três níveis; (b) e (c) exigem dupla autorização registrada
@@ -130,8 +135,105 @@ def test_consignado_encodes_review_session_1_decisions() -> None:
     for campo in ("ip_log_disponivel", "biometria_score", "valor_creditado_conta_autor"):
         assert campos[campo].disponibilidade == "a confirmar com cliente"
 
-    # 16: referências continuam não conferidas
-    assert pb.referencias_nao_conferidas()
+
+def test_consignado_encodes_review_session_2_decisions() -> None:
+    """Decisões da sessão 2 (2026-10-20): referências conferidas contra o levantamento;
+    T01/T05/T06.1/T08/T09 ajustados. Status segue em_revisao (aprovação é ato separado)."""
+    pb = validate_playbook(CONSIGNADO)
+    assert pb.metadata.status == "em_revisao"
+    assert pb.metadata.aprovado_em is None
+    assert pb.metadata.autor_nome == "Gustavo Fonseca"
+    assert pb.metadata.autor_oab == "PA 12724"
+    assert [r.data.isoformat() for r in pb.metadata.revisoes] == ["2026-10-19", "2026-10-20"]
+    assert "Sessão 2" in pb.metadata.revisoes[1].resumo
+
+    # 1: T05 — CDC 27, trato sucessivo, sem pendência; CC 205/206 só como afastados
+    t05 = pb.tese("T05")
+    assert t05.pendencia is None
+    refs05 = " ".join(r.ref for r in t05.fundamentacao.dispositivos)
+    assert "CDC, art. 27" in refs05
+    assert any("AFASTADOS" in r.para_que_serve for r in t05.fundamentacao.dispositivos)
+    prec05 = " ".join(r.ref for r in t05.fundamentacao.precedentes)
+    for n in ("1.056.534", "1.728.230", "0004156-73.2019.8.14.0107", "0805230-14.2024.8.14.0024"):
+        assert n in prec05, n
+
+    # 2: T06.1 condicional (TCE) + T06.1.1 subsidiária + X09 sinaliza acordo
+    t061 = pb.tese("T06.1")
+    assert t061.pendencia is None
+    assert any(
+        c.campo == "rmc_tce_localizado" and c.valor is True for c in t061.condicoes_aplicacao
+    )
+    t0611 = pb.tese("T06.1.1")
+    assert t0611.categoria == "subsidiaria"
+    assert any(
+        c.campo == "rmc_tce_localizado" and c.valor is False for c in t0611.condicoes_aplicacao
+    )
+    x = {e.id: e for e in pb.excecoes}
+    assert x["X09"].acao == "sinalizar_acordo"
+    assert "0800613-16.2024.8.14.0087" in " ".join(r.ref for r in t0611.fundamentacao.precedentes)
+
+    # 3: T08 só nas três hipóteses; T08.1 quantum + Tema 1.435
+    t08 = pb.tese("T08")
+    hip = next(c for c in t08.condicoes_aplicacao if c.campo == "hipotese_afastamento_dano_moral")
+    assert set(hip.valor) == {"contratacao_provada", "inercia_prolongada", "rmc_credito_recebido"}
+    t081 = pb.tese("T08.1")
+    assert any("1.435" in r.ref and "2.219.864" in r.ref for r in t081.fundamentacao.precedentes)
+    assert "R$ 3.000" in t081.nome
+
+    # 4: Tema 1.198 = emenda por litigância abusiva, com datas
+    t02 = pb.tese("T02")
+    tema = next(r for r in t02.fundamentacao.precedentes if "1.198" in r.ref)
+    assert "13/03/2025" in tema.ref and "11/06/2026" in tema.ref and tema.conferido
+
+    # 5: T09 — EAREsp com datas corretas; pendência do Tema 929
+    t09 = pb.tese("T09")
+    eare = next(r for r in t09.fundamentacao.precedentes if "676.608" in r.ref)
+    assert "21/10/2020" in eare.ref and "30/03/2021" in eare.ref
+    assert "Tema 929" in (t09.pendencia or "") and "M9" in (t09.pendencia or "")
+
+    # 6: T01 sem critério objetivo na peça; AI 0820042-02.2025.8.14.0000
+    t01 = pb.tese("T01")
+    assert any("0820042-02.2025.8.14.0000" in r.ref for r in t01.fundamentacao.precedentes)
+    assert not any("3 salários" in a or "3 SM" in a for a in t01.fundamentacao.argumentos_chave)
+
+    # 7 e 8: Lei 10.820 (45%, IN 138/2022 → 213/2026); REsp 2.197.156/SP; sem Lei 14.509
+    t06 = pb.tese("T06")
+    refs06 = " ".join(
+        r.ref for r in (*t06.fundamentacao.dispositivos, *t06.fundamentacao.precedentes)
+    )
+    assert "45%" in refs06 and "213" in refs06 and "2.197.156" in refs06 and "1.846.649" in refs06
+    assert "14.509" not in refs06
+    codigos = {a.codigo for a in pb.gatilhos_classificacao.assuntos_cnj}
+    assert {"11806", "9607", "9585", "7772", "10433", "11811"} <= codigos
+
+    # 9: nenhuma menção à "Recomendação CFOAB 001/2024"
+    texto = CONSIGNADO.read_text(encoding="utf-8")
+    assert "CFOAB" not in texto
+    assert "[A CONFERIR" not in texto
+
+    # 10: T04/T10 — emenda proporcional; nunca cópia do contrato; escalada mantida
+    for tid in ("T04", "T10"):
+        t = pb.tese(tid)
+        assert "cópia do contrato" in t.resumo.lower() or any(
+            "cópia do contrato" in n.descricao.lower() for n in t.providencias_escalonadas
+        )
+        assert {n.nivel for n in t.providencias_escalonadas} == {"a", "b", "c"}
+
+    # 11: faixas seguem provisórias e não bloqueiam a aprovação
+    assert all(f.provisorio for f in pb.sinais_acordo.faixas_valor)
+    assert "R$ 3.000–5.000" in (pb.sinais_acordo.nota_calibracao or "")
+
+
+def test_consignado_would_pass_approval_invariant() -> None:
+    """Dry-run: com OAB + timestamp, o playbook passa na invariante de aprovação (não altera
+    o arquivo — a aprovação é decisão registrada pelo advogado-dono)."""
+    raw = _raw(CONSIGNADO)
+    raw["metadata"]["status"] = "aprovado"
+    raw["metadata"]["aprovado_por_oab"] = "PA 12724"
+    raw["metadata"]["aprovado_por_nome"] = "Gustavo Fonseca"
+    raw["metadata"]["aprovado_em"] = "2026-10-20T12:00:00-03:00"
+    pb = Playbook.model_validate(raw)
+    assert pb.metadata.status == "aprovado"
 
 
 def test_polo_defaults_to_passivo_and_accepts_ativo() -> None:
@@ -267,6 +369,10 @@ def test_to_thesis_payloads_matches_m0_model() -> None:
         "author_oab",
     }
     assert first["typology"] == pb.metadata.tipologia
-    assert "[A CONFERIR pelo advogado-dono]" in first["body_markdown"]
+    # Consignado já está conferido (sessão 2): nenhum placeholder vai para o corpo da tese.
+    assert "[A CONFERIR pelo advogado-dono]" not in first["body_markdown"]
     filho = next(p for p in payloads if p["code"] == "T06.1")
     assert filho["parent_code"] == "T06"
+    # Em um rascunho, o placeholder continua sendo propagado para o body_markdown.
+    rascunho = to_thesis_payloads(validate_playbook(TEMPLATE))
+    assert any("[A CONFERIR pelo advogado-dono]" in p["body_markdown"] for p in rascunho)
