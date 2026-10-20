@@ -97,6 +97,7 @@ class TenantMiddleware(BaseHTTPMiddleware):
         "/painel/triagem",
         "/painel/oportunidades",
         "/painel/correcoes",
+        "/painel/gestao",
     )
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:

@@ -45,3 +45,8 @@ def painel_sessao() -> Response:
         media_type="application/javascript",
         headers={"Cache-Control": "no-cache"},
     )
+
+
+@router.get("/painel/gestao", response_class=HTMLResponse, include_in_schema=False)
+def painel_gestao() -> HTMLResponse:
+    return HTMLResponse((_DIR / "painel_gestao.html").read_text("utf-8"), headers=_HEADERS)

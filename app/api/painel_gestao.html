@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gestão BASA</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--tx:#1b1f24;--mut:#5c6670;--ln:#e2e6ea;--ac:#0b6e4f;--al:#b42318;--md:#b54708;--chip:#eef1f4}
+@media (prefers-color-scheme:dark){:root{--bg:#111418;--card:#1a1f25;--tx:#e8ecf0;--mut:#9aa5b1;--ln:#2a313a;--ac:#3fb68b;--al:#f97066;--md:#fdb022;--chip:#232a32}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+header,main{max-width:1100px;margin:auto;padding:16px}header{padding-bottom:0}h1{font-size:20px;margin:0 0 4px}header p{margin:0;color:var(--mut)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:4px 0 16px}
+.kpi{background:var(--card);border:1px solid var(--ln);border-radius:10px;padding:12px 14px}.kpi b{display:block;font-size:22px;font-variant-numeric:tabular-nums}.kpi span{color:var(--mut);font-size:12px}
+.barra{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+select,input,button{font:inherit;color:inherit}select,input{background:var(--card);border:1px solid var(--ln);border-radius:6px;padding:5px 8px}
+button{border:1px solid var(--ln);background:var(--chip);border-radius:6px;padding:4px 10px;cursor:pointer}button.pri{background:var(--ac);color:#fff;border-color:var(--ac)}
+.tabs button[aria-pressed=true]{background:var(--tx);color:var(--bg);border-color:var(--tx)}
+.it{background:var(--card);border:1px solid var(--ln);border-left:4px solid var(--md);border-radius:8px;padding:10px 12px;margin:8px 0}.it.passou{border-left-color:var(--al)}
+.top{display:flex;gap:8px;flex-wrap:wrap;align-items:baseline;justify-content:space-between}.as{font-weight:600}.mut{color:var(--mut);font-size:12px}.v{font-variant-numeric:tabular-nums;font-weight:600}
+.al{color:var(--al);font-size:12px;font-weight:600}.bt{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center}.bt input{flex:1;min-width:180px}
+#login{background:var(--card);border:1px solid var(--ln);border-radius:10px;padding:16px;max-width:420px;display:grid;gap:8px}#login[hidden],#app[hidden]{display:none}
+.nota{background:var(--card);border:1px dashed var(--ln);border-radius:8px;padding:8px 12px;color:var(--mut);font-size:13px}
+a{color:var(--ac)}
+.sec{background:var(--card);border:1px solid var(--ln);border-radius:10px;padding:12px 14px;margin:12px 0}.sec h2{font-size:15px;margin:0 0 8px}
+table{border-collapse:collapse;width:100%}th,td{padding:6px 8px;border-bottom:1px solid var(--ln);text-align:left;font-variant-numeric:tabular-nums}th{font-size:12px;color:var(--mut);font-weight:600}td.n{text-align:right}
+.bar{height:10px;background:var(--ac);border-radius:3px;min-width:2px}.wrap{overflow-x:auto}
+</style>
+</head>
+<body>
+<header>
+  <nav style="font-size:13px;margin-bottom:6px"><a href="/painel/gestao">Gestão</a> · <a href="/painel/oportunidades">Atos a praticar</a> · <a href="/painel/correcoes">Correções no Benner</a> · <a href="/painel/triagem">Triagem de e-mails</a> · <a href="/painel/recebiveis">Recebíveis</a></nav>
+  <h1>Gestão do contrato BASA</h1>
+  <p>Os números de todas as frentes num lugar. Valores pela tabela do contrato FB1798.</p>
+</header>
+<main>
+  <form id="login" hidden></form>
+  <section id="app" hidden>
+    <div class="kpis" id="kpis"></div>
+    <div class="sec"><h2>Faturamento por competência</h2><div class="wrap"><table id="fat"></table></div><p class="mut">Cobertura = processos distintos com ato cobrado no mês ÷ fichas ativas.</p></div>
+    <div class="sec"><h2>Atos a praticar (motor)</h2><div id="motor"></div></div>
+    <div class="sec"><h2>Produção da equipe — últimos 30 dias</h2><div class="wrap"><table id="prod"></table></div></div>
+    <div class="sec"><h2>Benner e caixa</h2><div id="outros"></div></div>
+    <p class="mut">Atualizado <span id="hoje"></span>. <button id="sair" type="button">Sair</button></p>
+  </section>
+</main>
+<script src="/painel/sessao.js"></script>
+<script>
+const api=(p,o={})=>Sessao.api(p,o);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const brl=v=>v==null?"—":v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+const pct=v=>v==null?"—":(v*100).toLocaleString("pt-BR",{maximumFractionDigits:1})+"%";
+const MES=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];const comp=c=>{const[a,m]=c.split("-");return MES[+m-1]+"/"+a};
+async function carregar(){
+  const d=await api("/faturamento/basa/gestao");
+  document.getElementById("hoje").textContent=new Date(d.hoje+"T12:00").toLocaleDateString("pt-BR");
+  const f=d.faturamento,ult=f[f.length-1]||{};
+  document.getElementById("kpis").innerHTML=[["Faturado na última competência",brl(ult.valor)+(ult.competencia?` <span class="mut">(${comp(ult.competencia)})</span>`:"")],["A receber",brl(d.recebiveis.em_aberto)],["Vencido (cl. 18ª)",brl(d.recebiveis.vencido)],["Atos no prazo, alta confiança",d.motor.no_prazo_alta],["Fichas ativas",d.carteira.ativas.toLocaleString("pt-BR")]].map(([a,b])=>`<div class="kpi"><span>${a}</span><b>${b}</b></div>`).join("");
+  const max=Math.max(1,...f.map(x=>x.valor));
+  document.getElementById("fat").innerHTML=`<tr><th>Competência</th><th>Atos</th><th>Valor declarado</th><th style="width:35%"></th><th>Processos</th><th>Cobertura</th></tr>`+f.map(x=>`<tr><td>${comp(x.competencia)}</td><td class="n">${x.atos}</td><td class="n">${brl(x.valor)}</td><td><div class="bar" style="width:${100*x.valor/max}%"></div></td><td class="n">${x.processos}</td><td class="n">${pct(x.cobertura)}</td></tr>`).join("")||"<tr><td>sem prestações importadas</td></tr>";
+  const m=d.motor;
+  document.getElementById("motor").innerHTML=`<p>No prazo: <b>${m.no_prazo}</b> atos (${m.no_prazo_alta} de alta confiança), ${brl(m.valor_no_prazo)} pela tabela · prazo provável já passou: ${m.prazo_passou} · perdidos na última rodada: ${m.perdidas??"—"} (${brl(m.valor_perdido)}) · última rodada: ${m.ultima_rodada?new Date(m.ultima_rodada).toLocaleString("pt-BR"):"—"} · <a href="/painel/oportunidades">abrir a fila</a></p>`;
+  const P=Object.entries(d.produtividade_30d);
+  document.getElementById("prod").innerHTML=`<tr><th>Pessoa</th><th>Feito</th><th>Não cabe</th><th>Em andamento</th></tr>`+(P.map(([p,c])=>`<tr><td>${esc(p)}</td><td class="n">${c.feito}</td><td class="n">${c.nao_cabe}</td><td class="n">${c.em_andamento}</td></tr>`).join("")||`<tr><td colspan="4" class="mut">Ninguém marcou atos na fila ainda.</td></tr>`);
+  const c=d.correcoes_benner,t=d.triagem;
+  document.getElementById("outros").innerHTML=`<p>Correções no Benner: <b>${c.pendentes}</b> pendentes (${Object.entries(c.por_tipo_pendente).map(([k,v])=>k.toLowerCase().replace("_"," ")+" "+v).join(", ")}) · ${c.feitas} feitas aguardando export · ${c.confirmadas} confirmadas · <a href="/painel/correcoes">abrir</a></p>
+   <p>Triagem: <b>${t.pendentes}</b> e-mails pendentes (${t.urgentes} urgentes) · cópias internas ${t.copias_internas} para ${t.copias_necessarias} necessárias · <a href="/painel/triagem">abrir</a></p>
+   <p>Documentos do Benner na base até: ${d.benner_documentos_ate?new Date(d.benner_documentos_ate+"T12:00").toLocaleDateString("pt-BR"):"—"}</p>`;
+}
+document.getElementById("sair").onclick=()=>Sessao.sair();
+Sessao.iniciar(carregar);
+</script>
+</body>
+</html>

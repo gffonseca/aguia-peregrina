@@ -152,6 +152,13 @@ async def conferencia(
     )
 
 
+@router.get("/gestao")
+def gestao(db: Session = DB) -> dict[str, Any]:
+    from app.modules.m12_faturamento.gestao import resumo
+
+    return resumo(db)
+
+
 @router.get("/recebiveis")
 def recebiveis(db: Session = DB) -> dict[str, Any]:
     return listar_recebiveis(db)

@@ -108,3 +108,21 @@ def test_rascunho(db: Session, as_tenant) -> None:  # type: ignore[no-untyped-de
         atos = sorted(r[6] for r in rows[1:])
         assert len(atos) == 3 and any("Contrarraz" in a for a in atos)
         assert all(r[3] == "Pará" and r[5] == "Fulano" for r in rows[1:])
+
+
+def test_gestao_endpoint(engine, monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    from fastapi.testclient import TestClient
+
+    from app.core import db as core_db
+    from app.core.config import get_settings
+    from app.main import app
+
+    core_db.SessionLocal.configure(bind=engine)
+    monkeypatch.setattr(get_settings(), "ops_key", "k")
+    c = TestClient(app)
+    tid = c.post("/faturamento/basa/setup", headers={"X-Ops-Key": "k"}).json()["tenant_id"]
+    r = c.get("/faturamento/basa/gestao", headers={"X-Ops-Key": "k", "X-Tenant-ID": tid})
+    assert r.status_code == 200, r.text
+    d = r.json()
+    assert set(d) >= {"faturamento", "recebiveis", "motor", "correcoes_benner", "triagem"}
+    assert c.get("/painel/gestao").status_code == 200
