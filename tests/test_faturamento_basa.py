@@ -176,3 +176,15 @@ def test_le_planilha_ignora_total_e_gera_anexo_ii(tmp_path: Path) -> None:
     pa = wb2["Anexo II - PA"]
     assert pa.cell(row=2, column=7).value.startswith("Petições de juntada")
     assert pa.cell(row=pa.max_row, column=9).value == 60
+
+
+def test_uf_por_nome_do_estado() -> None:
+    a = auditar(
+        [
+            _l(uf="Mato Grosso do Sul"),
+            _l(uf="Pará", cnj=CNJ_B),
+            _l(uf="Rio Grande do Norte", cnj="0000001-77.2017.8.04.3501"),
+        ],
+        "2026-07",
+    )
+    assert [x.linha.uf for x in a] == ["MS", "PA", "RN"]

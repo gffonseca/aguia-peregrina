@@ -116,12 +116,46 @@ class FichaBenner:
     situacao: str
 
 
+_UFS = {
+    "acre": "AC",
+    "alagoas": "AL",
+    "amapa": "AP",
+    "amazonas": "AM",
+    "bahia": "BA",
+    "ceara": "CE",
+    "distrito federal": "DF",
+    "espirito santo": "ES",
+    "goias": "GO",
+    "maranhao": "MA",
+    "mato grosso do sul": "MS",
+    "mato grosso": "MT",
+    "minas gerais": "MG",
+    "para": "PA",
+    "paraiba": "PB",
+    "parana": "PR",
+    "pernambuco": "PE",
+    "piaui": "PI",
+    "rio de janeiro": "RJ",
+    "rio grande do norte": "RN",
+    "rio grande do sul": "RS",
+    "rondonia": "RO",
+    "roraima": "RR",
+    "santa catarina": "SC",
+    "sao paulo": "SP",
+    "sergipe": "SE",
+    "tocantins": "TO",
+    "belem": "PA",
+    "manaus": "AM",
+}
+
+
 def _uf(texto: str) -> str:
     t = normalizar(texto)
-    if t.startswith("amazon") or t == "am":
-        return "AM"
-    if t.startswith("par") or t == "pa":
-        return "PA"
+    if len(t) == 2:
+        return t.upper()
+    for nome in sorted(_UFS, key=len, reverse=True):
+        if t == nome or t.startswith(nome + " "):
+            return _UFS[nome]
     return (texto or "").strip().upper()[:2]
 
 
