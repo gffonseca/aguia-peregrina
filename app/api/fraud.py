@@ -10,7 +10,7 @@ from app.api.deps import DB, principal_in_tenant, tenant_id_dep
 from app.core.audit import record
 from app.core.security import Principal, require_lawyer
 from app.models.litigation import Case, FraudCheck
-from app.modules.m04_antifraude.service import human_decide, run_checks
+from app.modules.m04_antifraude.service import build_context, human_decide, run_checks
 from app.schemas.litigation import FraudCheckOut, FraudDecisionIn
 
 router = APIRouter(prefix="/fraud", tags=["fraud (M4)"])
@@ -19,14 +19,32 @@ router = APIRouter(prefix="/fraud", tags=["fraud (M4)"])
 @router.post("/cases/{case_id}/run", response_model=list[FraudCheckOut])
 def run(
     case_id: uuid.UUID,
-    ctx: dict,
+    ctx: dict | None = None,
     db: Session = DB,
-    _: Principal = Depends(principal_in_tenant),
+    principal: Principal = Depends(principal_in_tenant),
     tenant_id: uuid.UUID = Depends(tenant_id_dep),
 ) -> list[FraudCheck]:
-    if db.get(Case, case_id) is None:
+    case = db.get(Case, case_id)
+    if case is None:
         raise HTTPException(404, "processo não encontrado")
-    rows = run_checks(db, tenant_id=tenant_id, case_id=case_id, ctx=ctx)
+    full_ctx = build_context(db, case=case)
+    full_ctx.update(ctx or {})  # o cliente pode complementar (renda, concentração na carteira)
+    # idempotente: uma rodada substitui flags ainda sem decisão humana
+    for old in db.scalars(select(FraudCheck).where(FraudCheck.case_id == case_id)):
+        if old.human_decision is None:
+            db.delete(old)
+    db.flush()
+    rows = run_checks(db, tenant_id=tenant_id, case_id=case_id, ctx=full_ctx)
+    record(
+        db,
+        tenant_id=tenant_id,
+        actor_user_id=principal.user_id,
+        actor_oab=principal.oab,
+        action="fraud_checks.run",
+        entity_type="case",
+        entity_id=case.id,
+        payload={"flags": [r.check_code for r in rows if r.result == "flag"]},
+    )
     db.commit()
     return rows
 

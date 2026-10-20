@@ -6,9 +6,10 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.models.litigation import FraudCheck
+from app.models.litigation import Case, CaseParty, FraudCheck
 
 OAB_RE = re.compile(r"^[A-Z]{2}\s?\d{1,6}[A-Z]?$")
 
@@ -95,6 +96,43 @@ def run_checks(
         db.add(row)
         rows.append(row)
     return rows
+
+
+def build_context(db: Session, *, case: Case) -> dict:
+    """Contexto determinístico derivado dos autos e da carteira do tenant (sem LLM)."""
+    from app.modules.m03_subsidios.service import get_subsidies, page_types_for_case
+
+    parties = list(db.scalars(select(CaseParty).where(CaseParty.case_id == case.id)))
+    lawyer = next((p for p in parties if p.role in {"advogado", "advogado_contrario"}), None)
+    plaintiff = next((p for p in parties if p.role == "autor"), None)
+    ctx: dict = {
+        "page_types": page_types_for_case(db, case.id),
+        "lawyer_oab": lawyer.oab if lawyer else None,
+        "duplicate_cnj_numbers": [],
+    }
+    if plaintiff and plaintiff.document:
+        n = db.scalar(
+            select(func.count(func.distinct(CaseParty.case_id))).where(
+                CaseParty.role == "autor",
+                CaseParty.document == plaintiff.document,
+                CaseParty.case_id != case.id,
+            )
+        )
+        ctx["cases_same_plaintiff_in_portfolio"] = int(n or 0) + 1
+    if lawyer and lawyer.oab:
+        n = db.scalar(
+            select(func.count(func.distinct(CaseParty.case_id))).where(
+                CaseParty.role.in_(["advogado", "advogado_contrario"]),
+                CaseParty.oab == lawyer.oab,
+            )
+        )
+        ctx["cases_same_lawyer_in_portfolio"] = int(n or 0)
+    subs = get_subsidies(case)
+    if "autor_pede_gratuidade" in subs:
+        ctx["requests_gratuity"] = subs["autor_pede_gratuidade"]
+    if "renda_declarada_autor" in subs:
+        ctx["declared_income"] = subs["renda_declarada_autor"]
+    return ctx
 
 
 def human_decide(check: FraudCheck, *, decision: str, oab: str) -> None:
