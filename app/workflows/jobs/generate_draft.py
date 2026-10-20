@@ -125,6 +125,7 @@ def run(payload: dict[str, Any]) -> dict[str, Any]:
                     case_id=case_id,
                     prompt_version=DRAFT_PROMPT_VERSION,
                     temperature=0.2,
+                    max_retries=0,  # uma tentativa: a chamada leva minutos; falha fica logada
                 )
             except ValueError as exc:
                 log.warning("minuta: saída estruturada inválida (%s)", exc)

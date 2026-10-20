@@ -190,6 +190,8 @@ Endpoints `/ops/*` exigem `X-Ops-Key == OPS_KEY` (sem chave → 404) e nunca dev
 | `POST /ops/playbooks/load?file=<slug>` | `X-Tenant-ID` | carrega `playbooks/<slug>.playbook.yaml` em `theses`/`thesis_versions`; se o YAML está `aprovado`, a versão é aprovada com a OAB e o timestamp do arquivo (idempotente por tipologia+código+versão do playbook) |
 | `GET /ops/cases/{id}/trace` | `X-Tenant-ID` | `llm_calls` (modelo, tokens, custo), `audit_log`, checagens de fraude, minutas e revisões do processo |
 
+**Jobs longos são assíncronos.** `POST /dossiers/cases/{id}/build` e `POST /drafts/cases/{id}/generate` devolvem `{"job": ref, "async": true}` e rodam em thread do processo web (engine `in_process`); consulte `GET /jobs/{ref}` (`running|done|failed`). Motivo: o proxy do Railway encerra requisições HTTP em ~5 min e a minuta leva 3–6 min no Sonnet. `?wait=true` mantém o modo síncrono (testes). Com Hatchet, o worker assume e o polling passa a ser pelo painel/SDK.
+
 **Tempo mínimo de revisão em tenant de teste.** `REVIEW_MIN_SECONDS_*` é global. Só um tenant com `tenants.settings.test_mode = true` pode reduzi-lo via `settings.review_min_seconds` (`{"contestacao": 30, "default": 30}`), nunca abaixo de 5 s (`review_min_seconds_for()` em `m07_revisao/service.py`). O E2E cria o tenant **"FBS Piloto (E2E sintético)"** com essa configuração; o tenant real da FBS não tem `test_mode` e segue os 15 min da contestação. Com mais de um tenant `law_firm`, o CLI `python -m app.workflows.run` passa a exigir `--tenant-id`.
 
 **Ponta a ponta (M0→M7) com caso sintético:**

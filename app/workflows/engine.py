@@ -11,6 +11,7 @@ import itertools
 import logging
 from collections import deque
 from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Protocol
 
 from app.core.config import get_settings
@@ -37,6 +38,7 @@ class InProcessEngine:
         self.history: deque[tuple[str, dict[str, Any], dict[str, Any]]] = deque(maxlen=200)
         self._results: dict[str, dict[str, Any]] = {}
         self._counter = itertools.count(1)
+        self._executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="aguia-job")
 
     def register(self, job_name: str, fn: JobFn) -> None:
         self._jobs[job_name] = fn
@@ -52,9 +54,40 @@ class InProcessEngine:
                 self._results.pop(old, None)
         return ref
 
+    def dispatch_async(self, job_name: str, payload: dict[str, Any]) -> str:
+        """Executa o job em thread própria e devolve a referência na hora.
+
+        Necessário para jobs longos (dossiê/minuta levam minutos): o proxy do Railway
+        encerra requisições HTTP em ~5 min. O cliente consulta `GET /jobs/{ref}`.
+        """
+        fn = self._jobs[job_name]
+        ref = f"inproc-{next(self._counter)}"
+        self._results[ref] = {"status": "running", "job": job_name}
+
+        def _run() -> None:
+            try:
+                result = fn(payload)
+                self._results[ref] = {"status": "done", "job": job_name, "result": result}
+            except Exception as exc:  # noqa: BLE001 - o erro vai para quem consulta o job
+                log.exception("job %s (%s) falhou", job_name, ref)
+                self._results[ref] = {"status": "failed", "job": job_name, "error": str(exc)}
+            self.history.append((job_name, payload, self._results[ref]))
+
+        self._executor.submit(_run)
+        return ref
+
     def result_for(self, ref: str) -> dict[str, Any] | None:
         """Resultado síncrono de um job (só faz sentido no engine in_process)."""
         return self._results.get(ref)
+
+    def job_status(self, ref: str) -> dict[str, Any] | None:
+        """Estado de um job assíncrono: running | done | failed (ou None se desconhecido)."""
+        entry = self._results.get(ref)
+        if entry is None:
+            return None
+        if "status" in entry and entry.get("job"):
+            return entry
+        return {"status": "done", "result": entry}
 
 
 class HatchetEngine:

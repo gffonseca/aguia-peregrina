@@ -233,7 +233,7 @@ def test_full_pipeline_via_api(client: TestClient) -> None:
     assert by_code["gratuidade_x_renda"]["result"] == "pass"
     assert all(c["human_decision"] is None for c in checks)
 
-    res = client.post(f"/dossiers/cases/{case_id}/build", headers=h).json()
+    res = client.post(f"/dossiers/cases/{case_id}/build?wait=true", headers=h).json()
     assert res["result"]["status"] == "ready", res
     applicable = res["result"]["applicable_theses"]
     for code in case_fx["expected"]["applicable_theses_min"]:
@@ -248,7 +248,9 @@ def test_full_pipeline_via_api(client: TestClient) -> None:
     assert dossier["content"]["facts"][0]["document_page_ids"]  # P3 resolvido
 
     res = client.post(
-        f"/drafts/cases/{case_id}/generate", headers=h, json={"draft_type": "contestacao"}
+        f"/drafts/cases/{case_id}/generate?wait=true",
+        headers=h,
+        json={"draft_type": "contestacao"},
     ).json()
     assert "draft_id" in res["result"], res
     assert res["result"]["citations"] == 2 and res["result"]["citations_dropped"] == 1

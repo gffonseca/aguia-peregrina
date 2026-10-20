@@ -7,10 +7,10 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.api.deps import DB, principal_in_tenant, tenant_id_dep
+from app.api.jobs import dispatch
 from app.core.security import Principal
 from app.models.litigation import Case, Draft
 from app.schemas.litigation import DraftGenerateIn, DraftOut
-from app.workflows.engine import get_engine
 
 router = APIRouter(prefix="/drafts", tags=["drafts (M6)"])
 
@@ -22,10 +22,12 @@ def generate(
     db: Session = DB,
     _: Principal = Depends(principal_in_tenant),
     tenant_id: uuid.UUID = Depends(tenant_id_dep),
+    wait: bool = False,
 ) -> dict:
+    """`wait=false` (default): roda em background e devolve `job` para `GET /jobs/{ref}`."""
     if db.get(Case, case_id) is None:
         raise HTTPException(404, "processo não encontrado")
-    ref = get_engine().dispatch(
+    return dispatch(
         "generate_draft",
         {
             "tenant_id": str(tenant_id),
@@ -34,13 +36,8 @@ def generate(
             "dossier_id": str(body.dossier_id) if body.dossier_id else None,
             "context": body.context,
         },
+        wait=wait,
     )
-    engine = get_engine()
-    out: dict = {"job": ref, "engine": engine.name}
-    result_for = getattr(engine, "result_for", None)
-    if result_for is not None:  # in_process: devolve o resultado da execução
-        out["result"] = result_for(ref)
-    return out
 
 
 @router.get("/cases/{case_id}", response_model=list[DraftOut])

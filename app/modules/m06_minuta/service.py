@@ -15,7 +15,7 @@ from pydantic import BaseModel, Field
 
 from app.modules.m00_playbook.schema import Playbook
 
-DRAFT_PROMPT_VERSION = "minuta-v2"
+DRAFT_PROMPT_VERSION = "minuta-v3"
 MAX_CHARS_PER_PAGE = 3500
 _REF = re.compile(r"\[(P\d+)\]")
 
@@ -52,8 +52,10 @@ def system_prompt(draft_type: str) -> str:
         "autor ou o advogado adverso; tom respeitoso com pessoa idosa/beneficiária do INSS; "
         "(6) nunca qualifique o autor como fraudador ou litigante de má-fé: a peça só pode "
         "descrever indícios documentados; (7) deixe lacunas como «[REVISOR: …]» quando faltar "
-        "dado (endereçamento, nome do advogado subscritor, data). Responda apenas com o JSON "
-        "pedido; o Markdown vai no campo body_markdown."
+        "dado (endereçamento, nome do advogado subscritor, data); (8) extensão-alvo da peça: "
+        "entre 12.000 e 18.000 caracteres — objetiva, sem repetir a mesma prova em várias "
+        "seções; no máximo 30 citações. Responda apenas com o JSON pedido; o Markdown vai no "
+        "campo body_markdown."
     )
 
 

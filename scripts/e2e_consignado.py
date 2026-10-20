@@ -144,6 +144,23 @@ def petition_pdf(text_pages: list[str]) -> bytes | None:
     return buf.getvalue()
 
 
+def wait_job(api: Api, res: dict, *, timeout: float = 900.0) -> dict:
+    """Dossiê/minuta rodam em background (proxy do Railway corta HTTP em ~5 min): faz polling."""
+    if not res.get("async"):
+        return res.get("result") or {}
+    ref = res["job"]
+    started = time.perf_counter()
+    while True:
+        st = api.call("GET", f"/jobs/{ref}").json()
+        if st["status"] == "done":
+            return st.get("result") or {}
+        if st["status"] == "failed":
+            raise SystemExit(f"job {ref} falhou: {st.get('error')}")
+        if time.perf_counter() - started > timeout:
+            raise SystemExit(f"job {ref} não terminou em {timeout:.0f}s")
+        time.sleep(5)
+
+
 def trace_totals(trace: dict, since_ids: set[str]) -> tuple[int, int, int, float, set[str]]:
     calls = [c for c in trace["llm_calls"] if c["id"] not in since_ids]
     ids = {c["id"] for c in trace["llm_calls"]}
@@ -362,7 +379,7 @@ def main() -> int:
         how = "reuso"
     else:
         res = api.call("POST", f"/dossiers/cases/{case_id}/build", json={}).json()
-        result = res.get("result") or {}
+        result = wait_job(api, res)
         if result.get("error"):
             raise SystemExit(f"dossiê falhou: {result}")
         dossier = next(
@@ -418,7 +435,7 @@ def main() -> int:
             f"/drafts/cases/{case_id}/generate",
             json={"draft_type": "contestacao", "dossier_id": dossier["id"]},
         ).json()
-        result = res.get("result") or {}
+        result = wait_job(api, res)
         if result.get("error"):
             raise SystemExit(f"minuta falhou: {result}")
         draft = api.call("GET", f"/drafts/{result['draft_id']}").json()
@@ -447,7 +464,7 @@ def main() -> int:
     # ---------------------------------------------------------------- 8. M7 revisão
     t0 = time.perf_counter()
     draft_id = draft["id"]
-    if draft["status"] != "approved":
+    if draft["status"] not in {"approved", "exported"}:
         blocked = api.http.get(f"/reviews/drafts/{draft_id}/export", headers=api.headers())
         assert blocked.status_code == 423, (
             f"export sem revisão deveria ser 423, veio {blocked.status_code}"

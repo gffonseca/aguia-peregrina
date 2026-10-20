@@ -72,6 +72,7 @@ class LLMResponse:
     cost_usd: float | None
     llm_call_id: uuid.UUID | None = None
     raw: Any = field(default=None, repr=False)
+    finish_reason: str | None = None
 
 
 def prompt_hash(messages: list[dict[str, Any]]) -> str:
@@ -140,6 +141,7 @@ class LLMClient:
                     error=error,
                     case_id=case_id,
                     user_id=user_id,
+                    meta={"finish_reason": resp.finish_reason} if resp.finish_reason else {},
                 )
         resp.latency_ms = resp_latency
         return resp
@@ -171,11 +173,12 @@ class LLMClient:
             )
             try:
                 return schema.model_validate_json(_strip_fences(resp.content)), resp
-            except ValidationError as exc:
+            except (ValidationError, ValueError) as exc:  # inclui JSON truncado
                 last_err = exc
                 attempt += 1
         raise ValueError(
-            f"saída estruturada inválida após {max_retries + 1} tentativas: {last_err}"
+            f"saída estruturada inválida após {max_retries + 1} tentativa(s) "
+            f"(finish_reason={resp.finish_reason}): {str(last_err)[:300]}"
         )
 
     # ---------------------------------------------------------------- backends
@@ -227,6 +230,7 @@ class LLMClient:
             latency_ms=0,
             cost_usd=cost,
             raw=out,
+            finish_reason=getattr(out.choices[0], "finish_reason", None),
         )
 
     def _fake_response(
@@ -253,6 +257,7 @@ class LLMClient:
             error=fields["error"],
             case_id=fields["case_id"],
             user_id=fields["user_id"],
+            meta=fields.get("meta") or {},
         )
         db.add(row)
         db.flush()
