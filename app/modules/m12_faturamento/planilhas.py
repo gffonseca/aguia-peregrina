@@ -9,8 +9,9 @@ do contrato (Nº, Processo, Comarca, Matéria, Tipo de Ação, Parte Adversa, At
 from __future__ import annotations
 
 from collections.abc import Sequence
+from datetime import date
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Alignment, Font, PatternFill
@@ -24,6 +25,9 @@ from app.modules.m12_faturamento.auditoria import (
     to_date,
 )
 from app.modules.m12_faturamento.tabela import ROTULO_COLUNA, normalizar
+
+if TYPE_CHECKING:
+    from app.modules.m12_faturamento.conferencia import ResultadoConferencia
 
 _CAMPOS = {
     "ficha": ("npc", "ficha", "pasta"),
@@ -116,14 +120,14 @@ _FILL = {
 _BOLD = Font(bold=True)
 
 
-def _cabecalho(ws: Any, cols: list[str], larguras: list[int]) -> None:
+def _cabecalho(ws: Any, cols: list[str], larguras: list[int], linha: int = 1) -> None:
     ws.append(cols)
     for i, w in enumerate(larguras, start=1):
         ws.column_dimensions[get_column_letter(i)].width = w
-        c = ws.cell(row=1, column=i)
+        c = ws.cell(row=linha, column=i)
         c.font = _BOLD
         c.alignment = Alignment(wrap_text=True, vertical="top")
-    ws.freeze_panes = "A2"
+    ws.freeze_panes = f"A{linha + 1}"
 
 
 def _materia(a: LinhaAuditada) -> str:
@@ -131,7 +135,10 @@ def _materia(a: LinhaAuditada) -> str:
 
 
 def gerar_excel(
-    auditadas: list[LinhaAuditada], competencia: str, destino: str | Path
+    auditadas: list[LinhaAuditada],
+    competencia: str,
+    destino: str | Path,
+    conferencia: ResultadoConferencia | None = None,
 ) -> dict[str, Any]:
     wb = Workbook()
     rs = resumo(auditadas)
@@ -272,6 +279,137 @@ def gerar_excel(
         ax.cell(row=ax.max_row, column=9).font = _BOLD
         ax.cell(row=ax.max_row, column=9).number_format = "#,##0.00"
 
+    if conferencia is not None:
+        _abas_conferencia(wb, conferencia)
+        rs["conferencia"] = conferencia.resumo()
+
     Path(destino).parent.mkdir(parents=True, exist_ok=True)
     wb.save(destino)
     return rs
+
+
+_FILL_CONF = {
+    "DOC_OK": PatternFill("solid", fgColor="D9EAD3"),
+    "DOC_GENERICO": PatternFill("solid", fgColor="FFF2CC"),
+    "DOC_FORA_DA_JANELA": PatternFill("solid", fgColor="FCE5CD"),
+    "DOC_DIVERGENTE": PatternFill("solid", fgColor="FCE5CD"),
+    "SEM_DOCUMENTO": PatternFill("solid", fgColor="F4CCCC"),
+}
+_O_QUE_FAZER = {
+    "DOC_OK": "nada",
+    "DOC_GENERICO": "abrir o documento e confirmar que é a peça do ato",
+    "DOC_FORA_DA_JANELA": "conferir a data do protocolo (prestação × peça) ou subir a peça do mês",
+    "DOC_DIVERGENTE": "o documento é de outro tipo: subir a peça do ato cobrado",
+    "SEM_DOCUMENTO": "subir a peça no Benner antes de enviar a prestação",
+}
+
+
+def _abas_conferencia(wb: Workbook, c: ResultadoConferencia) -> None:
+    from app.modules.m12_faturamento.conferencia import STATUS_ORDEM, cnj_fmt
+
+    rs = c.resumo()
+    ws = wb.create_sheet("Conferência Benner", 1)
+    ws.append([f"Conferência com os documentos do Benner — competência {c.competencia}"])
+    ws["A1"].font = Font(bold=True, size=13)
+    ws.append(
+        [
+            f"{rs['docs_lidos']} documentos lidos, {rs['docs_proprios']} incluídos pelo "
+            "escritório. Um documento sustenta um único ato."
+        ]
+    )
+    ws.append([])
+    ws.append(["Situação", "Atos", "Valor (R$)", "O que fazer"])
+    for x in ws[4]:
+        x.font = _BOLD
+    for st, v in rs["por_status"].items():
+        ws.append([st, v["atos"], v["valor"], _O_QUE_FAZER[st]])
+        ws.cell(row=ws.max_row, column=1).fill = _FILL_CONF[st]
+        ws.cell(row=ws.max_row, column=3).number_format = "#,##0.00"
+    ws.append([])
+    ws.append(
+        [
+            "Possíveis atos não cobrados",
+            rs["nao_cobrados"],
+            rs["nao_cobrados_valor"],
+            "ver aba 'Não cobrados': incluir na prestação se a peça for do mês e remunerada",
+        ]
+    )
+    ws.cell(row=ws.max_row, column=1).font = _BOLD
+    ws.cell(row=ws.max_row, column=3).number_format = "#,##0.00"
+    ws.append([])
+    _cabecalho(
+        ws,
+        [
+            "Linha",
+            "Situação",
+            "Ficha",
+            "Processo",
+            "UF",
+            "Ato cobrado",
+            "Data",
+            "Valor",
+            "Documento no Benner",
+            "Incluído por terceiro",
+            "Outros documentos do processo",
+            "O que fazer",
+        ],
+        [7, 20, 18, 26, 5, 34, 11, 10, 70, 10, 70, 44],
+        linha=ws.max_row + 1,
+    )
+    ordem = {s: i for i, s in enumerate(STATUS_ORDEM)}
+    for a in sorted(c.atos, key=lambda x: (ordem[x.status], x.auditada.linha.origem)):
+        ln = a.auditada.linha
+        ws.append(
+            [
+                ln.origem,
+                a.status,
+                ln.ficha,
+                ln.cnj,
+                ln.uf,
+                a.auditada.ato_nome or ln.ato_texto,
+                ln.data,
+                a.auditada.valor_faturavel,
+                a.detalhe if a.documento else "",
+                "sim" if a.terceiro else "",
+                " | ".join(d.rotulo for d in a.outros) if not a.documento else "",
+                _O_QUE_FAZER[a.status],
+            ]
+        )
+        ws.cell(row=ws.max_row, column=2).fill = _FILL_CONF[a.status]
+        ws.cell(row=ws.max_row, column=7).number_format = "DD/MM/YYYY"
+        ws.cell(row=ws.max_row, column=8).number_format = "#,##0.00"
+
+    nc = wb.create_sheet("Não cobrados", 2)
+    _cabecalho(
+        nc,
+        [
+            "Data da peça",
+            "Ficha",
+            "Processo (ficha)",
+            "Processo citado na peça",
+            "Ato na tabela",
+            "Coluna",
+            "Valor tabela",
+            "Documento",
+            "Arquivo",
+        ],
+        [11, 18, 26, 26, 44, 26, 11, 50, 70],
+    )
+    for n in sorted(c.nao_cobrados, key=lambda x: (x.documento.data or date.min, x.documento.cnj)):
+        d = n.documento
+        nc.append(
+            [
+                d.data,
+                d.ficha,
+                cnj_fmt(d.cnj),
+                cnj_fmt(d.cnj_citado) if d.cnj_citado else "",
+                n.ato_nome,
+                ROTULO_COLUNA.get(n.coluna, n.coluna)
+                + (" (presumida)" if n.coluna_presumida else ""),
+                n.valor,
+                d.nome or d.tipo,
+                d.arquivo,
+            ]
+        )
+        nc.cell(row=nc.max_row, column=1).number_format = "DD/MM/YYYY"
+        nc.cell(row=nc.max_row, column=7).number_format = "#,##0.00"

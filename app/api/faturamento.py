@@ -5,6 +5,8 @@
 - `POST /faturamento/basa/prestacoes?competencia=AAAA-MM`: planilha de atos do mês; substitui
   a competência e devolve a pré-auditoria.
 - `GET  /faturamento/basa/prestacoes/{competencia}/pre-auditoria.xlsx`: Anexo II por estado.
+- `POST /faturamento/basa/conferencia?competencia=AAAA-MM[&formato=json]`: prestação + exports
+  "Pesquisa de documentos" do Benner → pré-auditoria com a conferência (não grava nada).
 - `POST /faturamento/basa/motor/rodar?completo=false`: roda o motor agora (assíncrono).
 - `GET  /faturamento/basa/motor/ultima`: estatísticas da última rodada.
 - `GET  /faturamento/basa/motor/ultima.xlsx`: relatório da última rodada.
@@ -31,7 +33,12 @@ from app.models.faturamento import BasaAtoCobrado, BasaFicha, MotorExecucao, Mot
 from app.models.tenant import Tenant
 from app.modules.m12_faturamento.auditoria import FichaBenner, LinhaAto, auditar
 from app.modules.m12_faturamento.planilhas import gerar_excel
-from app.modules.m12_faturamento.servico import cnj_formatado, importar_fichas, importar_prestacao
+from app.modules.m12_faturamento.servico import (
+    cnj_formatado,
+    conferir_prestacao,
+    importar_fichas,
+    importar_prestacao,
+)
 
 router = APIRouter(
     prefix="/faturamento/basa", tags=["faturamento"], dependencies=[Depends(require_ops_key)]
@@ -106,6 +113,28 @@ def pre_auditoria(competencia: str, db: Session = DB) -> Response:
         data,
         media_type=XLSX,
         headers={"Content-Disposition": f'attachment; filename="pre-auditoria-{competencia}.xlsx"'},
+    )
+
+
+@router.post("/conferencia", response_model=None)
+async def conferencia(
+    competencia: str = Query(pattern=r"^\d{4}-\d{2}$"),
+    formato: str = Query(default="xlsx", pattern="^(xlsx|json)$"),
+    prestacao: UploadFile = File(...),
+    documentos: list[UploadFile] = File(...),
+    db: Session = DB,
+    tenant_id: uuid.UUID = Depends(tenant_id_dep),
+) -> Response | dict[str, Any]:
+    """Cada ato cobrado tem a peça no Benner? E que peças do mês ficaram sem cobrança?"""
+    data, rs = conferir_prestacao(
+        db, competencia, await prestacao.read(), [await d.read() for d in documentos]
+    )
+    if formato == "json":
+        return rs
+    return Response(
+        data,
+        media_type=XLSX,
+        headers={"Content-Disposition": f'attachment; filename="conferencia-{competencia}.xlsx"'},
     )
 
 
