@@ -41,7 +41,15 @@ class Settings(BaseSettings):
 
     publications_provider: Literal["comunica_pje", "solucionare"] = "comunica_pje"
     solucionare_api_key: str | None = None
-    datajud_api_key: str | None = None
+    # Chave pública divulgada pelo CNJ (datajud-wiki.cnj.jus.br/api-publica/acesso); o CNJ pode
+    # trocá-la a qualquer momento — DATAJUD_API_KEY substitui este padrão sem novo deploy de código.
+    datajud_api_key: str | None = "cDZHYzlZa0JadVREZDJCendQbXY6SkJlTzNjLV9TRENyQk1RdnFKZGRQdw=="
+
+    # Motor de oportunidades BASA (M12): rodada diária no worker.
+    motor_basa_ativo: bool = True
+    motor_basa_hora: str = "06:00"  # horário local (America/Belem)
+    motor_basa_fuso: str = "America/Belem"
+    motor_basa_tenant_nome: str = "FBS — Fonseca Brasil Serrão Advogados"
 
     # Legal One (Thomson Reuters) — OData somente leitura; credenciais client_credentials
     legalone_client_id: str | None = None

@@ -6,6 +6,7 @@ from app.workflows.jobs import (
     generate_draft,
     intake_publication,
     monitor_publication,
+    motor_basa,
     pricing_run,
     process_document,
     sync_legalone,
@@ -19,6 +20,7 @@ JOBS = {
     "monitor_publication": monitor_publication.run,
     "pricing_run": pricing_run.run,
     "sync_legalone": sync_legalone.run,
+    "motor_basa": motor_basa.run,
 }
 
 

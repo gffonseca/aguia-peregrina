@@ -6,6 +6,7 @@ from app.api import (
     documents,
     dossiers,
     drafts,
+    faturamento,
     fraud,
     integrations,
     jobs,
@@ -32,3 +33,4 @@ api_router.include_router(pricing.router)
 api_router.include_router(integrations.router)
 api_router.include_router(ops.router)
 api_router.include_router(jobs.router)
+api_router.include_router(faturamento.router)

@@ -10,6 +10,13 @@ from app.models.credit import (
     Portfolio,
     PricingRun,
 )
+from app.models.faturamento import (
+    BasaAtoCobrado,
+    BasaFicha,
+    DataJudProcesso,
+    MotorExecucao,
+    MotorOportunidade,
+)
 from app.models.integrations import LegalOneRecord, LegalOneSyncRun
 from app.models.jurimetria import JmAward, JmCollection, JmDuration, JmOutcome, JmReversal
 from app.models.litigation import (
@@ -38,6 +45,11 @@ from app.models.tenant import Tenant, User
 __all__ = [
     "AuditLog",
     "Base",
+    "BasaAtoCobrado",
+    "BasaFicha",
+    "DataJudProcesso",
+    "MotorExecucao",
+    "MotorOportunidade",
     "Case",
     "CaseParty",
     "Cedente",
