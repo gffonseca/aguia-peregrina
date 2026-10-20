@@ -57,6 +57,10 @@ class BasaAtoCobrado(TenantModel):
     ato_texto: Mapped[str] = mapped_column(Text)
     data: Mapped[date | None] = mapped_column(Date)
     valor: Mapped[float | None] = mapped_column(Float)
+    # para remontar a prestação no layout do escritório (migração 0008)
+    comarca: Mapped[str | None] = mapped_column(String(120))
+    acao: Mapped[str | None] = mapped_column(String(200))
+    parte_adversa: Mapped[str | None] = mapped_column(String(200))
 
 
 class DataJudProcesso(TenantModel):

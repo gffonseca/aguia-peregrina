@@ -144,6 +144,9 @@ def importar_prestacao(
                 ato_texto=ln.ato_texto,
                 data=ln.data,
                 valor=ln.valor,
+                comarca=(ln.comarca or None) and ln.comarca[:120],
+                acao=(ln.acao or None) and ln.acao[:200],
+                parte_adversa=(ln.parte_adversa or None) and ln.parte_adversa[:200],
             )
         )
     _recebiveis_da_prestacao(db, tenant_id, competencia, auditadas)
@@ -192,7 +195,7 @@ def conferir_prestacao(
     db: Session,
     competencia: str,
     prestacao: bytes,
-    documentos: Iterable[bytes],
+    documentos: list[bytes] | None,
     tenant_id: uuid.UUID | None = None,
     registrar_pendencias: bool = False,
 ) -> tuple[bytes, dict[str, Any]]:
@@ -216,7 +219,19 @@ def conferir_prestacao(
         (a.cnj, a.ato_id, a.data)
         for a in db.scalars(select(BasaAtoCobrado).where(BasaAtoCobrado.competencia != competencia))
     ]
-    res = conferir(auditadas, ler_documentos(list(documentos)), competencia, cobrados_outras=outras)
+    from app.modules.m12_faturamento.conferencia import _competencia
+    from app.modules.m12_faturamento.prestacao_auto import (
+        documentos_guardados,
+        guardar_documentos,
+    )
+
+    docs = ler_documentos(list(documentos)) if documentos else []
+    if docs and tenant_id is not None:
+        guardar_documentos(db, tenant_id, docs)  # o export enviado passa a fazer parte da base
+    if not docs:  # sem arquivo: usa o que já está guardado (export do robô ou envios anteriores)
+        ini, fim = _competencia(competencia)
+        docs = documentos_guardados(db, ini - timedelta(days=60), fim + timedelta(days=30))
+    res = conferir(auditadas, docs, competencia, cobrados_outras=outras)
     pend: dict[str, int] = {}
     if registrar_pendencias and tenant_id is not None:
         from app.modules.m14_benner.correcoes import registrar_pecas

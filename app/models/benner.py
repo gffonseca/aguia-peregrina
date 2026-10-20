@@ -7,9 +7,9 @@ Autorização do BASA para automação no Benner: arquivada no administrativo do
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 
-from sqlalchemy import DateTime, String, Text, UniqueConstraint
+from sqlalchemy import Date, DateTime, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import JSONType, TenantModel
@@ -37,3 +37,21 @@ class BennerCorrecao(TenantModel):
     confirmado_em: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     observacao: Mapped[str | None] = mapped_column(Text)
     historico: Mapped[list] = mapped_column(JSONType, default=list)
+
+
+class BennerDocumento(TenantModel):
+    """Documentos da 'Pesquisa de documentos' do Benner (export manual hoje; robô na Fase 3).
+    Base do conferente e da prestação montada automaticamente."""
+
+    __tablename__ = "benner_documentos"
+    __table_args__ = (UniqueConstraint("tenant_id", "chave", name="uq_benner_doc_chave"),)
+
+    chave: Mapped[str] = mapped_column(String(64))  # sha1 de cnj|ficha|data|nome|arquivo|autor
+    data: Mapped[date | None] = mapped_column(Date, index=True)
+    nome: Mapped[str] = mapped_column(String(500))
+    tipo: Mapped[str | None] = mapped_column(String(200))
+    ficha: Mapped[str | None] = mapped_column(String(30), index=True)
+    cnj: Mapped[str | None] = mapped_column(String(25), index=True)
+    incluido_por: Mapped[str | None] = mapped_column(String(200))
+    arquivo: Mapped[str | None] = mapped_column(String(500))
+    importado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True))

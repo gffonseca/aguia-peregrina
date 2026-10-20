@@ -18,6 +18,7 @@
 
 from __future__ import annotations
 
+import re
 import tempfile
 import uuid
 from datetime import UTC, date, datetime
@@ -129,7 +130,7 @@ async def conferencia(
         default=True, description="ato sem peça vira item 'subir peça' na fila do Benner"
     ),
     prestacao: UploadFile = File(...),
-    documentos: list[UploadFile] = File(...),
+    documentos: list[UploadFile] | None = File(default=None),
     db: Session = DB,
     tenant_id: uuid.UUID = Depends(tenant_id_dep),
 ) -> Response | dict[str, Any]:
@@ -138,7 +139,7 @@ async def conferencia(
         db,
         competencia,
         await prestacao.read(),
-        [await d.read() for d in documentos],
+        [await d.read() for d in documentos or []],
         tenant_id=tenant_id,
         registrar_pendencias=registrar_pendencias,
     )
@@ -169,6 +170,29 @@ def recebiveis_atualizar(
         raise HTTPException(404, "recebível não encontrado") from None
     except ValueError as e:
         raise HTTPException(422, str(e)) from None
+
+
+@router.get("/prestacoes/{competencia}/rascunho", response_model=None)
+def prestacao_rascunho(
+    competencia: str,
+    formato: str = Query(default="xlsx", pattern="^(xlsx|json)$"),
+    db: Session = DB,
+) -> Response | dict[str, Any]:
+    """Prestação proposta a partir das peças no Benner e dos resultados no tribunal."""
+    from app.modules.m12_faturamento.prestacao_auto import montar
+
+    if not re.fullmatch(r"\d{4}-\d{2}", competencia):
+        raise HTTPException(422, "competência AAAA-MM")
+    data, rs = montar(db, competencia)
+    if formato == "json":
+        return rs
+    return Response(
+        data,
+        media_type=XLSX,
+        headers={
+            "Content-Disposition": f'attachment; filename="prestacao-{competencia}-rascunho.xlsx"'
+        },
+    )
 
 
 @router.post("/motor/rodar")

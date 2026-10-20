@@ -11,7 +11,7 @@ from __future__ import annotations
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query
+from fastapi import APIRouter, Body, Depends, File, HTTPException, Query, UploadFile
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
@@ -20,6 +20,20 @@ from app.modules.m14_benner import correcoes
 
 router = APIRouter(prefix="/benner", tags=["benner"], dependencies=[Depends(require_operador)])
 XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+
+@router.post("/documentos")
+async def documentos(
+    arquivos: list[UploadFile] = File(...),
+    db: Session = DB,
+    tenant_id: uuid.UUID = Depends(tenant_id_dep),
+) -> dict[str, int]:
+    """Exports 'Pesquisa de documentos' do Benner → base do conferente e da prestação."""
+    from app.modules.m12_faturamento.conferencia import ler_documentos
+    from app.modules.m12_faturamento.prestacao_auto import guardar_documentos
+
+    docs = ler_documentos([await a.read() for a in arquivos])
+    return {"lidos": len(docs), **guardar_documentos(db, tenant_id, docs)}
 
 
 @router.post("/correcoes/gerar")
