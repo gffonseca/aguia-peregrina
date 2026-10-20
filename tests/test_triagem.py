@@ -41,7 +41,7 @@ def test_intimacao_do_tribunal_vai_para_prazos_da_uf_com_urgencia() -> None:
     assert t.categoria == "INTIMACAO" and t.urgencia == "alta"
     assert t.uf == "AM" and t.papeis == ["prazos_am"]
     assert t.cnjs == ["00000720320168045801"]
-    assert "prescrição" in t.acao
+    assert "prescrição" in t.acao and "cobrável" in t.acao
 
     t = classificar(
         _e(
@@ -51,6 +51,27 @@ def test_intimacao_do_tribunal_vai_para_prazos_da_uf_com_urgencia() -> None:
         )
     )
     assert t.urgencia == "alta" and "conferir" in t.acao
+
+
+def test_intimacao_de_outro_cliente_e_cumprimento_de_sentenca() -> None:
+    t = classificar(
+        _e(
+            remetente="projudi@tjam.jus.br",
+            assunto="Decurso de prazo de intimação sem cumprimento",
+            corpo="PROCESSO JUDICIAL Nº 0796365-21.2022.8.04.0001 CLASSE: Cumprimento de "
+            "sentença. Sb Navegação × Transdourada. teve seu decurso de prazo sem cumprimento",
+        )
+    )
+    assert t.papeis == ["prazos_escritorio"] and "conferir" in t.acao
+    t = classificar(
+        _e(
+            remetente="projudi@tjam.jus.br",
+            assunto="Nova Intimação",
+            corpo="PROCESSO 0000072-03.2016.8.04.5801 movimentação JUNTADA DE CERTIDÃO",
+        ),
+        carteira={"00000720320168045801"},
+    )
+    assert t.papeis == ["prazos_am"] and t.urgencia == "media"
 
 
 def test_pedido_de_acesso_ao_benner_e_so_da_coordenacao_e_mede_excesso_de_copia() -> None:

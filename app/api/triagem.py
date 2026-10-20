@@ -76,6 +76,14 @@ def importar(
     return servico.ingerir(db, tenant_id, [para_email(m) for m in mensagens], caixa)
 
 
+@router.post("/reclassificar")
+def reclassificar(
+    db: Session = DB, tenant_id: uuid.UUID = Depends(tenant_id_dep)
+) -> dict[str, int]:
+    servico.garantir_papeis(db, tenant_id)
+    return servico.reclassificar(db)
+
+
 @router.post("/sincronizar")
 def sincronizar(db: Session = DB, tenant_id: uuid.UUID = Depends(tenant_id_dep)) -> dict[str, int]:
     s = get_settings()

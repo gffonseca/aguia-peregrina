@@ -107,8 +107,12 @@ def _internos(e: Email) -> int:
     return sum(1 for x in {a.lower() for a in e.para + e.cc} if x.endswith(DOMINIOS_ESCRITORIO))
 
 
-def classificar(e: Email, uf_por_cnj: dict[str, str] | None = None) -> Triagem:
-    """`uf_por_cnj`: UF da ficha no Benner (dígitos do CNJ → 'PA'/'AM'), quando conhecida."""
+def classificar(
+    e: Email, uf_por_cnj: dict[str, str] | None = None, carteira: set[str] | None = None
+) -> Triagem:
+    """`uf_por_cnj`: UF da ficha no Benner (dígitos do CNJ → 'PA'/'AM'), quando conhecida.
+    `carteira`: CNJs (dígitos) das fichas do BASA; intimação de processo fora dela e sem o
+    Banco no texto vai para os prazos gerais do escritório, não para a equipe do contrato."""
     rem, ass, corpo = _n(e.remetente), _n(e.assunto), _n(e.corpo)
     tudo = f"{ass} {corpo}"
     cnjs = cnjs_no_texto(f"{e.assunto}\n{e.corpo}")
@@ -125,26 +129,37 @@ def classificar(e: Email, uf_por_cnj: dict[str, str] | None = None) -> Triagem:
         return t("IGNORAR", "baixa", [], "comunicado/marketing", "nenhuma")
 
     if _TRIBUNAIS.search(rem) or re.search(r"intimac|decurso de prazo|publicac", ass):
+        txt = re.sub(r"cumprimento de sentenca", "cumprimento", tudo)
+        do_contrato = bool(
+            re.search(r"banco da amazonia|\bbasa\b", txt)
+            or (carteira and any(c in carteira for c in cnjs))
+        )
+        if do_contrato:
+            papel = f"prazos{sufixo}" if uf else "prazos_pa"
+        else:
+            papel = "prazos_escritorio"
         alta = re.search(
             r"decurso de prazo|julgad|sentenc|acordao|pauta|sessao|liminar|prescric|"
             r"audiencia|penhora|bloqueio|extinc",
-            tudo,
+            txt,
         )
-        papel = f"prazos{sufixo}" if uf else "prazos_pa"
-        acao = (
-            "conferir no sistema do tribunal se houve resposta; se não houve, peticionar"
-            if "decurso de prazo" in tudo
-            else "abrir a intimação, lançar o prazo e designar o responsável"
-        )
-        if re.search(r"prescric", tudo):
-            acao = "manifestar contra a prescrição intercorrente (ato cobrável)"
-        elif re.search(r"julgad|sentenc|acordao", tudo):
-            acao = "ler a decisão e avaliar recurso no prazo (ato cobrável se houver recurso)"
+        if "decurso de prazo" in txt:
+            acao = "conferir no sistema do tribunal se houve resposta; se não houve, peticionar"
+        elif "prescric" in txt:
+            acao = "manifestar contra a prescrição intercorrente"
+        elif re.search(r"julgad|sentenc|acordao", txt):
+            acao = "ler a decisão e avaliar recurso no prazo"
+        elif re.search(r"pauta|sessao", txt):
+            acao = "acompanhar o julgamento; avaliar memoriais ou sustentação"
+        else:
+            acao = "abrir a intimação, lançar o prazo e designar o responsável"
+        if do_contrato and "conferir" not in acao and "acompanhar" not in acao:
+            acao += " (ato cobrável no contrato BASA)"
         return t(
             "INTIMACAO",
             "alta" if alta else "media",
             [papel],
-            "tribunal",
+            "tribunal" + ("" if do_contrato else " — fora do contrato BASA"),
             acao,
         )
 

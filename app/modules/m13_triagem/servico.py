@@ -27,6 +27,7 @@ PAPEIS_PADRAO: dict[str, str] = {
     "equipe_am": "Advogados das fichas do Amazonas",
     "prazos_pa": "Controle de prazos / intimações do Pará",
     "prazos_am": "Controle de prazos / intimações do Amazonas",
+    "prazos_escritorio": "Prazos de outros clientes (intimações fora do contrato BASA)",
 }
 _URG = {"alta": 0, "media": 1, "baixa": 2}
 
@@ -51,15 +52,14 @@ def ingerir(
     """Classifica e grava os e-mails novos; reprocessar o mesmo id não duplica."""
     garantir_papeis(db, tenant_id)
     ja = set(db.scalars(select(TriagemEmail.mensagem_id).where(TriagemEmail.caixa == caixa)))
-    fichas: dict[str, list[str]] = {}
-    for f in db.scalars(select(BasaFicha)):
-        fichas.setdefault(f.cnj, []).append(f.ficha)
+    fichas = _fichas(db)
+    carteira = set(fichas)
     c: Counter[str] = Counter()
     for e in emails:
         if e.id in ja:
             c["repetidos"] += 1
             continue
-        tr = classificar(e)
+        tr = classificar(e, carteira=carteira)
         rec = None
         if e.recebido_em:
             try:
@@ -93,6 +93,41 @@ def ingerir(
         ja.add(e.id)
         c["novos"] += 1
         c[tr.categoria] += 1
+    db.commit()
+    return dict(c)
+
+
+def _fichas(db: Session) -> dict[str, list[str]]:
+    out: dict[str, list[str]] = {}
+    for f in db.scalars(select(BasaFicha)):
+        out.setdefault(f.cnj, []).append(f.ficha)
+    return out
+
+
+def reclassificar(db: Session) -> dict[str, int]:
+    """Reaplica as regras atuais aos e-mails gravados (com o trecho guardado); não mexe no
+    status já marcado pela equipe, exceto o que passar a ser ruído."""
+    fichas = _fichas(db)
+    carteira = set(fichas)
+    c: Counter[str] = Counter()
+    for t in db.scalars(select(TriagemEmail)):
+        tr = classificar(
+            Email(id=t.mensagem_id, remetente=t.remetente, assunto=t.assunto, corpo=t.trecho or ""),
+            carteira=carteira,
+        )
+        if (tr.categoria, tr.papeis, tr.acao) != (t.categoria, t.papeis, t.acao):
+            c["alterados"] += 1
+        t.categoria, t.urgencia, t.papeis, t.acao, t.motivo = (
+            tr.categoria,
+            tr.urgencia,
+            tr.papeis,
+            tr.acao,
+            tr.motivo,
+        )
+        t.cnjs, t.uf = tr.cnjs, tr.uf
+        t.fichas = [x for d in tr.cnjs for x in fichas.get(d, [])]
+        t.internos_necessarios = tr.internos_necessarios
+        c["total"] += 1
     db.commit()
     return dict(c)
 
