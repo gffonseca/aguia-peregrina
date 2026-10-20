@@ -209,7 +209,7 @@ ALERTAS = {
     "recurso_juntado": "recurso juntado: se adverso, contrarrazões (R$ 200)",
 }
 
-DIAS_PARA_ATENDER = 45  # janela para considerar o ato atendido após o evento
+DIAS_PARA_ATENDER = 75  # janela para considerar atendido (prazo conta da publicação, que atrasa)
 SEM_MOVIMENTO_DIAS = 90
 
 
@@ -278,7 +278,7 @@ def detectar(p: Processo, hoje: date, desde: date | None = None) -> list[Oportun
                 if ato and valor is None:
                     valor = ato.valor("demais") or ato.valor("rec_cred")
                 prazo = (
-                    ev.data + timedelta(days=int(g.prazo_dias * 1.4))
+                    ev.data + timedelta(days=int(g.prazo_dias * 1.4) + 30)
                     if g and g.prazo_dias
                     else None
                 )
