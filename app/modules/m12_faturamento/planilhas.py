@@ -8,6 +8,7 @@ do contrato (Nº, Processo, Comarca, Matéria, Tipo de Ação, Parte Adversa, At
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
@@ -89,7 +90,7 @@ def ler_atos(path: str | Path) -> list[LinhaAto]:
     return out
 
 
-def ler_benner(paths: list[str | Path]) -> dict[str, FichaBenner]:
+def ler_benner(paths: Sequence[str | Path]) -> dict[str, FichaBenner]:
     """Lê os exports 'Fichas.xlsx' do Benner (Ficha, Nº processo principal, Situação)."""
     out: dict[str, FichaBenner] = {}
     for p in paths:
