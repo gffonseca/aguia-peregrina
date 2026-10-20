@@ -188,8 +188,6 @@ class LLMClient:
     ) -> LLMResponse:
         assert litellm is not None
         params: dict[str, Any] = {"model": model, "messages": messages, **kwargs}
-        if response_format:
-            params["response_format"] = response_format
         if self.settings.litellm_proxy_url:
             params["api_base"] = self.settings.litellm_proxy_url
             params["api_key"] = self.settings.litellm_proxy_key
@@ -208,6 +206,11 @@ class LLMClient:
                     env_val = os.environ.get(api_key_ref.split("/", 1)[1])
                     if env_val:
                         params["api_key"] = env_val
+        # JSON: na Anthropic o modo JSON é garantido pelo prompt (structured() já instrui e
+        # valida com pydantic); `response_format` só vai para provedores com suporte nativo.
+        if response_format and not str(params["model"]).startswith("anthropic/"):
+            params["response_format"] = response_format
+        litellm.drop_params = True
         out = litellm.completion(**params)
         usage = getattr(out, "usage", None)
         cost = None
@@ -257,11 +260,21 @@ class LLMClient:
 
 
 def _strip_fences(text: str) -> str:
+    """Remove cercas ```json … ``` e texto fora do primeiro objeto/array JSON."""
     text = text.strip()
     if text.startswith("```"):
         text = text.split("\n", 1)[1] if "\n" in text else text[3:]
         if text.endswith("```"):
             text = text[:-3]
+    text = text.strip()
+    if text and text[0] not in "{[":
+        starts = [i for i in (text.find("{"), text.find("[")) if i >= 0]
+        if starts:
+            text = text[min(starts) :]
+    if text and text[-1] not in "}]":
+        ends = max(text.rfind("}"), text.rfind("]"))
+        if ends >= 0:
+            text = text[: ends + 1]
     return text.strip()
 
 

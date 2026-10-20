@@ -35,7 +35,12 @@ def generate(
             "context": body.context,
         },
     )
-    return {"job": ref}
+    engine = get_engine()
+    out: dict = {"job": ref, "engine": engine.name}
+    result_for = getattr(engine, "result_for", None)
+    if result_for is not None:  # in_process: devolve o resultado da execução
+        out["result"] = result_for(ref)
+    return out
 
 
 @router.get("/cases/{case_id}", response_model=list[DraftOut])

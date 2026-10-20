@@ -7,7 +7,9 @@ Interface mínima: registrar jobs e disparar por nome com payload serializável.
 
 from __future__ import annotations
 
+import itertools
 import logging
+from collections import deque
 from collections.abc import Callable
 from typing import Any, Protocol
 
@@ -31,16 +33,28 @@ class InProcessEngine:
 
     def __init__(self) -> None:
         self._jobs: dict[str, JobFn] = {}
-        self.history: list[tuple[str, dict[str, Any], dict[str, Any]]] = []
+        # histórico limitado (processo web de longa duração) e resultado por referência
+        self.history: deque[tuple[str, dict[str, Any], dict[str, Any]]] = deque(maxlen=200)
+        self._results: dict[str, dict[str, Any]] = {}
+        self._counter = itertools.count(1)
 
     def register(self, job_name: str, fn: JobFn) -> None:
         self._jobs[job_name] = fn
 
     def dispatch(self, job_name: str, payload: dict[str, Any]) -> str:
         fn = self._jobs[job_name]
+        ref = f"inproc-{next(self._counter)}"
         result = fn(payload)
         self.history.append((job_name, payload, result))
-        return f"inproc-{len(self.history)}"
+        self._results[ref] = result
+        if len(self._results) > 500:
+            for old in list(self._results)[:-200]:
+                self._results.pop(old, None)
+        return ref
+
+    def result_for(self, ref: str) -> dict[str, Any] | None:
+        """Resultado síncrono de um job (só faz sentido no engine in_process)."""
+        return self._results.get(ref)
 
 
 class HatchetEngine:

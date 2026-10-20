@@ -65,7 +65,7 @@ def sync(body: LegalOneSyncIn, tenant_id: uuid.UUID = Depends(tenant_id_dep)) ->
     except LegalOneError as exc:
         raise HTTPException(502, str(exc)) from exc
     result: dict = {"job": "sync_legalone", "engine": engine.name, "ref": ref}
-    history = getattr(engine, "history", None)
-    if history:  # in_process: devolve as estatísticas da execução
-        result["result"] = history[-1][2]
+    result_for = getattr(engine, "result_for", None)
+    if result_for is not None:  # in_process: devolve as estatísticas da execução
+        result["result"] = result_for(ref)
     return result
