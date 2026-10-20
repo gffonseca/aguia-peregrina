@@ -147,6 +147,36 @@ def cobertura_das_prestacoes(db: Session) -> tuple[date, date] | None:
     return date(a0, m0, 1), date(a1, m1, monthrange(a1, m1)[1])
 
 
+def conferir_prestacao(
+    db: Session, competencia: str, prestacao: bytes, documentos: Iterable[bytes]
+) -> tuple[bytes, dict[str, Any]]:
+    """Pré-auditoria + conferente do Benner, sem gravar nada: o escritório roda antes de enviar.
+
+    Usa a carteira já importada (fichas) e as outras competências gravadas, para não apontar
+    como "não cobrado" um ato faturado em outro mês.
+    """
+    import tempfile
+    from pathlib import Path
+
+    from app.modules.m12_faturamento.conferencia import conferir, ler_documentos
+    from app.modules.m12_faturamento.planilhas import gerar_excel
+
+    linhas = ler_atos(io.BytesIO(prestacao))  # type: ignore[arg-type]
+    benner = {
+        f.ficha: FichaBenner(f.ficha, f.cnj, f.situacao) for f in db.scalars(select(BasaFicha))
+    }
+    auditadas = auditar(linhas, competencia, benner or None)
+    outras = [
+        (a.cnj, a.ato_id, a.data)
+        for a in db.scalars(select(BasaAtoCobrado).where(BasaAtoCobrado.competencia != competencia))
+    ]
+    res = conferir(auditadas, ler_documentos(list(documentos)), competencia, cobrados_outras=outras)
+    with tempfile.TemporaryDirectory() as d:
+        out = Path(d) / "conf.xlsx"
+        rs = gerar_excel(auditadas, competencia, out, conferencia=res)
+        return out.read_bytes(), rs
+
+
 # --- DataJud -----------------------------------------------------------------------------
 
 
