@@ -1,0 +1,18 @@
+RELATÓRIO DE LOGS DE AUTENTICAÇÃO E ASSINATURA ELETRÔNICA (DOCUMENTO FICTÍCIO PARA TESTE)
+Sistema: App Financeira Teste — módulo de formalização digital — Sessão SESS-TESTE-77f1
+Contrato: CCB-TESTE-2024-000123 — Cliente: Raimunda Testeira da Silva (CPF 123.456.789-00, fictício)
+
+EVENTOS (horário de Belém, UTC-3)
+2024-03-12 14:20:03  LOGIN            CPF + senha de 6 dígitos — sucesso — IP 177.0.0.1 — Android 13 — Moto G (fictício) — app v4.8.1
+2024-03-12 14:21:40  OTP_SMS          código enviado ao celular cadastrado (91) 9****-**21 — validado em 41 s
+2024-03-12 14:24:12  SIMULACAO        valor R$ 8.500,00 — 72x R$ 236,40 — CET exibido na tela — aceite de ciência
+2024-03-12 14:27:55  DOC_FOTO         CNH frente/verso capturada — OCR nome/CPF/data de nascimento = cadastro
+2024-03-12 14:29:30  SELFIE_LIVENESS  prova de vida (piscar/virar o rosto) aprovada — fornecedor BioTeste
+2024-03-12 14:29:33  FACE_MATCH       selfie × foto da CNH — score 0,97 (limiar 0,85) — APROVADO
+2024-03-12 14:30:10  GEO              lat -1,4525 long -48,4650 — precisão 12 m — compatível com endereço cadastral (0,6 km)
+2024-03-12 14:32:17  ASSINATURA       aceite eletrônico da CCB — hash SHA-256 9f2c7a1e-FICTICIO-… — carimbo de tempo
+2024-03-12 14:32:20  AVERBACAO_INSS   solicitação de averbação enviada (Dataprev) — protocolo AVB-FICTICIO-2024-01
+2024-03-13 09:14:02  LIBERACAO        TED R$ 8.500,00 para Banco 999 ag. 0001 c/c 12345-6 (titular: a própria cliente) — EFETIVADA
+
+RESUMO: 1 sessão; mesmo dispositivo e IP do cadastro original (2023-11-02); nenhuma tentativa de login falha; nenhum dispositivo novo.
+Relatório gerado em 2026-09-20 pelo sistema de formalização (fictício) a pedido do jurídico.

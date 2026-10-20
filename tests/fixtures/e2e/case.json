@@ -1,0 +1,52 @@
+{
+  "_note": "CASO SINTÉTICO para o teste de ponta a ponta. Pessoas, CPF (dígitos verificadores inválidos de propósito), contrato, contas e números são fictícios; qualquer semelhança é coincidência.",
+  "cnj_number": "0809999-39.2026.8.14.0301",
+  "court": "TJPA",
+  "comarca": "Belém",
+  "vara": "3ª Vara Cível e Empresarial de Belém",
+  "typology": "consignado",
+  "side": "defense",
+  "phase": "conhecimento",
+  "claim_value": 23800.0,
+  "filed_at": "2026-09-15",
+  "external_ref": "E2E-CONSIGNADO-0001",
+  "parties": [
+    {"role": "autor", "name": "Raimunda Testeira da Silva", "document": "123.456.789-00",
+     "meta": {"nascimento": "1958-04-02", "beneficio_inss": "NB 999.888.777-6 (fictício)"}},
+    {"role": "reu", "name": "Financeira Teste S.A. (Crédito, Financiamento e Investimento)", "document": "00.000.000/0001-91"},
+    {"role": "advogado_contrario", "name": "Fulano Fictício de Tal", "oab": "PA 99999"}
+  ],
+  "subsidies": {
+    "tipo_produto": "consignado",
+    "valor_contrato": 8500.0,
+    "data_contrato": "2024-03-12",
+    "data_primeiro_desconto": "2024-04-05",
+    "data_ultimo_desconto": "2026-09-05",
+    "contrato_localizado": true,
+    "contrato_assinatura_tipo": "biometria_facial",
+    "biometria_score": 0.97,
+    "documento_selfie_coincide": true,
+    "geolocalizacao_compativel": true,
+    "ip_log_disponivel": true,
+    "valor_creditado_conta_autor": true,
+    "conta_credito_titularidade": "autor",
+    "ted_comprovante_localizado": true,
+    "extratos_mostram_uso": true,
+    "descontos_parcelas_n": 30,
+    "audio_sac_disponivel": false,
+    "contratos_ativos_autor_n": 1,
+    "contratos_anteriores_adimplidos": false,
+    "reclamacao_administrativa_previa": false,
+    "rmc_houve_saque_ou_compra": false,
+    "rmc_tce_localizado": false
+  },
+  "fraud_ctx_extra": {
+    "requests_gratuity": true,
+    "declared_income": 1518.0
+  },
+  "expected": {
+    "applicable_theses_min": ["T05", "T06", "T07", "T08", "T08.1", "T09"],
+    "not_applicable": ["T01", "T03", "T06.1", "T10"],
+    "exceptions_none_of": ["X01", "X02", "X06"]
+  }
+}

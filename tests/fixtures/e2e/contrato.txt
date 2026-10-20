@@ -1,0 +1,28 @@
+CÉDULA DE CRÉDITO BANCÁRIO — EMPRÉSTIMO CONSIGNADO INSS (DOCUMENTO FICTÍCIO PARA TESTE)
+Nº CCB-TESTE-2024-000123
+
+CREDORA: Financeira Teste S.A. (Crédito, Financiamento e Investimento), CNPJ 00.000.000/0001-91 (fictício), Belém/PA.
+EMITENTE: Raimunda Testeira da Silva, CPF 123.456.789-00 (fictício), nascida em 02/04/1958, aposentada (NB 999.888.777-6, fictício), residente na Travessa Imaginária, 404, Guamá, Belém/PA.
+
+1. VALOR LÍQUIDO LIBERADO: R$ 8.500,00 (oito mil e quinhentos reais).
+2. PRAZO: 72 parcelas mensais e consecutivas de R$ 236,40, com desconto em folha de benefício (consignação INSS), primeira parcela em 05/04/2024 e última em 05/03/2030.
+3. TAXA DE JUROS: 1,79% a.m. (CET 23,9% a.a.), dentro do teto do INSS vigente na data da contratação (Instrução Normativa INSS 28/2008, com alterações).
+4. FORMA DE LIBERAÇÃO: TED para conta de titularidade da EMITENTE — Banco 999 (fictício), agência 0001, conta corrente 12345-6.
+5. AUTORIZAÇÃO DE DESCONTO: a EMITENTE autoriza o INSS a consignar as parcelas no benefício indicado, nos termos da Lei 10.820/2003.
+6. DIREITO DE ARREPENDIMENTO: 7 dias (CDC, art. 49), contados da liberação do crédito.
+
+--- página 2 ---
+DECLARAÇÕES DA EMITENTE
+Declaro que li e compreendi as condições acima, que recebi cópia deste instrumento e do Custo Efetivo Total, e que a contratação foi feita por minha livre vontade, por meio do aplicativo da CREDORA.
+
+ASSINATURA ELETRÔNICA COM BIOMETRIA FACIAL
+Data/hora: 12/03/2024 14:32:17 (UTC-3)
+Método: selfie com prova de vida + confronto com documento de identidade (CNH) fotografado
+Score de similaridade facial: 0,97 (limiar 0,85)
+Hash do documento assinado (SHA-256): 9f2c7a1e-FICTICIO-8b3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f
+Identificador da sessão: SESS-TESTE-77f1
+Dispositivo: Android 13, modelo Moto G (fictício), IP 177.0.0.1 (fictício)
+Geolocalização no ato: lat -1,4525 / long -48,4650 (bairro do Guamá, Belém/PA — distância ao endereço cadastral: 0,6 km)
+
+Belém/PA, 12 de março de 2024.
+Financeira Teste S.A. — Assinatura eletrônica do representante (certificado ICP-Brasil fictício, série 0001)

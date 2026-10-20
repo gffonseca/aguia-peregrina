@@ -1,0 +1,17 @@
+COMPROVANTE DE TRANSFERÊNCIA — TED (DOCUMENTO FICTÍCIO PARA TESTE)
+Banco remetente: Financeira Teste S.A. — CNPJ 00.000.000/0001-91 (fictício)
+Data/hora da transferência: 13/03/2024 09:14:02
+Número de controle (ISPB/STR): STR20240313000000FICTICIO
+Valor: R$ 8.500,00 (oito mil e quinhentos reais)
+Finalidade: 10 — Crédito em conta (liberação de empréstimo consignado — contrato CCB-TESTE-2024-000123)
+
+FAVORECIDO
+Nome: RAIMUNDA TESTEIRA DA SILVA
+CPF: 123.456.789-00 (fictício)
+Banco: 999 — Banco Fictício S.A.
+Agência: 0001
+Conta corrente: 12345-6
+Titularidade: própria (CPF do favorecido confere com o CPF da emitente da CCB)
+
+Situação: EFETIVADA — confirmação de crédito recebida do banco destinatário em 13/03/2024 09:14:40.
+Autenticação eletrônica: A1B2C3D4-FICTICIO-E5F6

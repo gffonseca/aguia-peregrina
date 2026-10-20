@@ -106,7 +106,7 @@ alembic upgrade head                 # cria schema + RLS
 make run                             # http://localhost:8000/docs
 ```
 
-Todas as rotas (exceto `/health` e `/auth/*`) exigem `X-Tenant-ID: <uuid>` e `Authorization: Bearer <token>`. No MVP o login é um stub (`POST /auth/login` → `POST /auth/mfa` com código `000000` em dev).
+Todas as rotas (exceto `/health`, `/auth/*` e `/ops/bootstrap`) exigem `X-Tenant-ID: <uuid>` e `Authorization: Bearer <token>`. No MVP o login é um stub (`POST /auth/login` → `POST /auth/mfa` com código `000000` em dev).
 
 Para o gateway LiteLLM como proxy separado: `docker compose --profile gateway up -d` e defina `LITELLM_PROXY_URL=http://localhost:4000`.
 
@@ -178,6 +178,30 @@ Sem `--tenant-id` o CLI usa o único tenant `law_firm` ativo. Com `WORKFLOW_ENGI
 ### Decisão: protocolo continua manual no Legal One
 
 Não há (ainda) endpoint de escrita validado. **Cadastro de andamentos, prazos e protocolo/peticionamento permanecem manuais no Legal One**; a plataforma só lê. O write-back (M10) para o Legal One fica bloqueado até validarmos endpoints de escrita no tenant — enquanto isso, o `CsvExportConnector` continua sendo o fallback.
+
+## Operação: bootstrap, playbooks e teste de ponta a ponta
+
+Endpoints `/ops/*` exigem `X-Ops-Key == OPS_KEY` (sem chave → 404) e nunca devolvem segredos:
+
+| Rota | Tenant | Função |
+|---|---|---|
+| `GET /ops/tenants` | — | lista tenants (id, nome, tipo, `test_mode`) |
+| `POST /ops/bootstrap` | — | cria/garante tenant, advogado (OAB + MFA placeholder `000000`) e cliente; idempotente por nome/e-mail |
+| `POST /ops/playbooks/load?file=<slug>` | `X-Tenant-ID` | carrega `playbooks/<slug>.playbook.yaml` em `theses`/`thesis_versions`; se o YAML está `aprovado`, a versão é aprovada com a OAB e o timestamp do arquivo (idempotente por tipologia+código+versão do playbook) |
+| `GET /ops/cases/{id}/trace` | `X-Tenant-ID` | `llm_calls` (modelo, tokens, custo), `audit_log`, checagens de fraude, minutas e revisões do processo |
+
+**Tempo mínimo de revisão em tenant de teste.** `REVIEW_MIN_SECONDS_*` é global. Só um tenant com `tenants.settings.test_mode = true` pode reduzi-lo via `settings.review_min_seconds` (`{"contestacao": 30, "default": 30}`), nunca abaixo de 5 s (`review_min_seconds_for()` em `m07_revisao/service.py`). O E2E cria o tenant **"FBS Piloto (E2E sintético)"** com essa configuração; o tenant real da FBS não tem `test_mode` e segue os 15 min da contestação. Com mais de um tenant `law_firm`, o CLI `python -m app.workflows.run` passa a exigir `--tenant-id`.
+
+**Ponta a ponta (M0→M7) com caso sintético:**
+
+```bash
+OPS_KEY_FILE=/caminho/ops_key python scripts/e2e_consignado.py            # produção (default)
+AP_BASE_URL=http://localhost:8000 OPS_KEY=... python scripts/e2e_consignado.py --regenerate
+```
+
+O script é idempotente (reaproveita tenant, playbook, processo por `external_ref`, documentos por sha256, dossiê e minuta já gerados; `--regenerate` refaz o LLM), imprime a linha do tempo com duração/tokens/custo por etapa e salva `minuta-*.docx`, `minuta.md`, `dossier.json` e `trace.json` em `out/e2e/`. Fixtures em `tests/fixtures/e2e/` (petição de 12 páginas, contrato com assinatura eletrônica, TED, log de autenticação — tudo fictício, CPF com dígito inválido de propósito). O mesmo fluxo roda sem rede em `tests/test_e2e_pipeline.py` com LLM enlatado.
+
+**O que a esteira faz hoje (por módulo):** M2 extrai texto de PDF com camada de texto (`pypdf`) ou texto puro (páginas por `\f`/`--- página N ---`) e classifica tipos de página com `claude-haiku` (um chamado por documento); páginas digitalizadas ficam `outro`/`ocr_confidence=0` até o OCR por visão. M3 guarda os subsídios do cliente em `cases.meta.subsidios` e devolve o checklist de faltantes. M4 deriva o contexto dos autos (procuração, comprovante, OAB, concentração na carteira) e só produz flags. M5 extrai com `claude-sonnet` os campos `extracao` do playbook e fatos/timeline/provas ancorados em apelidos de página `P1…Pn` (resolvidos para `document_page_id`), mescla subsídio/antifraude/calculados e avalia as condições das teses e exceções (`m00_playbook/conditions.py`). M6 usa só teses com versão aprovada por OAB cujas condições foram satisfeitas, segue as seções do `modelo_peca` e grava `draft_citations`; exceção `nao_gerar_minuta` ou campo bloqueante ausente impede a geração. M7 exporta Markdown ou DOCX (`?format=docx`) com o bloco de capa "MINUTA — revisão obrigatória — gerada em … — playbook … aprovado por OAB/…".
 
 ## Deploy no Railway
 
