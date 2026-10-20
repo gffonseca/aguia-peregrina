@@ -88,6 +88,7 @@ class TenantMiddleware(BaseHTTPMiddleware):
         "/ops/bootstrap",  # ops, cria o tenant (protegido por X-Ops-Key)
         "/ops/tenants",
         "/faturamento/basa/setup",  # ops, garante o tenant (protegido por X-Ops-Key)
+        "/painel/recebiveis",  # página estática; os dados vêm da API com X-Ops-Key
     )
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:

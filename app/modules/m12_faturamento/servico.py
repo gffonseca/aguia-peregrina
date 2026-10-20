@@ -17,6 +17,7 @@ from collections import defaultdict
 from collections.abc import Iterable
 from datetime import UTC, date, datetime, timedelta
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from openpyxl import load_workbook
 from sqlalchemy import delete, func, select
@@ -27,10 +28,12 @@ from app.integrations.datajud.client import DataJudClient, alias_do_tribunal
 from app.models.faturamento import (
     BasaAtoCobrado,
     BasaFicha,
+    BasaRecebivel,
     DataJudProcesso,
     MotorExecucao,
     MotorOportunidade,
 )
+from app.modules.m12_faturamento import recebiveis as rcb
 from app.modules.m12_faturamento.auditoria import FichaBenner, auditar, resumo
 from app.modules.m12_faturamento.deteccao import Processo
 from app.modules.m12_faturamento.planilhas import ler_atos
@@ -49,6 +52,9 @@ def _dig(s: Any) -> str:
 
 def _agora() -> datetime:
     return datetime.now(UTC)
+
+
+_FUSO = ZoneInfo("America/Belem")
 
 
 # --- carteira (Benner) -------------------------------------------------------------------
@@ -110,32 +116,59 @@ def fichas_ativas(db: Session) -> list[BasaFicha]:
 def importar_prestacao(
     db: Session, tenant_id: uuid.UUID, competencia: str, conteudo: bytes
 ) -> dict[str, Any]:
-    """Substitui a competência inteira e devolve o resumo da pré-auditoria."""
+    """Substitui a competência inteira, atualiza os recebíveis por UF e devolve a pré-auditoria."""
     linhas = ler_atos(io.BytesIO(conteudo))  # type: ignore[arg-type]
+    benner = {
+        f.ficha: FichaBenner(f.ficha, f.cnj, f.situacao) for f in db.scalars(select(BasaFicha))
+    }
+    auditadas = auditar(linhas, competencia, benner or None)  # normaliza a UF
     db.execute(delete(BasaAtoCobrado).where(BasaAtoCobrado.competencia == competencia))
-    for ln in linhas:
+    for a in auditadas:
+        ln = a.linha
         db.add(
             BasaAtoCobrado(
                 tenant_id=tenant_id,
                 competencia=competencia,
                 cnj=(_dig(ln.cnj) or ln.cnj)[:25],
                 ficha=(ln.ficha or None) and ln.ficha[:30],
-                uf=None,
-                ato_id=reconhecer_ato(ln.ato_texto),
+                uf=(ln.uf or None) and ln.uf[:2],
+                ato_id=a.ato_id or reconhecer_ato(ln.ato_texto),
                 ato_texto=ln.ato_texto,
                 data=ln.data,
                 valor=ln.valor,
             )
         )
+    _recebiveis_da_prestacao(db, tenant_id, competencia, auditadas)
     db.commit()
-    benner = {
-        f.ficha: FichaBenner(f.ficha, f.cnj, f.situacao) for f in db.scalars(select(BasaFicha))
-    }
     return {
         "competencia": competencia,
         "linhas": len(linhas),
-        "pre_auditoria": resumo(auditar(linhas, competencia, benner or None)),
+        "pre_auditoria": resumo(auditadas),
     }
+
+
+def _recebiveis_da_prestacao(
+    db: Session, tenant_id: uuid.UUID, competencia: str, auditadas: list[Any]
+) -> None:
+    """Cria/atualiza uma linha de recebível por UF; preserva o que a equipe lançou à mão."""
+    tot: dict[str, dict[str, float]] = defaultdict(lambda: {"dec": 0.0, "fat": 0.0, "n": 0})
+    for a in auditadas:
+        t = tot[rcb.grupo_uf(a.linha.uf)]
+        t["dec"] += float(a.linha.valor or 0)
+        t["fat"] += a.valor_faturavel
+        t["n"] += 1
+    existentes = {
+        r.uf: r
+        for r in db.scalars(select(BasaRecebivel).where(BasaRecebivel.competencia == competencia))
+    }
+    for uf, t in tot.items():
+        r = existentes.get(uf)
+        if r is None:
+            r = BasaRecebivel(tenant_id=tenant_id, competencia=competencia, uf=uf, historico=[])
+            db.add(r)
+        r.valor_declarado = round(t["dec"], 2)
+        r.valor_faturavel = round(t["fat"], 2)
+        r.atos = int(t["n"])
 
 
 def cobertura_das_prestacoes(db: Session) -> tuple[date, date] | None:
@@ -175,6 +208,113 @@ def conferir_prestacao(
         out = Path(d) / "conf.xlsx"
         rs = gerar_excel(auditadas, competencia, out, conferencia=res)
         return out.read_bytes(), rs
+
+
+# --- recebíveis --------------------------------------------------------------------------
+
+CAMPOS_RECEBIVEL = {
+    "enviado_em": "data",
+    "conferido_em": "data",
+    "valor_aprovado": "valor",
+    "nf_numero": "texto",
+    "nf_emitida_em": "data",
+    "nf_valor": "valor",
+    "pago_em": "data",
+    "valor_pago": "valor",
+    "observacao": "texto",
+}
+
+
+def _rec(r: BasaRecebivel) -> rcb.Recebivel:
+    return rcb.Recebivel(
+        competencia=r.competencia,
+        uf=r.uf,
+        valor_faturavel=r.valor_faturavel,
+        valor_declarado=r.valor_declarado,
+        enviado_em=r.enviado_em,
+        conferido_em=r.conferido_em,
+        valor_aprovado=r.valor_aprovado,
+        nf_numero=r.nf_numero,
+        nf_emitida_em=r.nf_emitida_em,
+        nf_valor=r.nf_valor,
+        pago_em=r.pago_em,
+        valor_pago=r.valor_pago,
+    )
+
+
+def recebivel_dict(r: BasaRecebivel, hoje: date) -> dict[str, Any]:
+    out: dict[str, Any] = {
+        "id": str(r.id),
+        "competencia": r.competencia,
+        "uf": r.uf,
+        "atos": r.atos,
+        "valor_declarado": r.valor_declarado,
+        "valor_faturavel": r.valor_faturavel,
+        "historico": r.historico or [],
+    }
+    for c, tipo in CAMPOS_RECEBIVEL.items():
+        v = getattr(r, c)
+        out[c] = v.isoformat() if tipo == "data" and v else v
+    out.update(rcb.situacao(_rec(r), hoje).as_dict())
+    return out
+
+
+def listar_recebiveis(db: Session, hoje: date | None = None) -> dict[str, Any]:
+    hoje = hoje or _agora().astimezone(_FUSO).date()
+    itens = [
+        recebivel_dict(r, hoje)
+        for r in db.scalars(
+            select(BasaRecebivel).order_by(BasaRecebivel.competencia.desc(), BasaRecebivel.uf)
+        )
+    ]
+    em_aberto = sum(i["em_aberto"] for i in itens)
+    vencido = sum(
+        i["em_aberto"] for i in itens if any(a["codigo"] == "VENCIDO" for a in i["alertas"])
+    )
+    return {
+        "hoje": hoje.isoformat(),
+        "em_aberto": round(em_aberto, 2),
+        "vencido": round(vencido, 2),
+        "alertas": sum(len(i["alertas"]) for i in itens),
+        "itens": itens,
+    }
+
+
+def atualizar_recebivel(
+    db: Session, rid: uuid.UUID, campos: dict[str, Any], por: str, hoje: date | None = None
+) -> dict[str, Any]:
+    r = db.get(BasaRecebivel, rid)
+    if r is None:
+        raise KeyError(rid)
+    hist = list(r.historico or [])
+    for c, v in campos.items():
+        tipo = CAMPOS_RECEBIVEL.get(c)
+        if tipo is None:
+            raise ValueError(f"campo não editável: {c}")
+        if v in ("", None):
+            novo: Any = None
+        elif tipo == "data":
+            novo = date.fromisoformat(str(v)[:10])
+        elif tipo == "valor":
+            novo = round(float(v), 2)
+        else:
+            novo = str(v)[:2000] if c == "observacao" else str(v)[:40]
+        antigo = getattr(r, c)
+        if antigo == novo:
+            continue
+        setattr(r, c, novo)
+        hist.append(
+            {
+                "em": _agora().isoformat(timespec="seconds"),
+                "por": por[:80],
+                "campo": c,
+                "de": antigo.isoformat() if isinstance(antigo, date) else antigo,
+                "para": novo.isoformat() if isinstance(novo, date) else novo,
+            }
+        )
+    r.historico = hist
+    db.commit()
+    return recebivel_dict(r, hoje or _agora().astimezone(_FUSO).date())
 
 
 # --- DataJud -----------------------------------------------------------------------------

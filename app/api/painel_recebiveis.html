@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recebíveis BASA</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--tx:#1b1f24;--mut:#5c6670;--ln:#e2e6ea;--ac:#0b6e4f;--alto:#b42318;--medio:#b54708;--info:#175cd3;--chip:#eef1f4}
+@media (prefers-color-scheme:dark){:root{--bg:#111418;--card:#1a1f25;--tx:#e8ecf0;--mut:#9aa5b1;--ln:#2a313a;--ac:#3fb68b;--alto:#f97066;--medio:#fdb022;--info:#84adff;--chip:#232a32}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{padding:20px 16px 8px;max-width:1280px;margin:auto}h1{font-size:20px;margin:0 0 4px}header p{margin:0;color:var(--mut)}
+main{max-width:1280px;margin:auto;padding:8px 16px 40px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:12px 0}
+.kpi{background:var(--card);border:1px solid var(--ln);border-radius:10px;padding:12px 14px}.kpi b{display:block;font-size:22px;font-variant-numeric:tabular-nums}.kpi span{color:var(--mut);font-size:12px}
+.wrap{overflow-x:auto;background:var(--card);border:1px solid var(--ln);border-radius:10px}
+table{border-collapse:collapse;width:100%;min-width:1180px}tr.it td{border-bottom:none}tr.sit td{padding-top:0}th,td{padding:8px 10px;border-bottom:1px solid var(--ln);text-align:left;vertical-align:top}
+th{font-size:12px;color:var(--mut);font-weight:600;position:sticky;top:0;background:var(--card)}td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+input{font:inherit;color:inherit;background:transparent;border:1px solid var(--ln);border-radius:6px;padding:3px 6px;width:100%}input[type=date]{min-width:128px}input.v{width:110px;text-align:right}input[data-c=nf_numero]{width:90px}
+input:focus{outline:2px solid var(--ac);border-color:transparent}input.salvo{border-color:var(--ac)}
+.etapa{display:inline-block;padding:2px 8px;border-radius:99px;background:var(--chip);font-size:12px;white-space:nowrap}
+.al{display:block;font-size:12px;margin-top:3px}.al.alto{color:var(--alto)}.al.medio{color:var(--medio)}.al.info{color:var(--info)}
+button{font:inherit;border:1px solid var(--ln);background:var(--chip);color:var(--tx);border-radius:6px;padding:4px 10px;cursor:pointer}button.pri{background:var(--ac);color:#fff;border-color:var(--ac)}
+#login[hidden],#app[hidden]{display:none}
+#login{background:var(--card);border:1px solid var(--ln);border-radius:10px;padding:16px;max-width:420px;display:grid;gap:8px}
+dialog{max-width:720px;width:calc(100% - 32px);border:1px solid var(--ln);border-radius:10px;background:var(--card);color:var(--tx)}dialog pre{white-space:pre-wrap;font:13px/1.5 ui-monospace,monospace;background:var(--bg);padding:12px;border-radius:8px;max-height:60vh;overflow:auto}
+.mut{color:var(--mut);font-size:12px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Recebíveis BASA — contrato FB1798</h1>
+  <p>Uma linha por competência e UF. Lance as datas conforme acontecem; o vencimento segue a cl. 18ª (10º dia útil do mês seguinte). Minutas são rascunhos: nada é enviado daqui.</p>
+</header>
+<main>
+  <form id="login" hidden>
+    <label>Chave de operação<input id="k" type="password" autocomplete="off" required></label>
+    <label>Seu nome (fica na trilha de alterações)<input id="u" required></label>
+    <button class="pri">Entrar</button>
+    <span class="mut" id="erro"></span>
+  </form>
+  <section id="app" hidden>
+    <div class="kpis" id="kpis"></div>
+    <div class="wrap"><table>
+      <thead><tr><th>Competência</th><th>UF</th><th>Atos</th><th>Faturável</th><th>Enviada em</th><th>Conferida em</th><th>Aprovado (R$)</th><th>NF nº</th><th>NF emitida</th><th>Valor NF</th><th>Paga em</th><th>Valor pago</th></tr></thead>
+      <tbody id="tb"></tbody>
+    </table></div>
+    <p class="mut">Atualizado <span id="hoje"></span>. <button id="sair" type="button">Sair</button></p>
+  </section>
+</main>
+<dialog id="dlg"><h3 id="dlgt">Minuta</h3><pre id="dlgm"></pre><button id="copiar" class="pri" type="button">Copiar</button> <button type="button" onclick="dlg.close()">Fechar</button></dialog>
+<script>
+const API="/faturamento/basa";
+const ss={get(k){try{return sessionStorage.getItem(k)}catch(e){return null}},set(k,v){try{sessionStorage.setItem(k,v)}catch(e){}},del(k){try{sessionStorage.removeItem(k)}catch(e){}}};
+const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+let cred={k:ss.get("k"),t:ss.get("t"),u:ls.get("u")||""};
+const brl=v=>v==null?"—":v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+const MES=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+const comp=c=>{const[a,m]=c.split("-");return MES[+m-1]+"/"+a};
+const ETAPA={A_ENVIAR:"a enviar",ENVIADA:"enviada",CONFERIDA:"conferida",NF_EMITIDA:"NF emitida",PAGA:"paga"};
+async function api(path,opt={}){const r=await fetch(API+path,{...opt,headers:{"X-Ops-Key":cred.k,"X-Tenant-ID":cred.t||"","X-Usuario":cred.u,"Content-Type":"application/json",...(opt.headers||{})}});if(!r.ok)throw new Error(r.status+" "+(await r.text()));return r.json()}
+function campo(it,c,tipo){const v=it[c]??"";const cls=tipo==="valor"?"v":"";const t=tipo==="data"?"date":tipo==="valor"?"number":"text";return `<input class="${cls}" type="${t}" ${t==="number"?'step="0.01"':""} data-id="${it.id}" data-c="${c}" value="${v}">`}
+let dados=null;
+function render(d){dados=d;
+  document.getElementById("hoje").textContent=new Date(d.hoje+"T12:00").toLocaleDateString("pt-BR");
+  const pagas=d.itens.filter(i=>i.etapa==="PAGA").length;
+  document.getElementById("kpis").innerHTML=[["Em aberto",brl(d.em_aberto)],["Vencido (cl. 18ª)",brl(d.vencido)],["Alertas",d.alertas],["Prestações pagas",pagas+" de "+d.itens.length]].map(([a,b])=>`<div class="kpi"><span>${a}</span><b>${b}</b></div>`).join("");
+  document.getElementById("tb").innerHTML=d.itens.map(it=>`<tr class="it">
+   <td>${comp(it.competencia)}</td><td>${it.uf==="OU"?"Outras":it.uf}</td><td class="n">${it.atos??"—"}</td><td class="n">${brl(it.valor_faturavel)}</td>
+   <td>${campo(it,"enviado_em","data")}</td><td>${campo(it,"conferido_em","data")}</td><td>${campo(it,"valor_aprovado","valor")}</td>
+   <td>${campo(it,"nf_numero","texto")}</td><td>${campo(it,"nf_emitida_em","data")}</td><td>${campo(it,"nf_valor","valor")}</td>
+   <td>${campo(it,"pago_em","data")}</td><td>${campo(it,"valor_pago","valor")}</td></tr>
+   <tr class="sit"><td colspan="12"><span class="etapa">${ETAPA[it.etapa]}</span> <span class="mut">vence ${new Date(it.vencimento+"T12:00").toLocaleDateString("pt-BR")} · em aberto ${brl(it.em_aberto)}</span>
+   ${it.minuta?` <button type="button" data-min="${it.id}">Ver minuta</button>`:""}
+   ${it.alertas.map(a=>`<span class="al ${a.nivel}">● ${a.texto}</span>`).join("")}</td></tr>`).join("");
+}
+async function carregar(){render(await api("/recebiveis"))}
+document.getElementById("tb").addEventListener("change",async e=>{const i=e.target;if(!i.dataset.c)return;
+  try{const it=await api("/recebiveis/"+i.dataset.id,{method:"PATCH",body:JSON.stringify({[i.dataset.c]:i.value||null})});
+    const idx=dados.itens.findIndex(x=>x.id===it.id);dados.itens[idx]=it;await carregar();
+    const n=document.querySelector(`input[data-id="${it.id}"][data-c="${i.dataset.c}"]`);if(n){n.classList.add("salvo");setTimeout(()=>n.classList.remove("salvo"),1200)}
+  }catch(err){alert("Não salvou: "+err.message)}});
+document.getElementById("tb").addEventListener("click",e=>{const id=e.target.dataset.min;if(!id)return;const it=dados.itens.find(x=>x.id===id);
+  document.getElementById("dlgt").textContent=`Minuta — ${comp(it.competencia)} ${it.uf==="OU"?"outras UFs":it.uf}`;document.getElementById("dlgm").textContent=it.minuta;dlg.showModal()});
+document.getElementById("copiar").onclick=()=>{try{navigator.clipboard.writeText(document.getElementById("dlgm").textContent)}catch(e){}};
+document.getElementById("login").addEventListener("submit",async e=>{e.preventDefault();
+  cred.k=document.getElementById("k").value.trim();cred.u=document.getElementById("u").value.trim();
+  try{const r=await fetch(API+"/setup",{method:"POST",headers:{"X-Ops-Key":cred.k}});if(!r.ok)throw new Error("chave inválida");
+    cred.t=(await r.json()).tenant_id;ss.set("k",cred.k);ss.set("t",cred.t);ls.set("u",cred.u);iniciar()}
+  catch(err){document.getElementById("erro").textContent=err.message}});
+document.getElementById("sair").onclick=()=>{ss.del("k");ss.del("t");location.reload()};
+async function iniciar(){document.getElementById("login").hidden=true;document.getElementById("app").hidden=false;
+  try{await carregar()}catch(e){ss.del("k");document.getElementById("app").hidden=true;document.getElementById("login").hidden=false;document.getElementById("erro").textContent="Sessão expirada: entre de novo."}}
+if(cred.k&&cred.t&&cred.u)iniciar();else{document.getElementById("u").value=cred.u;document.getElementById("login").hidden=false}
+</script>
+</body>
+</html>

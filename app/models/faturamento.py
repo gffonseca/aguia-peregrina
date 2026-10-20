@@ -106,3 +106,29 @@ class MotorOportunidade(TenantModel):
     observacao: Mapped[str | None] = mapped_column(Text)
     status: Mapped[str] = mapped_column(String(10))  # ABERTA|ATENDIDA|PERDIDA|ALERTA
     atendida_por: Mapped[str | None] = mapped_column(String(80))
+
+
+class BasaRecebivel(TenantModel):
+    """Uma prestação por competência e UF (o BASA paga PA e AM em NFs separadas)."""
+
+    __tablename__ = "basa_recebiveis"
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "competencia", "uf", name="uq_basa_recebiveis_comp_uf"),
+    )
+
+    competencia: Mapped[str] = mapped_column(String(7))
+    uf: Mapped[str] = mapped_column(String(2))
+    valor_declarado: Mapped[float | None] = mapped_column(Float)
+    valor_faturavel: Mapped[float | None] = mapped_column(Float)
+    atos: Mapped[int | None] = mapped_column()
+    enviado_em: Mapped[date | None] = mapped_column(Date)
+    conferido_em: Mapped[date | None] = mapped_column(Date)
+    valor_aprovado: Mapped[float | None] = mapped_column(Float)
+    nf_numero: Mapped[str | None] = mapped_column(String(40))
+    nf_emitida_em: Mapped[date | None] = mapped_column(Date)
+    nf_valor: Mapped[float | None] = mapped_column(Float)
+    pago_em: Mapped[date | None] = mapped_column(Date)
+    valor_pago: Mapped[float | None] = mapped_column(Float)
+    observacao: Mapped[str | None] = mapped_column(Text)
+    # trilha: [{"em": iso, "por": "...", "campo": "...", "de": ..., "para": ...}]
+    historico: Mapped[list] = mapped_column(JSONType, default=list)

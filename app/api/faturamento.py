@@ -7,6 +7,9 @@
 - `GET  /faturamento/basa/prestacoes/{competencia}/pre-auditoria.xlsx`: Anexo II por estado.
 - `POST /faturamento/basa/conferencia?competencia=AAAA-MM[&formato=json]`: prestação + exports
   "Pesquisa de documentos" do Benner → pré-auditoria com a conferência (não grava nada).
+- `GET  /faturamento/basa/recebiveis`: prestações por competência × UF, etapa, vencimento
+  (cl. 18ª), alertas e minuta de cobrança (rascunho; nada é enviado).
+- `PATCH /faturamento/basa/recebiveis/{id}`: lançamento manual (datas, NF, valores), com trilha.
 - `POST /faturamento/basa/motor/rodar?completo=false`: roda o motor agora (assíncrono).
 - `GET  /faturamento/basa/motor/ultima`: estatísticas da última rodada.
 - `GET  /faturamento/basa/motor/ultima.xlsx`: relatório da última rodada.
@@ -21,7 +24,7 @@ from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
+from fastapi import APIRouter, Body, Depends, File, Header, HTTPException, Query, UploadFile
 from fastapi.responses import Response
 from pydantic import BaseModel
 from sqlalchemy import select
@@ -34,10 +37,12 @@ from app.models.tenant import Tenant
 from app.modules.m12_faturamento.auditoria import FichaBenner, LinhaAto, auditar
 from app.modules.m12_faturamento.planilhas import gerar_excel
 from app.modules.m12_faturamento.servico import (
+    atualizar_recebivel,
     cnj_formatado,
     conferir_prestacao,
     importar_fichas,
     importar_prestacao,
+    listar_recebiveis,
 )
 
 router = APIRouter(
@@ -136,6 +141,26 @@ async def conferencia(
         media_type=XLSX,
         headers={"Content-Disposition": f'attachment; filename="conferencia-{competencia}.xlsx"'},
     )
+
+
+@router.get("/recebiveis")
+def recebiveis(db: Session = DB) -> dict[str, Any]:
+    return listar_recebiveis(db)
+
+
+@router.patch("/recebiveis/{rid}")
+def recebiveis_atualizar(
+    rid: uuid.UUID,
+    campos: dict[str, Any] = Body(...),
+    x_usuario: str = Header(default="painel", alias="X-Usuario"),
+    db: Session = DB,
+) -> dict[str, Any]:
+    try:
+        return atualizar_recebivel(db, rid, campos, x_usuario)
+    except KeyError:
+        raise HTTPException(404, "recebível não encontrado") from None
+    except ValueError as e:
+        raise HTTPException(422, str(e)) from None
 
 
 @router.post("/motor/rodar")

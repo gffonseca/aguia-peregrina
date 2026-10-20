@@ -11,6 +11,7 @@ from app.api import (
     integrations,
     jobs,
     ops,
+    painel,
     pricing,
     publications,
     reviews,
@@ -34,3 +35,4 @@ api_router.include_router(integrations.router)
 api_router.include_router(ops.router)
 api_router.include_router(jobs.router)
 api_router.include_router(faturamento.router)
+api_router.include_router(painel.router)

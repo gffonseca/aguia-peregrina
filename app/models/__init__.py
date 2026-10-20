@@ -13,6 +13,7 @@ from app.models.credit import (
 from app.models.faturamento import (
     BasaAtoCobrado,
     BasaFicha,
+    BasaRecebivel,
     DataJudProcesso,
     MotorExecucao,
     MotorOportunidade,
@@ -47,6 +48,7 @@ __all__ = [
     "Base",
     "BasaAtoCobrado",
     "BasaFicha",
+    "BasaRecebivel",
     "DataJudProcesso",
     "MotorExecucao",
     "MotorOportunidade",
