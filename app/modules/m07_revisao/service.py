@@ -35,11 +35,39 @@ def open_review(
     return review
 
 
-def approve(review: Review, draft: Draft, *, now: datetime | None = None) -> Review:
+def review_min_seconds_for(draft_type: str, tenant_settings: dict | None = None) -> int:
+    """Tempo mínimo de revisão: configuração global por tipo de peça.
+
+    Só um tenant marcado como `test_mode: true` em `tenants.settings` pode reduzir o mínimo
+    (`review_min_seconds: {"contestacao": 30, "default": 30}`), e nunca abaixo de 5 s — serve
+    ao piloto sintético, nunca a dados reais. Fora do modo de teste a chave é ignorada.
+    """
+    base = get_settings().review_min_seconds(draft_type)
+    ts = tenant_settings or {}
+    if not ts.get("test_mode"):
+        return base
+    override = ts.get("review_min_seconds") or {}
+    if isinstance(override, int | float):
+        return max(5, int(override))
+    value = override.get(draft_type, override.get("default"))
+    return max(5, int(value)) if value is not None else base
+
+
+def approve(
+    review: Review,
+    draft: Draft,
+    *,
+    now: datetime | None = None,
+    minimum: int | None = None,
+) -> Review:
     """Aprovação exige tempo mínimo de revisão por tipo de peça (direito de leitura real)."""
     now = now or datetime.now(UTC)
-    elapsed = int((now - review.opened_at).total_seconds())
-    minimum = get_settings().review_min_seconds(draft.draft_type)
+    opened = review.opened_at
+    if opened.tzinfo is None:  # SQLite devolve naive
+        opened = opened.replace(tzinfo=UTC)
+    elapsed = int((now - opened).total_seconds())
+    if minimum is None:
+        minimum = get_settings().review_min_seconds(draft.draft_type)
     if elapsed < minimum:
         raise ReviewError(f"tempo mínimo de revisão não atingido ({elapsed}s < {minimum}s)")
     review.approved_at = now
@@ -54,10 +82,11 @@ def reject(review: Review, draft: Draft, *, reason: str) -> Review:
     if not reason or len(reason.strip()) < 10:
         raise ReviewError("recusa exige motivo (mínimo 10 caracteres)")
     now = datetime.now(UTC)
+    opened = review.opened_at if review.opened_at.tzinfo else review.opened_at.replace(tzinfo=UTC)
     review.rejected_at = now
     review.decision = "rejected"
     review.rejection_reason = reason
-    review.review_seconds = int((now - review.opened_at).total_seconds())
+    review.review_seconds = int((now - opened).total_seconds())
     draft.status = "rejected"
     return review
 
