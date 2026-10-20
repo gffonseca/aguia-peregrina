@@ -61,11 +61,11 @@ async function api(p,o={}){const r=await fetch(p,{...o,headers:{"X-Ops-Key":cred
 async function carregar(){
   const q=new URLSearchParams({tipo,limite:tipo==="parados"?"30":"200"});if(document.getElementById("ver").value==="eu")q.set("pessoa",cred.u);if(document.getElementById("dec").checked)q.set("incluir_decididas","true");
   dados=await api("/faturamento/basa/fila?"+q);
-  const passou=dados.itens.filter(i=>i.prazo_passou).length;
-  document.getElementById("kpis").innerHTML=[["Na fila",dados.total],["Valor pela tabela",brl(dados.valor_total)],["Prazo provável já passou",tipo==="gatilhos"?passou:"—"],["UF",dados.ufs?(dados.ufs.join(", ")||"nenhuma — confira seu papel na triagem"):"todas"]].map(([a,b])=>`<div class="kpi"><span>${a}</span><b>${b}</b></div>`).join("");
+  const k=tipo==="gatilhos"?[["No prazo (alta confiança)",`${dados.no_prazo} (${dados.no_prazo_alta})`],["Valor no prazo",brl(dados.valor_no_prazo)],["Prazo provável já passou",dados.prazo_passou]]:[["Na fila",dados.total],["Valor pela tabela",tipo==="alertas"?"—":brl(dados.valor_total)]];
+  document.getElementById("kpis").innerHTML=[...k,["UF",dados.ufs?(dados.ufs.join(", ")||"nenhuma — confira seu papel na triagem"):"todas"]].map(([a,b])=>`<div class="kpi"><span>${a}</span><b>${b}</b></div>`).join("");
   document.getElementById("nota").innerHTML=`<p class="nota">${NOTA[tipo]}</p>`;
   document.getElementById("lista").innerHTML=dados.itens.map((i,n)=>`<div class="it ${i.prazo_passou?"passou":""}">
-   <div class="top"><span class="as">${esc(i.evento_rotulo)} → ${esc(i.ato_rotulo||"—")}</span><span class="v">${brl(i.valor)}</span></div>
+   <div class="top"><span class="as">${esc(i.evento_rotulo)} → ${esc(i.ato_rotulo||"—")}${i.confianca!=="alta"?' <span class="mut">(confirmar)</span>':""}</span><span class="v">${brl(i.valor)}</span></div>
    <div class="mut">${fmtCnj(i.processo)} · ${esc(i.ficha||"")} · ${i.uf||""} · evento em ${dt(i.data_evento)}${i.prazo&&tipo!=="parados"?` · prazo provável ${dt(i.prazo)}`:""}</div>
    ${i.prazo_passou?`<div class="al">Prazo provável já passou — conferir se foi feito</div>`:""}
    <div class="mut">${esc(i.observacao||"")}${i.movimento&&i.movimento!=="—"?" · movimento: "+esc(i.movimento):""}</div>

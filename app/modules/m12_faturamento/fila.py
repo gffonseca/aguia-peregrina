@@ -169,13 +169,27 @@ def fila(
     if tipo == "parados":
         itens.sort(key=lambda x: x["data_evento"])  # parado há mais tempo primeiro
     else:
-        itens.sort(key=lambda x: (x["prazo"] or "9999", -(x["valor"] or 0)))
+        # primeiro o que ainda dá para fazer (prazo provável aberto), alta confiança antes,
+        # prazo mais próximo antes; os de prazo vencido vão para o fim ("conferir se foi feito")
+        itens.sort(
+            key=lambda x: (
+                x["prazo_passou"],
+                x["confianca"] != "alta",
+                x["prazo"] or "9999",
+                -(x["valor"] or 0),
+            )
+        )
     total, valor = len(itens), sum(x["valor"] or 0 for x in itens)
+    abertos = [x for x in itens if not x["prazo_passou"]]
     return {
         "tipo": tipo,
         "ufs": sorted(ufs) if ufs is not None else None,
         "total": total,
         "valor_total": round(valor, 2),
+        "no_prazo": len(abertos),
+        "no_prazo_alta": sum(1 for x in abertos if x["confianca"] == "alta"),
+        "valor_no_prazo": round(sum(x["valor"] or 0 for x in abertos), 2),
+        "prazo_passou": total - len(abertos),
         "itens": itens[:limite],
     }
 
