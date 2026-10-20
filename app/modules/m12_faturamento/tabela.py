@@ -184,3 +184,32 @@ def enquadrar_coluna(acao: str | None, ficha: str | None, cnj: str | None) -> st
     if _REC_CRED.search(a):
         return "rec_cred"
     return "demais"
+
+
+_GATILHOS_PATH = Path(__file__).with_name("gatilhos_fb1798.yaml")
+
+
+@dataclass(frozen=True)
+class Gatilho:
+    ato_id: str
+    papel: str  # redige | detecta | prepara
+    prazo_dias: int | None
+    eventos: tuple[str, ...]
+
+
+@lru_cache
+def carregar_gatilhos(path: str | None = None) -> dict[str, Gatilho]:
+    raw = yaml.safe_load(Path(path or _GATILHOS_PATH).read_text(encoding="utf-8"))
+    return {
+        ato: Gatilho(ato, g["papel"], g.get("prazo_dias"), tuple(g["eventos"]))
+        for ato, g in raw["gatilhos"].items()
+    }
+
+
+def atos_por_evento() -> dict[str, list[Gatilho]]:
+    """Índice reverso usado pelo motor de oportunidades: evento → atos cabíveis."""
+    idx: dict[str, list[Gatilho]] = {}
+    for g in carregar_gatilhos().values():
+        for ev in g.eventos:
+            idx.setdefault(ev, []).append(g)
+    return idx

@@ -1,0 +1,65 @@
+# Motor de oportunidades — para cada ato da tabela (tabela_fb1798.yaml), os eventos do processo
+# que o tornam cabível e o papel da IA:
+#   redige  = a IA prepara o ato; o advogado revisa e assina
+#   detecta = ato do juízo/oficial que a IA encontra nos autos e lança na prestação com a prova
+#   prepara = exige presença do advogado; a IA prepara roteiro, preposto, diária
+# `eventos` são classes de movimento/publicação (mapeáveis aos códigos TPU de movimento).
+# `prazo_dias` = prazo útil de referência para abrir a oportunidade (null = sem prazo legal).
+gatilhos:
+  ajuizamento: {papel: redige, prazo_dias: 10, eventos: [documentos_credito_recebidos]}
+  carta_precatoria: {papel: redige, prazo_dias: 15, eventos: [ato_em_outra_comarca_determinado]}
+  juntada_planilha_custas: {papel: redige, prazo_dias: 5, eventos: [guia_paga, despacho_planilha_atualizada, antes_de_bloqueio_ou_leilao]}
+  interpelacao: {papel: redige, prazo_dias: null, eventos: [risco_alienacao_bens, interrupcao_prescricao]}
+  citacao_efetivada: {papel: detecta, prazo_dias: null, eventos: [mandado_citacao_positivo, ar_positivo]}
+  peticao_interlocutoria: {papel: redige, prazo_dias: 15, eventos: [citacao_negativa, prazo_pagamento_vencido, penhora_formalizada, resposta_sisbajud_renajud_infojud, despacho_manifestacao, processo_sem_evento_90_dias]}
+  diligencia_cartorio: {papel: redige, prazo_dias: null, eventos: [pesquisa_imoveis_devedor]}
+  indisponibilidade_bens: {papel: detecta, prazo_dias: null, eventos: [averbacao_art_828_registrada]}
+  arresto_penhora: {papel: detecta, prazo_dias: null, eventos: [termo_ou_auto_de_penhora, bloqueio_convertido_em_penhora, arresto_efetivado]}
+  busca_apreensao: {papel: detecta, prazo_dias: null, eventos: [bem_apreendido]}
+  impugnacao_embargos_execucao: {papel: redige, prazo_dias: 15, eventos: [intimacao_resposta_embargos_execucao, intimacao_resposta_embargos_terceiro, intimacao_resposta_embargos_monitorios]}
+  impugnacao_gratuidade: {papel: redige, prazo_dias: 15, eventos: [pedido_gratuidade_devedor_com_indicio_de_capacidade]}
+  excecao_pre_executividade: {papel: redige, prazo_dias: 15, eventos: [excecao_pre_executividade_apresentada]}
+  impugnacao_cumprimento: {papel: redige, prazo_dias: 15, eventos: [cumprimento_sentenca_contra_banco]}
+  resposta_impugnacao_valor_causa: {papel: redige, prazo_dias: 15, eventos: [impugnacao_valor_causa_apresentada]}
+  impugnacao_valor_causa: {papel: redige, prazo_dias: 15, eventos: [valor_causa_incorreto_na_inicial_adversa, documento_falso_juntado]}
+  replica: {papel: redige, prazo_dias: 15, eventos: [contestacao_juntada]}
+  excecao_impedimento: {papel: redige, prazo_dias: 15, eventos: [juizo_incompetente_ou_suspeito]}
+  quesitos: {papel: redige, prazo_dias: 15, eventos: [pericia_deferida]}
+  pericia_acompanhamento: {papel: prepara, prazo_dias: null, eventos: [data_pericia_designada]}
+  impugnacao_laudo: {papel: redige, prazo_dias: 15, eventos: [laudo_juntado]}
+  praca_com_arrematacao: {papel: detecta, prazo_dias: null, eventos: [auto_arrematacao, auto_adjudicacao]}
+  praca_sem_arrematacao: {papel: detecta, prazo_dias: null, eventos: [leilao_negativo]}
+  impugnacao_embargos_arrematacao: {papel: redige, prazo_dias: 15, eventos: [embargos_arrematacao_opostos]}
+  imissao_posse: {papel: detecta, prazo_dias: null, eventos: [mandado_imissao_cumprido]}
+  embargos_declaracao: {papel: redige, prazo_dias: 5, eventos: [decisao_com_omissao_contradicao_erro]}
+  agravo_instrumento: {papel: redige, prazo_dias: 15, eventos: [interlocutoria_desfavoravel_agravavel]}
+  apelacao: {papel: redige, prazo_dias: 15, eventos: [sentenca_desfavoravel]}
+  contrarrazoes: {papel: redige, prazo_dias: 15, eventos: [apelacao_adversa]}
+  resposta_agravo_instrumento: {papel: redige, prazo_dias: 15, eventos: [agravo_instrumento_adverso]}
+  agravo_interno: {papel: redige, prazo_dias: 15, eventos: [monocratica_desfavoravel_tribunal]}
+  resposta_agravo_interno: {papel: redige, prazo_dias: 15, eventos: [agravo_interno_adverso]}
+  memoriais: {papel: redige, prazo_dias: null, eventos: [inclusao_em_pauta, fim_da_instrucao]}
+  sustentacao_oral: {papel: prepara, prazo_dias: null, eventos: [pauta_julgamento_publicada]}
+  habilitacao_credito: {papel: redige, prazo_dias: 15, eventos: [falencia_devedor, recuperacao_judicial_devedor, insolvencia_devedor, inventario_devedor]}
+  impugnacao_valor_credito: {papel: redige, prazo_dias: 10, eventos: [lista_credores_valor_divergente]}
+  restituicao_falencia: {papel: redige, prazo_dias: null, eventos: [bem_do_banco_arrecadado]}
+  mandado_seguranca: {papel: redige, prazo_dias: 120, eventos: [ato_judicial_ilegal_sem_recurso]}
+  audiencia_conciliacao: {papel: prepara, prazo_dias: null, eventos: [audiencia_conciliacao_designada]}
+  audiencia_instrucao: {papel: prepara, prazo_dias: null, eventos: [audiencia_instrucao_designada]}
+  audiencia_jec: {papel: prepara, prazo_dias: null, eventos: [audiencia_juizado_designada]}
+  extincao_1grau: {papel: detecta, prazo_dias: null, eventos: [sentenca_extincao_pagamento, sentenca_extincao_acordo, sentenca_extincao_desistencia]}
+  contestacao: {papel: redige, prazo_dias: 15, eventos: [citacao_do_banco]}
+  reconvencao: {papel: redige, prazo_dias: 15, eventos: [contestacao_com_pedido_contraposto_cabivel]}
+  embargos_execucao: {papel: redige, prazo_dias: 15, eventos: [execucao_contra_banco]}
+  embargos_arrematacao: {papel: redige, prazo_dias: 10, eventos: [arrematacao_em_execucao_contra_banco]}
+  embargos_divergencia: {papel: redige, prazo_dias: 15, eventos: [acordao_divergente]}
+  impugnacao_calculos: {papel: redige, prazo_dias: 15, eventos: [calculos_juntados_no_juizado]}
+  informacoes_ms: {papel: redige, prazo_dias: 10, eventos: [mandado_seguranca_contra_banco]}
+  procon: {papel: redige, prazo_dias: 10, eventos: [reclamacao_procon]}
+  audiencia_extrajudicial: {papel: prepara, prazo_dias: null, eventos: [audiencia_procon_designada]}
+  defesa_extrajudicial: {papel: redige, prazo_dias: 10, eventos: [procedimento_administrativo_instaurado]}
+  diligencia_protocolo_peca_banco: {papel: prepara, prazo_dias: 2, eventos: [peca_enviada_pelo_banco]}
+  diligencia_carga: {papel: prepara, prazo_dias: null, eventos: [autos_fisicos_consulta]}
+  diligencia_comprovacao_agravo: {papel: redige, prazo_dias: 3, eventos: [agravo_instrumento_interposto_autos_fisicos]}
+  diligencia_analise_nao_terceirizado: {papel: redige, prazo_dias: null, eventos: [banco_pede_analise_processo_nao_terceirizado]}
+  agravo_retido: {papel: redige, prazo_dias: 10, eventos: [interlocutoria_em_autos_antigos_cpc_1973]}

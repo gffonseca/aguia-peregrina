@@ -188,3 +188,18 @@ def test_uf_por_nome_do_estado() -> None:
         "2026-07",
     )
     assert [x.linha.uf for x in a] == ["MS", "PA", "RN"]
+
+
+def test_todo_ato_remunerado_tem_gatilho() -> None:
+    """Perda zero: nenhum ato da tabela fica sem um evento que o dispare."""
+    from app.modules.m12_faturamento.tabela import atos_por_evento, carregar_gatilhos
+
+    gat = carregar_gatilhos()
+    t = carregar_tabela()
+    sem = [a for a in t.atos if a not in gat]
+    assert sem == [], f"atos sem gatilho: {sem}"
+    assert set(gat) <= set(t.atos), "gatilho para ato inexistente na tabela"
+    assert all(g.papel in {"redige", "detecta", "prepara"} for g in gat.values())
+    idx = atos_por_evento()
+    assert {g.ato_id for g in idx["citacao_negativa"]} == {"peticao_interlocutoria"}
+    assert "habilitacao_credito" in {g.ato_id for g in idx["recuperacao_judicial_devedor"]}
