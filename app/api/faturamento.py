@@ -228,9 +228,50 @@ def motor_ultima_xlsx(db: Session = DB) -> Response:
     )
 
 
+@router.get("/fila")
+def fila_de_atos(
+    pessoa: str | None = None,
+    tipo: str = Query(default="gatilhos", pattern="^(gatilhos|alertas|parados)$"),
+    limite: int = Query(default=50, ge=1, le=500),
+    incluir_decididas: bool = False,
+    db: Session = DB,
+) -> dict[str, Any]:
+    from app.modules.m12_faturamento.fila import fila
+
+    return fila(db, pessoa=pessoa, tipo=tipo, limite=limite, incluir_decididas=incluir_decididas)
+
+
+class DecisaoIn(BaseModel):
+    processo: str
+    evento: str
+    data_evento: date
+    decisao: str | None  # feito | nao_cabe | em_andamento | null (desfaz)
+    observacao: str | None = None
+
+
+@router.post("/fila/decisao")
+def fila_decisao(
+    d: DecisaoIn,
+    x_usuario: str = Header(default="painel", alias="X-Usuario"),
+    db: Session = DB,
+    tenant_id: uuid.UUID = Depends(tenant_id_dep),
+) -> dict[str, Any]:
+    from app.modules.m12_faturamento.fila import decidir
+
+    cnj = "".join(c for c in d.processo if c.isdigit())
+    try:
+        return decidir(
+            db, tenant_id, cnj, d.evento, d.data_evento, d.decisao, x_usuario, d.observacao
+        )
+    except ValueError as e:
+        raise HTTPException(422, str(e)) from None
+
+
 @router.get("/oportunidades")
 def oportunidades(
-    status: str | None = Query(default=None, pattern="^(ABERTA|ATENDIDA|PERDIDA|ALERTA)$"),
+    status: str | None = Query(
+        default=None, pattern="^(ABERTA|ATENDIDA|PERDIDA|ALERTA|DESCARTADA)$"
+    ),
     confianca: str | None = Query(default=None, pattern="^(alta|media)$"),
     evento: str | None = None,
     limite: int = Query(default=200, le=5000),

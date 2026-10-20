@@ -188,7 +188,13 @@ def gerar_relatorio(
     buf = io.BytesIO()
     wb.save(buf)
     alertas = Counter(o.evento for o in ops if o.status == "ALERTA")
+    gat = [o for o in ops if o.status == "ABERTA" and o.evento != "processo_sem_evento_90_dias"]
     return buf.getvalue(), {
+        # o número que importa: atos com gatilho real (sem os processos apenas parados)
+        "abertas_com_gatilho": len(gat),
+        "valor_aberto_com_gatilho": round(sum(o.valor or 0 for o in gat), 2),
+        "parados_90_dias": sum(1 for o in ops if o.evento == "processo_sem_evento_90_dias"),
+        "descartadas_pela_equipe": sum(1 for o in ops if o.status == "DESCARTADA"),
         "processos": n_processos,
         "atendidas": tot["ATENDIDA"],
         "perdidas": tot["PERDIDA"],

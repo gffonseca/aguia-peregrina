@@ -132,3 +132,21 @@ class BasaRecebivel(TenantModel):
     observacao: Mapped[str | None] = mapped_column(Text)
     # trilha: [{"em": iso, "por": "...", "campo": "...", "de": ..., "para": ...}]
     historico: Mapped[list] = mapped_column(JSONType, default=list)
+
+
+class OportunidadeDecisao(TenantModel):
+    """O que a equipe decidiu sobre uma oportunidade do motor; sobrevive às rodadas diárias
+    (a chave é processo + evento + data do evento, não o id da rodada)."""
+
+    __tablename__ = "motor_decisoes"
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "cnj", "evento", "data_evento", name="uq_motor_decisao"),
+    )
+
+    cnj: Mapped[str] = mapped_column(String(20), index=True)
+    evento: Mapped[str] = mapped_column(String(80))
+    data_evento: Mapped[date] = mapped_column(Date)
+    decisao: Mapped[str] = mapped_column(String(12))  # feito | nao_cabe | em_andamento
+    observacao: Mapped[str | None] = mapped_column(Text)
+    por: Mapped[str] = mapped_column(String(80))
+    em: Mapped[datetime] = mapped_column(DateTime(timezone=True))

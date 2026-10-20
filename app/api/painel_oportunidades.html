@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atos a praticar</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--tx:#1b1f24;--mut:#5c6670;--ln:#e2e6ea;--ac:#0b6e4f;--al:#b42318;--md:#b54708;--chip:#eef1f4}
+@media (prefers-color-scheme:dark){:root{--bg:#111418;--card:#1a1f25;--tx:#e8ecf0;--mut:#9aa5b1;--ln:#2a313a;--ac:#3fb68b;--al:#f97066;--md:#fdb022;--chip:#232a32}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+header,main{max-width:1100px;margin:auto;padding:16px}header{padding-bottom:0}h1{font-size:20px;margin:0 0 4px}header p{margin:0;color:var(--mut)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:4px 0 16px}
+.kpi{background:var(--card);border:1px solid var(--ln);border-radius:10px;padding:12px 14px}.kpi b{display:block;font-size:22px;font-variant-numeric:tabular-nums}.kpi span{color:var(--mut);font-size:12px}
+.barra{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+select,input,button{font:inherit;color:inherit}select,input{background:var(--card);border:1px solid var(--ln);border-radius:6px;padding:5px 8px}
+button{border:1px solid var(--ln);background:var(--chip);border-radius:6px;padding:4px 10px;cursor:pointer}button.pri{background:var(--ac);color:#fff;border-color:var(--ac)}
+.tabs button[aria-pressed=true]{background:var(--tx);color:var(--bg);border-color:var(--tx)}
+.it{background:var(--card);border:1px solid var(--ln);border-left:4px solid var(--md);border-radius:8px;padding:10px 12px;margin:8px 0}.it.passou{border-left-color:var(--al)}
+.top{display:flex;gap:8px;flex-wrap:wrap;align-items:baseline;justify-content:space-between}.as{font-weight:600}.mut{color:var(--mut);font-size:12px}.v{font-variant-numeric:tabular-nums;font-weight:600}
+.al{color:var(--al);font-size:12px;font-weight:600}.bt{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center}.bt input{flex:1;min-width:180px}
+#login{background:var(--card);border:1px solid var(--ln);border-radius:10px;padding:16px;max-width:420px;display:grid;gap:8px}#login[hidden],#app[hidden]{display:none}
+.nota{background:var(--card);border:1px dashed var(--ln);border-radius:8px;padding:8px 12px;color:var(--mut);font-size:13px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Atos a praticar — BASA</h1>
+  <p>O que o motor achou nos processos e ainda não foi cobrado. Marque "Feito" quando protocolar ou "Não cabe" com o motivo: o motor para de alertar nas próximas rodadas.</p>
+</header>
+<main>
+  <form id="login" hidden>
+    <label>Chave de operação<input id="k" type="password" autocomplete="off" required></label>
+    <label>Seu e-mail no escritório<input id="u" type="email" required></label>
+    <button class="pri">Entrar</button><span class="mut" id="erro"></span>
+  </form>
+  <section id="app" hidden>
+    <div class="kpis" id="kpis"></div>
+    <div class="barra tabs" id="tabs">
+      <button data-t="gatilhos" aria-pressed="true">Com gatilho</button><button data-t="alertas" aria-pressed="false">Alertas</button><button data-t="parados" aria-pressed="false">Parados 90+ dias</button>
+    </div>
+    <div class="barra">
+      <label>Ver <select id="ver"><option value="eu">só a minha UF</option><option value="tudo">tudo</option></select></label>
+      <label><input type="checkbox" id="dec"> mostrar já decididos</label>
+      <button id="sair" type="button">Sair</button>
+    </div>
+    <div id="nota"></div>
+    <div id="lista"></div>
+  </section>
+</main>
+<script>
+const ss={get(k){try{return sessionStorage.getItem(k)}catch(e){return null}},set(k,v){try{sessionStorage.setItem(k,v)}catch(e){}},del(k){try{sessionStorage.removeItem(k)}catch(e){}}};
+const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+let cred={k:ss.get("k"),t:ss.get("t"),u:ls.get("u")||""},tipo="gatilhos",dados=null;
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const brl=v=>v==null?"—":v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+const dt=s=>s?new Date(s+"T12:00").toLocaleDateString("pt-BR"):"—";
+const fmtCnj=d=>d.length===20?`${d.slice(0,7)}-${d.slice(7,9)}.${d.slice(9,13)}.${d[13]}.${d.slice(14,16)}.${d.slice(16)}`:d;
+const NOTA={gatilhos:"Eventos que pedem um ato da tabela. Se o prazo provável já passou, confira se o ato foi feito e não cobrado (aí entra na próxima prestação) ou se não cabe mais.",alertas:"Acontecimentos que costumam virar ato: recurso adverso (contrarrazões), acórdão, alvará (levantar e repassar no mesmo dia), audiência designada.",parados:"Processos sem movimento há 90+ dias, do mais antigo para o mais novo, 30 por vez. A petição precisa pedir algo novo (pesquisa de bens, constrição, citação por outro meio): reiteração de pedido anterior não é remunerada."};
+const DEC={feito:"feito",nao_cabe:"não cabe",em_andamento:"em andamento"};
+async function api(p,o={}){const r=await fetch(p,{...o,headers:{"X-Ops-Key":cred.k,"X-Tenant-ID":cred.t||"","X-Usuario":cred.u,"Content-Type":"application/json",...(o.headers||{})}});if(!r.ok)throw new Error(r.status+" "+await r.text());return r.json()}
+async function carregar(){
+  const q=new URLSearchParams({tipo,limite:tipo==="parados"?"30":"200"});if(document.getElementById("ver").value==="eu")q.set("pessoa",cred.u);if(document.getElementById("dec").checked)q.set("incluir_decididas","true");
+  dados=await api("/faturamento/basa/fila?"+q);
+  const passou=dados.itens.filter(i=>i.prazo_passou).length;
+  document.getElementById("kpis").innerHTML=[["Na fila",dados.total],["Valor pela tabela",brl(dados.valor_total)],["Prazo provável já passou",tipo==="gatilhos"?passou:"—"],["UF",dados.ufs?(dados.ufs.join(", ")||"nenhuma — confira seu papel na triagem"):"todas"]].map(([a,b])=>`<div class="kpi"><span>${a}</span><b>${b}</b></div>`).join("");
+  document.getElementById("nota").innerHTML=`<p class="nota">${NOTA[tipo]}</p>`;
+  document.getElementById("lista").innerHTML=dados.itens.map((i,n)=>`<div class="it ${i.prazo_passou?"passou":""}">
+   <div class="top"><span class="as">${esc(i.evento_rotulo)} → ${esc(i.ato_rotulo||"—")}</span><span class="v">${brl(i.valor)}</span></div>
+   <div class="mut">${fmtCnj(i.processo)} · ${esc(i.ficha||"")} · ${i.uf||""} · evento em ${dt(i.data_evento)}${i.prazo&&tipo!=="parados"?` · prazo provável ${dt(i.prazo)}`:""}</div>
+   ${i.prazo_passou?`<div class="al">Prazo provável já passou — conferir se foi feito</div>`:""}
+   <div class="mut">${esc(i.observacao||"")}${i.movimento&&i.movimento!=="—"?" · movimento: "+esc(i.movimento):""}</div>
+   ${i.decisao?`<div class="mut"><b>Decisão:</b> ${DEC[i.decisao]} por ${esc(i.decisao_por)}${i.decisao_obs?" — "+esc(i.decisao_obs):""}</div>`:""}
+   <div class="bt"><input placeholder="observação (motivo, nº do protocolo...)" data-obs="${n}">
+   <button data-n="${n}" data-d="feito" class="pri">Feito</button><button data-n="${n}" data-d="nao_cabe">Não cabe</button><button data-n="${n}" data-d="em_andamento">Em andamento</button>${i.decisao?`<button data-n="${n}" data-d="">Desfazer</button>`:""}</div></div>`).join("")||`<p class="mut">Nada nesta fila.</p>`;
+}
+document.getElementById("lista").addEventListener("click",async e=>{const b=e.target;if(b.dataset.n===undefined||b.dataset.d===undefined)return;const i=dados.itens[+b.dataset.n];
+  const obs=document.querySelector(`input[data-obs="${b.dataset.n}"]`).value.trim();
+  if(b.dataset.d==="nao_cabe"&&!obs){document.querySelector(`input[data-obs="${b.dataset.n}"]`).focus();document.querySelector(`input[data-obs="${b.dataset.n}"]`).placeholder="diga o motivo para marcar Não cabe";return}
+  b.disabled=true;try{await api("/faturamento/basa/fila/decisao",{method:"POST",body:JSON.stringify({processo:i.processo,evento:i.evento,data_evento:i.data_evento,decisao:b.dataset.d||null,observacao:obs||null})});await carregar()}catch(err){alert("Não salvou: "+err.message);b.disabled=false}});
+document.getElementById("tabs").addEventListener("click",e=>{const t=e.target.dataset.t;if(!t)return;tipo=t;document.querySelectorAll("#tabs button").forEach(x=>x.setAttribute("aria-pressed",x.dataset.t===t));carregar()});
+document.getElementById("ver").onchange=carregar;document.getElementById("dec").onchange=carregar;
+document.getElementById("login").addEventListener("submit",async e=>{e.preventDefault();cred.k=document.getElementById("k").value.trim();cred.u=document.getElementById("u").value.trim().toLowerCase();
+  try{const r=await fetch("/faturamento/basa/setup",{method:"POST",headers:{"X-Ops-Key":cred.k}});if(!r.ok)throw new Error("chave inválida");cred.t=(await r.json()).tenant_id;ss.set("k",cred.k);ss.set("t",cred.t);ls.set("u",cred.u);iniciar()}catch(err){document.getElementById("erro").textContent=err.message}});
+document.getElementById("sair").onclick=()=>{ss.del("k");ss.del("t");location.reload()};
+async function iniciar(){document.getElementById("login").hidden=true;document.getElementById("app").hidden=false;try{await carregar()}catch(e){ss.del("k");document.getElementById("app").hidden=true;document.getElementById("login").hidden=false;document.getElementById("erro").textContent="Sessão expirada: entre de novo."}}
+if(cred.k&&cred.t&&cred.u)iniciar();else{document.getElementById("u").value=cred.u;document.getElementById("login").hidden=false}
+</script>
+</body>
+</html>

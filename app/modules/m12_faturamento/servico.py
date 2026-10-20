@@ -458,6 +458,9 @@ def rodar_motor(db: Session, tenant_id: uuid.UUID, hoje: date | None = None) -> 
                 cobrados[a.cnj].append((a.data, a.ato_id))
         cob = cobertura_das_prestacoes(db) or (hoje - timedelta(days=90), hoje - timedelta(days=90))
         ops = selecionar(processos, cobrados, hoje, cob)
+        from app.modules.m12_faturamento.fila import aplicar_decisoes
+
+        aplicar_decisoes(db, ops)  # feito → ATENDIDA; não cabe → DESCARTADA
         xlsx, res = gerar_relatorio(ops, len(processos), ativas, hoje, cob)
         db.execute(delete(MotorOportunidade))  # só a última rodada fica em tabela
         for o in ops:
