@@ -1,0 +1,8 @@
+{
+  "value": [
+    {"id": 55001, "typeId": 4, "originType": "Manual", "description": "Juntada de contestação", "notes": null, "date": "2026-10-12T10:00:00Z", "creationDate": "2026-10-12T10:05:00Z", "actExecutorId": 42, "contactCreatorId": 42, "isConfidential": false, "relationships": [{"linkId": 9103, "linkType": "Litigation"}]},
+    {"id": 55002, "typeId": 7, "originType": "Automatic", "description": "Audiência designada para 20/11/2026", "notes": "Comparecer com preposto", "date": "2026-10-11T09:00:00Z", "creationDate": "2026-10-11T09:01:00Z", "actExecutorId": 42, "contactCreatorId": 42, "isConfidential": false, "lawsuitId": 9102},
+    {"id": 55003, "typeId": 9, "originType": "Automatic", "description": "Sentença publicada no processo 0700321-04.2026.8.14.0006: procedente em parte", "notes": null, "date": "2026-10-10T16:30:00Z", "creationDate": "2026-10-10T16:31:00Z", "actExecutorId": 42, "contactCreatorId": 42, "isConfidential": false},
+    {"id": 55004, "typeId": 1, "originType": "Manual", "description": "Reunião interna sem processo vinculado", "notes": null, "date": "2026-10-09T11:00:00Z", "creationDate": "2026-10-09T11:00:00Z", "actExecutorId": 42, "contactCreatorId": 42, "isConfidential": true}
+  ]
+}

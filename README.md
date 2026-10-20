@@ -28,7 +28,7 @@ FastAPI (web)  ──►  Postgres 16 + pgvector (RLS por tenant)
    ├── app/modules/     regras de negócio: m00…m11 (defesa) + credit/ (compra)
    ├── app/llm/         gateway LiteLLM; log de toda chamada em llm_calls
    ├── app/workflows/   engine adapter + jobs
-   ├── app/integrations publications (Comunica PJe, Solucionare), ERP, DataJud
+   ├── app/integrations publications (Comunica PJe, Solucionare), ERP, DataJud, Legal One
    ├── app/evals/       harness de ground truth
    └── alembic/         migração inicial: schema + RLS + audit_log append-only
 ```
@@ -42,7 +42,7 @@ Stack fixada: Python 3.12 · FastAPI · SQLAlchemy 2 + Alembic · Postgres (pgve
 | Módulo | Pacote | Tabelas | Função |
 |---|---|---|---|
 | M0 Playbook | `modules/m00_playbook` | `theses`, `thesis_versions` | Árvore de teses por tipologia, versionada e **aprovada por sócio (OAB)**; arquivos `playbooks/*.playbook.yaml` validados por `schema.py` (ver [`playbooks/README.md`](playbooks/README.md)) |
-| M1 Intake | `modules/m01_intake` | `publications` | Captura de distribuições/publicações via provedor ou CSV do ERP |
+| M1 Intake | `modules/m01_intake` | `publications` | Captura de distribuições/publicações via provedor, CSV do ERP ou sync do Legal One |
 | M2 Autos | `modules/m02_autos` | `documents`, `document_pages` | Upload, OCR por visão LLM, split e classificação por página |
 | M3 Subsídios | `modules/m03_subsidios` | — | Vínculo processo ↔ registro interno; checklist determinístico de faltantes |
 | M4 Antifraude | `modules/m04_antifraude` | `fraud_checks` | Checagens determinísticas → flags com evidência; **nunca rótulo sem humano** |
@@ -121,11 +121,69 @@ pytest          # usa SQLite em memória; não precisa de Postgres
 
 O RLS do Postgres só é exercitado em banco real; `tests/test_tenant_isolation.py` cobre a camada da aplicação e verifica que a migração aplica a policy em **toda** tabela com `tenant_id`.
 
+## Integração Legal One
+
+Conector **somente leitura** do Legal One (Thomson Reuters), ERP jurídico da FBS, em `app/integrations/legalone/`. Traz processos, partes, contatos, andamentos e tarefas para a plataforma; o M1 classifica a tipologia e a esteira segue a partir daí.
+
+### Variáveis
+
+| Variável | Uso |
+|---|---|
+| `LEGALONE_CLIENT_ID` / `LEGALONE_CLIENT_SECRET` | credenciais OAuth `client_credentials` (HTTP Basic no `GET {LEGALONE_OAUTH}?grant_type=client_credentials`). Defina nos serviços `web` **e** `worker`; nunca no repositório |
+| `LEGALONE_BASE` | `https://api.thomsonreuters.com/legalone/v1/api/rest` (default) |
+| `LEGALONE_OAUTH` | `https://api.thomsonreuters.com/legalone/oauth` (default) |
+| `OPS_KEY` | protege `GET /integrations/legalone/probe` e `POST /integrations/legalone/sync` (header `X-Ops-Key`, mesma regra de `/health/llm/ping`: sem chave → 404) |
+
+O token é cacheado por `expires_in − 120 s`; em `401` o cache é descartado e a chamada repetida uma vez; falhas nunca são cacheadas. `5xx`/`429`/rede → backoff exponencial e, esgotadas as tentativas, `LegalOneUnavailable`.
+
+### Limites da API (verificados no tenant da FBS em 2026-10-19)
+
+- OData **somente leitura**. `$top` máximo **30** (HTTP 400 acima); paginação por `$skip`; `$count` não suportado.
+- `$filter`, `$orderby` e `$expand=participants` funcionam em `lawsuits`; `$expand=updates` **não**.
+- Endpoints de lookup (`natures`, `actiontypes`, `courts`…) respondem **404**: guardamos os ids (`natureId`, `phaseId`, `courtId`…) em `cases.meta.legalone` e decodificamos tribunal/segmento/foro do **número CNJ** (`app/core/cnj.py`: `NNNNNNN-DD.AAAA.J.TR.OOOO`, J = 8 estadual / 5 trabalhista / 4 federal, TR = tribunal, OOOO = foro; valida o dígito verificador mod 97).
+- A relação `updates`/`tasks` → `lawsuits` **não é documentada**. O sync tenta, nesta ordem, `lawsuitId`/`litigationId`, `relationships[].linkId` e, por fim, número CNJ no texto; o que não casa fica como `unlinked` nas estatísticas. `GET /integrations/legalone/probe` testa esses candidatos no tenant real (`update_relation`).
+- Ainda **não verificado** (sem credenciais neste ambiente): formato aceito pelo `$filter` de data em `updates`/`tasks` (o sync refaz sem filtro em caso de 400, limitado a `max_pages`), filtro `id eq a or id eq b` em `contacts`, e o conteúdo de `appointments`.
+
+### O que é sincronizado
+
+| Legal One | Plataforma | Chave de idempotência |
+|---|---|---|
+| `lawsuits` (+participantes) | `cases` — `external_ref = legalone:<id>`, `cnj_number` normalizado, `court` (do CNJ), `status` (`closed` → `closed`), `claim_value`, `filed_at`, `typology_hint`, `meta.legalone` (pasta, título, ids, probabilidade, valores) | `external_ref`; adota caso já criado à mão com o mesmo CNJ |
+| participantes | `case_parties` — `Customer→cliente`, `OtherParty→parte_contraria`, `LawyerOfOtherParty→advogado_contrario`, `PersonInCharge→responsavel_interno`, `Party→parte`, `Other→terceiro` | `(case_id, tipo:contactId)` em `meta` |
+| `contacts` dos `Customer` | `clients` (`erp_kind = legalone`, CNPJ/CPF em `document`) | `erp_config.legalone_contact_id` |
+| `updates` | `publications` (`provider = legalone_update`, `category = andamento`), vinculadas ao caso quando a relação é descoberta | `(provider, provider_ref)` |
+| `tasks` | `legalone_records` (`kind = task`, `source_date = deadLine`) — **lacuna:** não há tabela de prazos ainda; quando houver, migrar daqui | `(kind, external_id)` |
+| tudo acima | `legalone_records` (JSON bruto) + `legalone_sync_runs` (cursor e estatísticas por execução) | |
+
+`typology_hint` é um palpite determinístico (segmento CNJ 5 → trabalhista; palavras no título como *consignado, RMC, cartão, energia, voo, reclamatória*; nome do cliente). A tipologia final continua com a classificação do M1.
+
+### Como rodar
+
+```bash
+# incremental desde uma data (creationDate dos processos, date dos andamentos, deadLine das tarefas)
+python -m app.workflows.run sync_legalone --since 2026-10-01 --max-pages 50
+# desde a última execução bem-sucedida; só alguns recursos
+python -m app.workflows.run sync_legalone --since auto --resources lawsuits,updates
+# tudo (sem --since) — respeite o limite de 30 por página: use --max-pages
+python -m app.workflows.run sync_legalone --tenant-id <uuid> --max-pages 200
+
+# ops (OPS_KEY definida)
+curl -H "X-Ops-Key: $OPS_KEY" https://<web>/integrations/legalone/probe
+curl -X POST -H "X-Ops-Key: $OPS_KEY" -H "X-Tenant-ID: <uuid>" -H "Content-Type: application/json" \
+     -d '{"since":"auto","max_pages":50}' https://<web>/integrations/legalone/sync
+```
+
+Sem `--tenant-id` o CLI usa o único tenant `law_firm` ativo. Com `WORKFLOW_ENGINE=hatchet` o endpoint enfileira o job `sync_legalone` no worker; com `in_process` executa na hora e devolve as estatísticas.
+
+### Decisão: protocolo continua manual no Legal One
+
+Não há (ainda) endpoint de escrita validado. **Cadastro de andamentos, prazos e protocolo/peticionamento permanecem manuais no Legal One**; a plataforma só lê. O write-back (M10) para o Legal One fica bloqueado até validarmos endpoints de escrita no tenant — enquanto isso, o `CsvExportConnector` continua sendo o fallback.
+
 ## Deploy no Railway
 
 1. Crie um projeto com os serviços **Postgres** (template com pgvector) e **Redis**.
 2. Crie dois serviços a partir deste repositório (build pelo `Dockerfile`): `web` (pre-deploy `alembic upgrade head`, start `uvicorn app.main:app --host 0.0.0.0 --port $PORT`) e `worker` (start `python -m app.workflows.worker`). O `Procfile` descreve os dois.
-3. Variáveis: `DATABASE_URL`, `REDIS_URL`, `SECRET_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `WORKFLOW_ENGINE`, `HATCHET_CLIENT_TOKEN`, `PUBLICATIONS_PROVIDER` e as do `.env.example`.
+3. Variáveis: `DATABASE_URL`, `REDIS_URL`, `SECRET_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `WORKFLOW_ENGINE`, `HATCHET_CLIENT_TOKEN`, `PUBLICATIONS_PROVIDER`, `OPS_KEY`, `LEGALONE_CLIENT_ID`/`LEGALONE_CLIENT_SECRET` (nos serviços `web` **e** `worker`) e as do `.env.example`.
 4. O `web` roda `alembic upgrade head` antes de subir. Healthcheck em `/health`.
 5. Crie a role `aguia_app` (a migração cria se não existir) e aponte `DATABASE_URL` para um usuário **sem** `BYPASSRLS` em produção; o superusuário só para migrações.
 

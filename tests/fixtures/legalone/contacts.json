@@ -1,0 +1,7 @@
+{
+  "value": [
+    {"id": 501, "type": "Company", "name": "Banco Fictício Pagamentos S.A.", "identificationNumber": "12.345.678/0001-90", "creationDate": "2024-01-10T12:00:00Z"},
+    {"id": 504, "type": "Company", "name": "Distribuidora Fictícia de Energia Ltda.", "identificationNumber": "98.765.432/0001-10", "creationDate": "2024-02-11T12:00:00Z"},
+    {"id": 506, "type": "Company", "name": "Companhia Aérea Exemplo S.A.", "identificationNumber": "11.222.333/0001-44", "creationDate": "2024-03-12T12:00:00Z"}
+  ]
+}

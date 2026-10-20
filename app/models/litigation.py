@@ -29,6 +29,9 @@ class Case(TenantModel):
     comarca: Mapped[str | None] = mapped_column(String(120))
     vara: Mapped[str | None] = mapped_column(String(120))
     typology: Mapped[str | None] = mapped_column(String(60))  # consignado|energia|voo|trabalhista
+    # palpite determinístico (segmento CNJ + cliente + título) vindo de integrações;
+    # a tipologia final é decidida pela classificação do M1
+    typology_hint: Mapped[str | None] = mapped_column(String(60))
     side: Mapped[str] = mapped_column(String(10), default="defense")  # defense|plaintiff
     phase: Mapped[str | None] = mapped_column(
         String(40)

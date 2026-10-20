@@ -1,0 +1,6 @@
+{
+  "value": [
+    {"id": 81001, "statusId": 1, "deadLine": "2026-10-25T23:59:00-03:00", "description": "Protocolar contestação — 0801234-79.2026.8.14.0301", "typeId": 3, "subTypeId": 11, "areaId": 2, "responsibleOfficeId": 3, "startDateTime": "2026-10-13T09:00:00-03:00", "endDateTime": "2026-10-25T18:00:00-03:00"},
+    {"id": 81002, "statusId": 1, "deadLine": "2026-11-05T23:59:00-03:00", "description": "Preparar preposto para audiência", "typeId": 5, "subTypeId": 12, "areaId": 2, "responsibleOfficeId": 3, "startDateTime": "2026-10-20T09:00:00-03:00", "endDateTime": null, "relationships": [{"linkId": 9102, "linkType": "Litigation"}]}
+  ]
+}

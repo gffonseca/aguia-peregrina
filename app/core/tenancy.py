@@ -77,7 +77,15 @@ def install_tenant_guard(session_factory: Any) -> None:
 class TenantMiddleware(BaseHTTPMiddleware):
     """Resolve o tenant do request (header no MVP; depois do JWT) e o coloca no contexto."""
 
-    exempt_paths = ("/health", "/docs", "/openapi.json", "/redoc", "/auth/login", "/auth/mfa")
+    exempt_paths = (
+        "/health",
+        "/docs",
+        "/openapi.json",
+        "/redoc",
+        "/auth/login",
+        "/auth/mfa",
+        "/integrations/legalone/probe",  # ops, sem tenant (protegido por X-Ops-Key)
+    )
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         if request.url.path in self.exempt_paths or request.url.path.startswith(

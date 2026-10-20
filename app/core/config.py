@@ -43,6 +43,12 @@ class Settings(BaseSettings):
     solucionare_api_key: str | None = None
     datajud_api_key: str | None = None
 
+    # Legal One (Thomson Reuters) — OData somente leitura; credenciais client_credentials
+    legalone_client_id: str | None = None
+    legalone_client_secret: str | None = None
+    legalone_base: str = "https://api.thomsonreuters.com/legalone/v1/api/rest"
+    legalone_oauth: str = "https://api.thomsonreuters.com/legalone/oauth"
+
     s3_endpoint: str | None = None
     s3_bucket: str | None = None
     s3_access_key: str | None = None

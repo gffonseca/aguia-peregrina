@@ -1,0 +1,43 @@
+{
+  "value": [
+    {
+      "id": 9101,
+      "folder": "2026/0451",
+      "title": "Indenização por cancelamento de voo e extravio de bagagem",
+      "type": "Litigation",
+      "identifierNumber": "07003210420268140006",
+      "statusId": 2,
+      "closed": true,
+      "distributionDate": "2026-09-15T00:00:00-03:00",
+      "terminationDate": "2026-10-10T00:00:00-03:00",
+      "closingDate": "2026-10-11T00:00:00-03:00",
+      "responsibleOfficeId": 3,
+      "originOfficeId": 3,
+      "natureId": 12,
+      "actionTypeId": 80,
+      "phaseId": 4,
+      "countryId": 1,
+      "stateId": 14,
+      "cityId": 1500800,
+      "courtId": 415,
+      "justiceId": 8,
+      "levelId": 1,
+      "jurisdictionId": 55,
+      "costsType": "Normal",
+      "probabilityType": "Probable",
+      "probability": {"id": 1, "description": "Provável"},
+      "monetaryAmount": null,
+      "amountOfSettlementOrJudgment": 3200,
+      "involvedAmount": 5000,
+      "creationDate": "2026-10-01T08:00:00Z",
+      "notes": null,
+      "courtPanel": {"id": 12, "description": "Juizado Especial Cível de Ananindeua"},
+      "projects": [],
+      "personIds": [506, 507],
+      "participants": [
+        {"type": "Customer", "id": 7007, "contactId": 506, "contactName": "Companhia Aérea Exemplo S.A.", "positionId": 2, "isMainParticipant": true},
+        {"type": "OtherParty", "id": 7008, "contactId": 507, "contactName": "Maria Teste de Souza", "positionId": 1, "isMainParticipant": true}
+      ]
+    }
+  ]
+}

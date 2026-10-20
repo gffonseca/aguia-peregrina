@@ -7,6 +7,7 @@ from app.api import (
     dossiers,
     drafts,
     fraud,
+    integrations,
     pricing,
     publications,
     reviews,
@@ -24,3 +25,4 @@ api_router.include_router(drafts.router)
 api_router.include_router(reviews.router)
 api_router.include_router(publications.router)
 api_router.include_router(pricing.router)
+api_router.include_router(integrations.router)

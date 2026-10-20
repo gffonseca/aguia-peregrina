@@ -10,6 +10,7 @@ from app.models.credit import (
     Portfolio,
     PricingRun,
 )
+from app.models.integrations import LegalOneRecord, LegalOneSyncRun
 from app.models.jurimetria import JmAward, JmCollection, JmDuration, JmOutcome, JmReversal
 from app.models.litigation import (
     Case,
@@ -59,6 +60,8 @@ __all__ = [
     "JmDuration",
     "JmOutcome",
     "JmReversal",
+    "LegalOneRecord",
+    "LegalOneSyncRun",
     "LlmCall",
     "Outcome",
     "Portfolio",
