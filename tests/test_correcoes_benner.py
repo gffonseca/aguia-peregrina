@@ -134,3 +134,11 @@ def test_gerar_marcar_e_confirmar(db: Session, as_tenant) -> None:  # type: igno
         lst = correcoes.listar(db, status="pendente")
         assert lst["total"] == 3 and lst["resumo"]["SITUACAO"] == {"confirmado": 1}
         assert correcoes.planilha(db)[:2] == b"PK"
+
+        # o tribunal passou a reconhecer o número → o item sai da fila sozinho
+        db.add(_dj(t, NAO_ACHADO, [(26, "Distribuição", "2015-02-01")]))
+        db.commit()
+        r3 = correcoes.gerar(db, t.id)
+        assert r3["superados"] == 1
+        c3 = db.scalar(select(BennerCorrecao).where(BennerCorrecao.ficha == "CIVE.3/2015"))
+        assert c3 is not None and c3.status == "superado"

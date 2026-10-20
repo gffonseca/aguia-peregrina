@@ -30,7 +30,7 @@ def gerar(db: Session = DB, tenant_id: uuid.UUID = Depends(tenant_id_dep)) -> di
 @router.get("/correcoes")
 def listar(
     status: str | None = Query(
-        default="pendente", pattern="^(pendente|feito|confirmado|nao_procede)$"
+        default="pendente", pattern="^(pendente|feito|confirmado|nao_procede|superado)$"
     ),
     tipo: str | None = Query(
         default=None, pattern="^(SITUACAO|NUMERO_PROCESSO|FICHA_INEXISTENTE|SUBIR_PECA)$"

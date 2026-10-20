@@ -34,7 +34,7 @@ from app.modules.m12_faturamento.tabela import normalizar
 
 ATIVAS = {"em andamento", "em encerramento", "em reativacao"}
 TIPOS = ("SITUACAO", "NUMERO_PROCESSO", "FICHA_INEXISTENTE", "SUBIR_PECA")
-STATUS = ("pendente", "feito", "confirmado", "nao_procede")
+STATUS = ("pendente", "feito", "confirmado", "nao_procede", "superado")
 BENNER_URL = "https://basa.bennercloud.com.br/JURIDICO/"
 
 
@@ -52,10 +52,16 @@ def _agora() -> datetime:
 
 
 def _upsert(
-    db: Session, tenant_id: uuid.UUID, existentes: dict[str, BennerCorrecao], **kw: Any
+    db: Session,
+    tenant_id: uuid.UUID,
+    existentes: dict[str, BennerCorrecao],
+    vistos: set[str] | None = None,
+    **kw: Any,
 ) -> str:
     """Cria o item ou atualiza a evidência; devolve 'novo' | 'atualizado' | 'mantido'."""
     chave = kw["chave"][:300]
+    if vistos is not None:
+        vistos.add(chave)
     c = existentes.get(chave)
     if c is None:
         c = BennerCorrecao(tenant_id=tenant_id, status="pendente", historico=[], **kw)
@@ -92,31 +98,38 @@ def gerar(db: Session, tenant_id: uuid.UUID) -> dict[str, int]:
     dj = {p.cnj: p for p in db.scalars(select(DataJudProcesso))}
     datajud_rodou = bool(dj)
     st: Counter[str] = Counter()
+    vistos: set[str] = set()
 
     for f in fichas:
         if normalizar(f.situacao) not in ATIVAS:
             continue
         d = _dig(f.cnj)
         p = cnjlib.parse(d) if len(d) == 20 else None
-        # número inválido
-        if p is None or not p.is_valid:
+        # número fora do padrão: só aponta se o tribunal também não o reconhece (há processos
+        # antigos do TJPA cadastrados no tribunal com dígito verificador que não fecha)
+        if (p is None or not p.is_valid) and d not in dj:
             st[
                 "NUMERO_PROCESSO:"
                 + _upsert(
                     db,
                     tenant_id,
                     existentes,
+                    vistos=vistos,
                     tipo="NUMERO_PROCESSO",
                     chave=f"NUMERO_PROCESSO|{f.ficha}|invalido",
                     ficha=f.ficha,
                     cnj=f.cnj,
                     campo="Nº processo principal",
                     valor_atual=f.cnj or "(vazio)",
-                    valor_proposto="número CNJ válido (conferir nos autos)",
+                    valor_proposto="número CNJ correto (conferir nos autos)",
                     confianca="alta",
-                    evidencia="o número não passa no dígito verificador do CNJ (Res. 65/2008)"
-                    if p is not None
-                    else "o campo não tem 20 dígitos de um número CNJ",
+                    evidencia=(
+                        "dígito verificador não fecha (Res. CNJ 65/2008) e o DataJud não "
+                        "encontra o processo"
+                        if p is not None
+                        else "o campo não tem um número CNJ de 20 dígitos (numeração antiga "
+                        "ou vazio)"
+                    ),
                     origem="benner",
                 )
             ] += 1
@@ -130,6 +143,7 @@ def gerar(db: Session, tenant_id: uuid.UUID) -> dict[str, int]:
                         db,
                         tenant_id,
                         existentes,
+                        vistos=vistos,
                         tipo="NUMERO_PROCESSO",
                         chave=f"NUMERO_PROCESSO|{f.ficha}|nao_encontrado",
                         ficha=f.ficha,
@@ -155,6 +169,7 @@ def gerar(db: Session, tenant_id: uuid.UUID) -> dict[str, int]:
                         db,
                         tenant_id,
                         existentes,
+                        vistos=vistos,
                         tipo="SITUACAO",
                         chave=f"SITUACAO|{f.ficha}|encerrado",
                         ficha=f.ficha,
@@ -181,6 +196,7 @@ def gerar(db: Session, tenant_id: uuid.UUID) -> dict[str, int]:
                 db,
                 tenant_id,
                 existentes,
+                vistos=vistos,
                 tipo="FICHA_INEXISTENTE",
                 chave=f"FICHA_INEXISTENTE|{a.ficha}|{a.cnj}",
                 ficha=a.ficha,
@@ -194,6 +210,17 @@ def gerar(db: Session, tenant_id: uuid.UUID) -> dict[str, int]:
                 origem=f"prestacao {a.competencia}",
             )
         ] += 1
+    # o que estava pendente e os dados de hoje não confirmam mais (ex.: o processo andou, o
+    # tribunal passou a reconhecer o número) sai da fila sozinho
+    agora = _agora()
+    for c in existentes.values():
+        if c.status == "pendente" and c.tipo != "SUBIR_PECA" and c.chave not in vistos:
+            c.status = "superado"
+            c.historico = [
+                *(c.historico or []),
+                {"em": agora.isoformat(timespec="seconds"), "por": "sistema", "status": "superado"},
+            ]
+            st["superados"] += 1
     db.commit()
     return dict(st)
 
