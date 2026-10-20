@@ -1,0 +1,1051 @@
+# =============================================================================
+# Águia Peregrina — M0 Playbook — Transporte aéreo: cancelamento/atraso/overbooking/bagagem (defesa) — TJPA
+# =============================================================================
+# PRIMEIRO RASCUNHO. Nenhuma citação legal, número, prazo ou valor aqui foi
+# conferido por advogado. Todo item marcado "[A CONFERIR pelo advogado-dono]"
+# e `conferido: false` precisa ser validado (texto vigente da Res. ANAC
+# 400/2016 e alterações, Tema do STF sobre Convenção de Montreal, Temas/Súmulas
+# do STJ, jurisprudência atual do TJPA e Turmas Recursais) antes de o status
+# virar `aprovado`. O validador recusa `status: aprovado` enquanto houver pendência.
+#
+# ESCOPO: SOMENTE DEFESA da companhia aérea. O spinoff de compra de créditos
+# judiciais opera a mesma tipologia pelo lado do autor; este playbook não
+# cobre esse lado (lado: defesa) e não deve ser reaproveitado para ele.
+#
+# Fonte da verdade: este YAML. A versão em prosa
+# (aereo-cancelamento-atraso-tjpa.playbook.md) é derivada.
+# =============================================================================
+
+schema_version: "1.0"
+
+metadata:
+  id: aereo-cancelamento-atraso-tjpa
+  nome: "Transporte aéreo — cancelamento, atraso, preterição (overbooking) e extravio de bagagem — defesa de companhia aérea — TJPA"
+  tipologia: aereo_cancelamento_atraso
+  tribunal: TJPA
+  reu_tipo: companhia_aerea
+  lado: defesa
+  tipo_peca_padrao: contestacao
+  versao: 1
+  supera_versao: null
+  autor_nome: "Gustavo Fonseca — OAB/PA 12.724 — revisão própria até nomear advogado-dono da tipologia"
+  autor_oab: "PA 12724"
+  criado_em: 2026-10-19T12:00:00-03:00
+  status: rascunho
+  aprovado_por_nome: null
+  aprovado_por_oab: null
+  aprovado_em: null
+  descricao: >-
+    Ações de consumidor contra companhia aérea (foco: Azul, LATAM e Gol operando no Pará —
+    Belém/BEL, Santarém/STM, Marabá/MAB, Altamira/ATM, Carajás/CKS) por cancelamento ou atraso de
+    voo, perda de conexão, preterição de embarque (overbooking), extravio/avaria/violação de
+    bagagem e falhas de assistência material. Pedidos típicos: dano moral, dano material
+    (despesas, diárias, bens), reembolso. Defesa exclusivamente; o lado do autor é tratado pelo
+    spinoff de créditos e não por este playbook.
+  observacoes: >-
+    Rascunho gerado para validação. Antes de aprovar: (1) conferir artigos da Res. ANAC 400/2016
+    (assistência material por faixa de atraso, reacomodação, reembolso, informação, bagagem) e
+    alterações posteriores; (2) conferir a tese do STF no RE 636.331 (Tema 210) e sua extensão
+    (bagagem × dano moral) e a jurisprudência do STJ sobre dano moral por atraso (prova do dano ×
+    in re ipsa) e sobre limite de indenização de bagagem; (3) calibrar faixas de acordo por grupo
+    de comarcas e por tipo de evento; (4) confirmar com o cliente quais subsídios (PNR, status do
+    voo, código de motivo, METAR/TAF, vouchers, PIR) ele entrega em até 5 dias úteis e em que formato.
+
+# -----------------------------------------------------------------------------
+# GATILHOS DE CLASSIFICAÇÃO (M1/M9)
+# -----------------------------------------------------------------------------
+gatilhos_classificacao:
+  assuntos_cnj:
+    - { codigo: "7767", nome: "Transporte aéreo [A CONFERIR pelo advogado-dono — código TPU]", conferido: false }
+    - { codigo: "7771", nome: "Indenização por dano moral — consumidor [A CONFERIR pelo advogado-dono]", conferido: false }
+    - { codigo: "7779", nome: "Indenização por dano material — consumidor [A CONFERIR pelo advogado-dono]", conferido: false }
+    - { codigo: "7775", nome: "Atraso de voo [A CONFERIR pelo advogado-dono]", conferido: false }
+    - { codigo: "7776", nome: "Cancelamento de voo [A CONFERIR pelo advogado-dono]", conferido: false }
+    - { codigo: "7777", nome: "Extravio de bagagem [A CONFERIR pelo advogado-dono]", conferido: false }
+    - { codigo: "7778", nome: "Overbooking [A CONFERIR pelo advogado-dono]", conferido: false }
+  classes_cnj:
+    - { codigo: "7", nome: "Procedimento Comum Cível [A CONFERIR pelo advogado-dono]", conferido: false }
+    - { codigo: "436", nome: "Procedimento do Juizado Especial Cível [A CONFERIR pelo advogado-dono]", conferido: false }
+  palavras_chave:
+    - "cancelamento de voo"
+    - "atraso de voo"
+    - "voo cancelado"
+    - "voo atrasado"
+    - "perda de conexão"
+    - "overbooking"
+    - "preterição"
+    - "extravio de bagagem"
+    - "bagagem danificada"
+    - "bagagem violada"
+    - "reacomodação"
+    - "assistência material"
+    - "Resolução 400"
+    - "ANAC"
+    - "companhia aérea"
+    - "Azul"
+    - "LATAM"
+    - "Gol"
+    - "localizador"
+    - "no-show"
+  palavras_que_excluem:
+    - "acidente aéreo"
+    - "queda de aeronave"
+    - "passagem aérea — cobrança indevida no cartão"
+    - "milhas"
+    - "programa de fidelidade"
+    - "agência de viagens — pacote"
+    - "trabalhista — aeronauta"
+  confianca_minima: 0.85
+
+# -----------------------------------------------------------------------------
+# CAMPOS OBRIGATÓRIOS DO DOSSIÊ (M5)
+# -----------------------------------------------------------------------------
+campos_dossie_obrigatorios:
+  # --- identificação do caso (extração dos autos) ---
+  - { campo: comarca, tipo: texto, origem: extracao, descricao: "Comarca do juízo", obrigatorio: true }
+  - { campo: juizado_especial, tipo: booleano, origem: extracao, descricao: "Tramita em Juizado Especial (Lei 9.099)", obrigatorio: true }
+  - { campo: subtipo, tipo: texto, origem: extracao, descricao: "cancelamento | atraso | perda_conexao | overbooking | bagagem_extravio | bagagem_avaria | bagagem_violacao | assistencia | misto", obrigatorio: true, bloqueia_minuta_se_ausente: true }
+  - { campo: voo_internacional, tipo: booleano, origem: extracao, descricao: "Trecho internacional (ou conexão internacional no mesmo bilhete)", obrigatorio: true, bloqueia_minuta_se_ausente: true }
+  - { campo: valor_causa, tipo: valor_monetario, origem: extracao, descricao: "Valor da causa", obrigatorio: true }
+  - { campo: valor_dano_moral_pedido, tipo: valor_monetario, origem: extracao, descricao: "Valor pedido a título de dano moral", obrigatorio: false }
+  - { campo: valor_dano_material_pedido, tipo: valor_monetario, origem: extracao, descricao: "Valor pedido a título de dano material", obrigatorio: false }
+  - { campo: dano_material_comprovado, tipo: booleano, origem: extracao, descricao: "Há notas/recibos dos gastos alegados (hotel, alimentação, transporte, bens)", obrigatorio: false }
+  - { campo: data_voo, tipo: data, origem: extracao, descricao: "Data do voo original", obrigatorio: true, bloqueia_minuta_se_ausente: true }
+  - { campo: data_ajuizamento, tipo: data, origem: extracao, descricao: "Data de distribuição", obrigatorio: true }
+  - { campo: autor_pede_gratuidade, tipo: booleano, origem: extracao, descricao: "Pedido de justiça gratuita", obrigatorio: true }
+  - { campo: renda_declarada_autor, tipo: valor_monetario, origem: extracao, descricao: "Renda mensal que consta dos autos", obrigatorio: false }
+  - { campo: autor_alega_compromisso_perdido, tipo: booleano, origem: extracao, descricao: "Inicial alega perda de compromisso específico (trabalho, evento, consulta, conexão com outra cia)", obrigatorio: true }
+  - { campo: compromisso_comprovado, tipo: booleano, origem: extracao, descricao: "Há prova documental do compromisso perdido", obrigatorio: false }
+  - { campo: autor_menor_idoso_pcd, tipo: booleano, origem: extracao, descricao: "Autor é criança, idoso, gestante, PcD ou PNAE (agrava o dano)", obrigatorio: true }
+  - { campo: comprovante_endereco_titular, tipo: texto, origem: extracao, descricao: "autor | terceiro | ausente", obrigatorio: true }
+  - { campo: comprovante_endereco_uf, tipo: texto, origem: extracao, descricao: "UF do comprovante de endereço juntado", obrigatorio: true }
+  - { campo: data_procuracao, tipo: data, origem: extracao, descricao: "Data da procuração juntada", obrigatorio: true }
+  # --- subsídios do cliente (M3) ---
+  - { campo: pnr, tipo: texto, origem: subsidio, descricao: "Localizador da reserva (PNR)", obrigatorio: true, bloqueia_minuta_se_ausente: true }
+  - { campo: pnr_autor_e_passageiro, tipo: booleano, origem: subsidio, descricao: "Autor consta como passageiro no PNR", obrigatorio: true }
+  - { campo: passageiro_fez_checkin, tipo: booleano, origem: subsidio, descricao: "Registro de check-in do passageiro no voo original", obrigatorio: true }
+  - { campo: passageiro_embarcou_reacomodacao, tipo: booleano, origem: subsidio, descricao: "Passageiro embarcou no voo reacomodado (bording registrado)", obrigatorio: false }
+  - { campo: passageiro_no_show, tipo: booleano, origem: subsidio, descricao: "Passageiro não se apresentou (no-show) no voo original", obrigatorio: true }
+  - { campo: status_voo, tipo: texto, origem: subsidio, descricao: "operado_no_horario | atrasado | cancelado | desviado", obrigatorio: true, bloqueia_minuta_se_ausente: true }
+  - { campo: atraso_total_horas, tipo: numero, origem: subsidio, descricao: "Atraso total na chegada ao destino final (horas), considerando reacomodação", obrigatorio: true }
+  - { campo: motivo_codigo, tipo: texto, origem: subsidio, descricao: "Código de motivo (IATA delay code / interno) do atraso/cancelamento", obrigatorio: true }
+  - { campo: motivo_categoria, tipo: texto, origem: subsidio, descricao: "meteorologia | atc_infraestrutura_aeroportuaria | manutencao_nao_programada | seguranca_operacional | malha_rotativa | tripulacao | comercial | desconhecido", obrigatorio: true, bloqueia_minuta_se_ausente: true }
+  - { campo: metar_taf_disponivel, tipo: booleano, origem: subsidio, descricao: "Há METAR/TAF do aeroporto (origem/destino/alternativa) na janela do voo", obrigatorio: false }
+  - { campo: metar_condicao_abaixo_minimos, tipo: booleano, origem: subsidio, descricao: "METAR/TAF mostram teto/visibilidade/vento abaixo dos mínimos operacionais na janela", obrigatorio: false }
+  - { campo: outras_cias_afetadas_mesmo_dia, tipo: booleano, origem: subsidio, descricao: "Outros voos (outras cias) no mesmo aeroporto/janela também atrasados/cancelados", obrigatorio: false }
+  - { campo: manutencao_registro_disponivel, tipo: booleano, origem: subsidio, descricao: "Há registro técnico (log de manutenção, MEL, relatório) da falha não programada", obrigatorio: false }
+  - { campo: comunicacao_previa_horas, tipo: numero, origem: subsidio, descricao: "Horas de antecedência com que o passageiro foi informado da alteração (null se não informado)", obrigatorio: false }
+  - { campo: comunicacao_meio, tipo: texto, origem: subsidio, descricao: "email | sms | app | balcao | nenhum", obrigatorio: false }
+  - { campo: assistencia_prestada, tipo: lista, origem: subsidio, descricao: "Itens de assistência material prestados: comunicacao | alimentacao | hospedagem | transporte (com comprovantes)", obrigatorio: true }
+  - { campo: assistencia_comprovantes_disponiveis, tipo: booleano, origem: subsidio, descricao: "Há vouchers/notas/registro de hotel/transporte em nome do passageiro", obrigatorio: true }
+  - { campo: opcao_oferecida, tipo: texto, origem: subsidio, descricao: "reacomodacao_propria | reacomodacao_outra_cia | reembolso | execucao_outro_meio | nenhuma", obrigatorio: true }
+  - { campo: opcao_escolhida_passageiro, tipo: texto, origem: subsidio, descricao: "reacomodacao | reembolso | outro_meio | recusou | desconhecida", obrigatorio: false }
+  - { campo: reembolso_realizado, tipo: booleano, origem: subsidio, descricao: "Reembolso integral já efetuado (data e valor)", obrigatorio: false }
+  - { campo: overbooking_voluntarios_chamados, tipo: booleano, origem: subsidio, descricao: "Na preterição, houve chamada de voluntários e oferta de compensação", obrigatorio: false }
+  - { campo: overbooking_compensacao_paga, tipo: valor_monetario, origem: subsidio, descricao: "Compensação financeira paga ao passageiro preterido", obrigatorio: false }
+  - { campo: pir_registrado, tipo: booleano, origem: subsidio, descricao: "Property Irregularity Report (PIR) registrado para a bagagem", obrigatorio: false }
+  - { campo: bagagem_entregue_dias, tipo: numero, origem: subsidio, descricao: "Dias entre o PIR e a entrega da bagagem (null se não localizada)", obrigatorio: false }
+  - { campo: bagagem_conteudo_declarado, tipo: booleano, origem: subsidio, descricao: "Passageiro fez declaração especial de valor no despacho", obrigatorio: false }
+  - { campo: bagagem_indenizacao_paga, tipo: valor_monetario, origem: subsidio, descricao: "Valor já pago administrativamente pela bagagem", obrigatorio: false }
+  - { campo: reclamacao_administrativa_previa, tipo: booleano, origem: subsidio, descricao: "Houve SAC/consumidor.gov/ANAC antes da ação", obrigatorio: false }
+  # --- cruzamentos (antifraude / publicações) ---
+  - { campo: litispendencia_cnj, tipo: lista, origem: antifraude, descricao: "Processos em curso com mesmas partes/causa/pedido", obrigatorio: true }
+  - { campo: coisa_julgada_cnj, tipo: lista, origem: antifraude, descricao: "Processos transitados com mesmas partes/causa/pedido", obrigatorio: true }
+  - { campo: acoes_mesmo_pnr_n, tipo: numero, origem: antifraude, descricao: "Nº de ações com o mesmo PNR (outros passageiros da reserva ou mesmo autor)", obrigatorio: true }
+  - { campo: acoes_mesmo_autor_mesmo_reu_n, tipo: numero, origem: antifraude, descricao: "Nº de ações do autor contra o cliente (carteira + publicações)", obrigatorio: true }
+  - { campo: acoes_mesmo_advogado_mes_n, tipo: numero, origem: antifraude, descricao: "Nº de ações do mesmo advogado contra o cliente no mês", obrigatorio: true }
+  - { campo: acoes_mesmo_voo_n, tipo: numero, origem: antifraude, descricao: "Nº de ações pelo mesmo voo/data (qualquer autor)", obrigatorio: false }
+  - { campo: autor_domicilio_outra_uf, tipo: booleano, origem: antifraude, descricao: "Domicílio real do autor (PNR, cadastro, outras ações) em UF diversa da comarca", obrigatorio: true }
+  - { campo: autor_falecido, tipo: booleano, origem: antifraude, descricao: "Indício de óbito do autor antes do ajuizamento/procuração", obrigatorio: true }
+  - { campo: indicio_falha_real_cia, tipo: booleano, origem: calculado, descricao: "Sinais de que a falha foi imputável e sem assistência (motivo comercial/malha, sem comprovantes de assistência, atraso > 12h, bagagem não devolvida)", obrigatorio: true }
+
+# -----------------------------------------------------------------------------
+# ÁRVORE DE TESES
+# -----------------------------------------------------------------------------
+teses:
+  # ---------------------------------------------------------------- PRELIMINARES
+  - id: T01
+    nome: "Impugnação à gratuidade de justiça"
+    categoria: preliminar
+    ordem: 1
+    pai: null
+    resumo: >-
+      O autor pede gratuidade, mas renda, perfil de viagem (classe, destino, frequência) e
+      despesas alegadas afastam a presunção de hipossuficiência.
+    condicoes_aplicacao:
+      - { campo: autor_pede_gratuidade, operador: "==", valor: true }
+      - { campo: renda_declarada_autor, operador: ">", valor: 4554.0, nota: "~3 salários mínimos [A CONFERIR pelo advogado-dono — valor e critério local]" }
+    provas_necessarias:
+      - { tipo_documento: holerite, descricao: "Comprovante de renda nos autos", origem: extracao, obrigatoria: true, peso: 0.9 }
+      - { tipo_documento: pnr, descricao: "Histórico de viagens/classe tarifária no cadastro do passageiro", origem: subsidio, obrigatoria: false, peso: 0.6 }
+    provas_que_afastam:
+      - { tipo_documento: declaracao_hipossuficiencia, descricao: "Renda ≤ limite do TJPA e ausência de outros sinais", origem: extracao, obrigatoria: false, peso: 0.8 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CPC, arts. 98 a 100 e 99, § 2º", tipo: dispositivo, para_que_serve: "presunção relativa e impugnação", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "TJPA — critério das Câmaras Cíveis para impugnação à gratuidade [A CONFERIR]", tipo: precedente, para_que_serve: "parâmetro local", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "A presunção do art. 99, § 3º, é relativa; viagens frequentes/internacionais indicam capacidade."
+    pedidos:
+      - "Revogação/indeferimento da gratuidade ou intimação para comprová-la."
+    pedidos_subsidiarios:
+      - "Parcelamento das custas (CPC, art. 98, § 6º) [A CONFERIR pelo advogado-dono]."
+    risco_se_mal_aplicada: "Impugnar gratuidade com base em uma única viagem promocional soa abusivo."
+    ativa: true
+
+  - id: T02
+    nome: "Incompetência territorial — foro artificial (comprovante de endereço de conveniência)"
+    categoria: preliminar
+    ordem: 2
+    pai: null
+    resumo: >-
+      O autor ajuizou em comarca paraense sem vínculo com seu domicílio real (PNR, cadastro,
+      outras ações indicam outra UF/comarca), com comprovante de endereço de terceiro ou recente,
+      para alcançar jurisprudência mais favorável. Pede-se declínio para o foro do domicílio do
+      autor ou do local do fato/contratação.
+    condicoes_aplicacao:
+      - { campo: autor_domicilio_outra_uf, operador: "==", valor: true }
+    provas_necessarias:
+      - { tipo_documento: pnr, descricao: "Cadastro do passageiro com endereço/telefone/DDD e histórico de embarques", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: relatorio_antifraude, descricao: "Outras ações do autor em comarcas/UF diversas; comprovante de endereço em nome de terceiro", origem: antifraude, obrigatoria: true, peso: 0.9 }
+    provas_que_afastam:
+      - { tipo_documento: comprovante_residencia, descricao: "Comprovante idôneo e atual em nome do autor na comarca, ou voo com origem/destino na comarca", origem: extracao, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CDC, art. 101, I", tipo: dispositivo, para_que_serve: "foro do domicílio do autor — pressupõe domicílio real", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CPC, arts. 64, 65 e 337, II; CC, arts. 70 a 72", tipo: dispositivo, para_que_serve: "incompetência relativa (arguir em preliminar, sob pena de prorrogação); conceito de domicílio", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "Lei 9.099/1995, art. 4º", tipo: dispositivo, para_que_serve: "competência nos Juizados", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "TJPA / Turmas Recursais — declínio de competência por domicílio fictício em ações de consumo [A CONFERIR]", tipo: precedente, para_que_serve: "jurisprudência local sobre foro de conveniência", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "O foro do art. 101, I, do CDC protege o domicílio real do consumidor, não um endereço emprestado."
+        - "Cadastro da reserva, DDD e outras ações do autor apontam domicílio em outra UF."
+    pedidos:
+      - "Acolhimento da incompetência relativa com remessa ao foro do domicílio real do autor."
+    pedidos_subsidiarios:
+      - "Intimação do autor para comprovar residência atual na comarca."
+    risco_se_mal_aplicada: "Arguir incompetência contra morador real da comarca com base só no DDD do telefone."
+    ativa: true
+
+  - id: T03
+    nome: "Litispendência ou coisa julgada"
+    categoria: preliminar
+    ordem: 3
+    pai: null
+    resumo: "Há outra ação em curso (ou já julgada) com as mesmas partes, causa de pedir e pedido sobre o mesmo voo/PNR."
+    condicoes_aplicacao:
+      - { campo: litispendencia_cnj, operador: existe }
+    provas_necessarias:
+      - { tipo_documento: certidao_processo, descricao: "Cópia da inicial e andamento do processo anterior", origem: antifraude, obrigatoria: true, peso: 1.0 }
+    provas_que_afastam:
+      - { tipo_documento: peticao_inicial, descricao: "Voos/eventos comprovadamente distintos", origem: extracao, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CPC, art. 337, VI e VII, §§ 1º a 4º; art. 485, V", tipo: dispositivo, para_que_serve: "litispendência, coisa julgada e extinção", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes: []
+      argumentos_chave:
+        - "Tríplice identidade demonstrada documentalmente."
+    pedidos:
+      - "Extinção sem resolução do mérito (CPC, art. 485, V)."
+    pedidos_subsidiarios:
+      - "Reunião dos feitos por conexão (CPC, art. 55) se a identidade for parcial."
+    risco_se_mal_aplicada: "Confundir ida e volta do mesmo PNR com eventos distintos ocorridos em ambos."
+    ativa: true
+
+  - id: T03.1
+    nome: "Coisa julgada"
+    categoria: preliminar
+    ordem: 4
+    pai: T03
+    resumo: "Variante de T03 quando o processo anterior já transitou em julgado."
+    condicoes_aplicacao:
+      - { campo: coisa_julgada_cnj, operador: existe }
+    provas_necessarias:
+      - { tipo_documento: certidao_transito, descricao: "Certidão de trânsito em julgado e sentença anterior", origem: antifraude, obrigatoria: true, peso: 1.0 }
+    provas_que_afastam: []
+    fundamentacao:
+      dispositivos:
+        - { ref: "CPC, art. 337, VII e § 4º; arts. 502 e 508", tipo: dispositivo, para_que_serve: "coisa julgada material", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes: []
+      argumentos_chave:
+        - "Questão já decidida com trânsito em julgado."
+    pedidos:
+      - "Extinção sem resolução do mérito por coisa julgada."
+    pedidos_subsidiarios: []
+    risco_se_mal_aplicada: null
+    ativa: true
+
+  - id: T04
+    nome: "Fracionamento indevido de demandas (um bilhete/PNR, várias ações; ida e volta separadas; bagagem separada do atraso)"
+    categoria: processual
+    ordem: 5
+    pai: null
+    resumo: >-
+      Um mesmo contrato de transporte (PNR) e um mesmo evento foram desdobrados em várias ações
+      (por passageiro da mesma família quando o dano é um só, por trecho, por pedido), multiplicando
+      honorários e dano moral. Pede-se reunião por conexão e consideração do conjunto.
+    condicoes_aplicacao:
+      - { campo: acoes_mesmo_pnr_n, operador: ">=", valor: 2 }
+    provas_necessarias:
+      - { tipo_documento: relatorio_antifraude, descricao: "Lista das ações com o mesmo PNR/voo: autores, datas, pedidos", origem: antifraude, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: pnr, descricao: "PNR com todos os passageiros e trechos", origem: subsidio, obrigatoria: true, peso: 0.9 }
+    provas_que_afastam:
+      - { tipo_documento: peticao_inicial, descricao: "Passageiros com danos próprios e individualizados (ex.: criança desacompanhada, PcD)", origem: extracao, obrigatoria: false, peso: 0.7 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CPC, arts. 55, 58 e 59; arts. 5º, 6º, 77 e 80", tipo: dispositivo, para_que_serve: "conexão, prevenção, boa-fé processual", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STJ / TJPA — fracionamento de demandas e abuso do direito de ação em transporte aéreo [A CONFERIR]", tipo: precedente, para_que_serve: "caracterização do fracionamento abusivo", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CNJ — Recomendação sobre litigância predatória; Centro de Inteligência do TJPA [A CONFERIR]", tipo: norma_regulatoria, para_que_serve: "instrumentos de gestão", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "Um só evento (voo X, data Y) e um só contrato foram pulverizados em N ações pelo mesmo advogado."
+        - "Dano moral de passageiros do mesmo núcleo pelo mesmo atraso deve ser arbitrado em conjunto."
+    pedidos:
+      - "Reunião dos feitos no juízo prevento; reconhecimento do fracionamento para fins de dano moral e sucumbência."
+    pedidos_subsidiarios:
+      - "Fixação de dano moral considerando o conjunto das ações do mesmo PNR."
+    risco_se_mal_aplicada: "Negar individualidade do dano de passageiro vulnerável (criança, idoso, PcD) do mesmo PNR."
+    ativa: true
+
+  # ---------------------------------------------------------------- PREJUDICIAL
+  - id: T05
+    nome: "Prescrição — CDC art. 27 (5 anos, doméstico) / Convenção de Montreal art. 35 (2 anos, internacional)"
+    categoria: prejudicial
+    ordem: 6
+    pai: null
+    resumo: >-
+      Entre a data do voo e o ajuizamento transcorreu prazo superior ao prescricional: 5 anos (CDC,
+      art. 27) no transporte doméstico; 2 anos (Convenção de Montreal, art. 35) no internacional,
+      conforme prevalência fixada pelo STF.
+    condicoes_aplicacao:
+      - { campo: data_voo, operador: existe }
+      - { campo: data_ajuizamento, operador: existe }
+    provas_necessarias:
+      - { tipo_documento: pnr, descricao: "PNR/bilhete com data do voo e natureza (doméstico/internacional)", origem: subsidio, obrigatoria: true, peso: 1.0 }
+    provas_que_afastam:
+      - { tipo_documento: reclamacao_administrativa, descricao: "Reclamação que o advogado-dono entenda suspensiva/interruptiva", origem: subsidio, obrigatoria: false, peso: 0.5 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CDC, art. 27", tipo: dispositivo, para_que_serve: "5 anos — fato do serviço (doméstico)", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "Convenção de Montreal (Decreto 5.910/2006), art. 35", tipo: dispositivo, para_que_serve: "2 anos — transporte internacional", conferido: false, nota: "[A CONFERIR pelo advogado-dono — conferir se o STF/STJ aplicam o art. 35 também a dano moral]" }
+        - { ref: "CBA (Lei 7.565/1986), art. 317", tipo: dispositivo, para_que_serve: "prazo de 2 anos — discutir aplicabilidade residual", conferido: false, nota: "[A CONFERIR pelo advogado-dono — STJ afasta o CBA em relação de consumo doméstica?]" }
+      precedentes:
+        - { ref: "STF, RE 636.331 e ARE 766.618 (Tema 210) — prevalência das Convenções de Varsóvia/Montreal sobre o CDC no transporte internacional", tipo: tema, para_que_serve: "base para o prazo bienal internacional", conferido: false, nota: "[A CONFERIR pelo advogado-dono — tese exata e alcance (dano material × moral)]" }
+      argumentos_chave:
+        - "Transporte internacional: prazo bienal da Convenção, que prevalece sobre o CDC (Tema 210 STF)."
+        - "Transporte doméstico: prazo quinquenal do CDC, contado do voo."
+    pedidos:
+      - "Reconhecimento da prescrição e extinção com resolução de mérito (CPC, art. 487, II)."
+    pedidos_subsidiarios: []
+    risco_se_mal_aplicada: "Invocar prazo bienal da Convenção para voo doméstico, ou para dano moral quando o tribunal restringe a prevalência ao dano material."
+    ativa: true
+
+  # ---------------------------------------------------------------- MÉRITO — CAUSA DO ATRASO/CANCELAMENTO
+  - id: T06
+    nome: "Força maior / fortuito externo — condições meteorológicas adversas (METAR/TAF) ou restrição de tráfego aéreo/infraestrutura aeroportuária"
+    categoria: merito
+    ordem: 7
+    pai: null
+    resumo: >-
+      O atraso/cancelamento decorreu de condição meteorológica abaixo dos mínimos operacionais
+      (teto, visibilidade, vento, tempestade — regime amazônico), de fechamento/restrição de
+      aeroporto ou de controle de tráfego aéreo (ATC), eventos externos e inevitáveis. Prova-se com
+      METAR/TAF da janela do voo, NOTAM, comunicados de infraestrutura, e com o impacto em voos
+      de outras companhias no mesmo aeroporto e dia.
+    condicoes_aplicacao:
+      - { campo: motivo_categoria, operador: in, valor: [meteorologia, atc_infraestrutura_aeroportuaria] }
+      - { campo: status_voo, operador: in, valor: [atrasado, cancelado, desviado] }
+    provas_necessarias:
+      - { tipo_documento: registro_voo, descricao: "Registro operacional do voo: horários programado/real, status, código do motivo", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: metar_taf, descricao: "METAR/TAF do(s) aeroporto(s) na janela do voo (REDEMET/ICEA) com leitura dos mínimos", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: notam, descricao: "NOTAM/comunicado de fechamento ou restrição de pista/aeroporto; registro de ATC", origem: subsidio, obrigatoria: false, peso: 0.9 }
+      - { tipo_documento: relatorio_malha, descricao: "Painel de voos do aeroporto (outras cias) na mesma janela mostrando atrasos/cancelamentos generalizados", origem: subsidio, obrigatoria: false, peso: 0.8 }
+    provas_que_afastam:
+      - { tipo_documento: metar_taf, descricao: "METAR/TAF dentro dos mínimos na janela; ou condição adversa só horas depois do horário programado", origem: subsidio, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: relatorio_malha, descricao: "Outras cias operaram normalmente no mesmo aeroporto/janela", origem: subsidio, obrigatoria: false, peso: 0.9 }
+      - { tipo_documento: registro_voo, descricao: "Código de motivo comercial/malha/tripulação divergente da alegação meteorológica", origem: subsidio, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CDC, art. 14, § 3º, II", tipo: dispositivo, para_que_serve: "excludente: fato de terceiro / fortuito externo", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CC, arts. 393 e 734", tipo: dispositivo, para_que_serve: "força maior; responsabilidade do transportador salvo força maior", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CBA (Lei 7.565/1986), arts. 256, § 1º, 'b', e 230", tipo: dispositivo, para_que_serve: "exclusão por motivo meteorológico/segurança; dever de assistência subsiste", conferido: false, nota: "[A CONFERIR pelo advogado-dono — aplicabilidade do CBA em relação de consumo]" }
+        - { ref: "Res. ANAC 400/2016, arts. 20 a 27 (alteração, cancelamento, atraso: informação, assistência, reacomodação) [A CONFERIR artigos]", tipo: norma_regulatoria, para_que_serve: "mesmo com força maior, obrigações de assistência — demonstrar cumprimento (T08)", conferido: false, nota: "[A CONFERIR pelo advogado-dono — versão consolidada com alterações]" }
+        - { ref: "Convenção de Montreal, art. 19", tipo: dispositivo, para_que_serve: "internacional: transportador não responde se tomou todas as medidas razoáveis", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STJ — condição meteorológica adversa como fortuito externo × previsibilidade/risco da atividade (precedentes A CONFERIR)", tipo: precedente, para_que_serve: "regra e limites: a cia precisa provar a condição e a assistência", conferido: false, nota: "[A CONFERIR pelo advogado-dono — risco: tribunais exigem prova específica, não 'print' genérico]" }
+        - { ref: "TJPA / Turmas Recursais — acórdãos que reconhecem força maior meteorológica com METAR anexo [A CONFERIR]", tipo: precedente, para_que_serve: "jurisprudência local", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "O METAR das HHhMM–HHhMM registra teto/visibilidade/vento abaixo dos mínimos; a operação era inviável com segurança."
+        - "Outros voos (cias X e Y) no mesmo aeroporto foram cancelados/atrasados na mesma janela."
+        - "A companhia não cria nem controla o clima nem o tráfego aéreo; cumpriu a assistência devida (T08)."
+    pedidos:
+      - "Improcedência por rompimento do nexo causal (fortuito externo)."
+    pedidos_subsidiarios:
+      - "Reconhecimento de que a assistência prestada mitigou integralmente os danos (T08)."
+    risco_se_mal_aplicada: "Alegar 'mau tempo' sem METAR/TAF anexo é a defesa mais rejeitada nesta tipologia; viola a regra de citação e desmoraliza a peça."
+    ativa: true
+
+  - id: T07
+    nome: "Manutenção não programada e segurança de voo — dever de não decolar"
+    categoria: merito
+    ordem: 8
+    pai: null
+    resumo: >-
+      O atraso/cancelamento decorreu de falha técnica imprevista detectada na inspeção pré-voo ou
+      em voo, cuja correção é obrigatória por normas de aeronavegabilidade; a companhia agiu no
+      interesse da segurança dos passageiros. Tese de alto risco: a jurisprudência majoritária
+      trata manutenção como fortuito interno; usar principalmente para afastar/mitigar dano moral,
+      combinada com T08.
+    condicoes_aplicacao:
+      - { campo: motivo_categoria, operador: in, valor: [manutencao_nao_programada, seguranca_operacional] }
+      - { campo: manutencao_registro_disponivel, operador: "==", valor: true }
+    provas_necessarias:
+      - { tipo_documento: registro_voo, descricao: "Registro do voo com código de motivo técnico", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: log_manutencao, descricao: "Registro técnico da falha (log de manutenção, item MEL, relatório de pane) e da liberação da aeronave", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: registro_reacomodacao, descricao: "Providências imediatas: troca de aeronave, reacomodação, tempo até o novo voo", origem: subsidio, obrigatoria: true, peso: 0.8 }
+    provas_que_afastam:
+      - { tipo_documento: log_manutencao, descricao: "Falha recorrente na mesma aeronave ou item de manutenção programada vencido", origem: subsidio, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: registro_voo, descricao: "Motivo técnico sem registro de manutenção correspondente", origem: subsidio, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CBA (Lei 7.565/1986), arts. 20, 66 e seguintes (aeronavegabilidade) e RBAC 121/135 [A CONFERIR]", tipo: norma_regulatoria, para_que_serve: "proibição de operar aeronave sem condição de aeronavegabilidade", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CDC, art. 14, § 3º, I", tipo: dispositivo, para_que_serve: "inexistência de defeito: o serviço foi prestado com a segurança que dele se espera", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STJ — manutenção não programada como fortuito interno (risco do empreendimento) [A CONFERIR]", tipo: precedente, para_que_serve: "risco a enfrentar: a tese raramente exclui a responsabilidade; serve para o quantum", conferido: false, nota: "[A CONFERIR pelo advogado-dono — avaliar se vale incluir como exclusão ou só como mitigação]" }
+        - { ref: "TJPA — tratamento de manutenção não programada [A CONFERIR]", tipo: precedente, para_que_serve: "jurisprudência local", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "A falha foi detectada em inspeção e a decolagem seria ilícita; a decisão protegeu os passageiros."
+        - "A companhia reacomodou em X horas e prestou assistência integral; não há dano moral indenizável, apenas dissabor."
+    pedidos:
+      - "Improcedência; subsidiariamente, afastamento ou redução do dano moral pela diligência demonstrada."
+    pedidos_subsidiarios:
+      - "Quantum reduzido, considerando a causa de segurança e a assistência prestada."
+    risco_se_mal_aplicada: "Sustentar manutenção como excludente plena contra jurisprudência consolidada de fortuito interno gera sucumbência e perda de credibilidade; usar como mitigação."
+    ativa: true
+
+  # ---------------------------------------------------------------- MÉRITO — CUMPRIMENTO DA RES. ANAC 400
+  - id: T08
+    nome: "Cumprimento integral da Res. ANAC 400/2016 — informação, assistência material, reacomodação e reembolso"
+    categoria: merito
+    ordem: 9
+    pai: null
+    resumo: >-
+      Independentemente da causa, a companhia cumpriu as obrigações regulatórias: informou o
+      passageiro com a antecedência devida (ou imediatamente), ofereceu as alternativas
+      (reacomodação no próprio voo/outra cia, reembolso integral, execução por outro meio),
+      prestou assistência material escalonada por tempo de espera (comunicação ≥ 1h, alimentação
+      ≥ 2h, hospedagem/transporte ≥ 4h) [A CONFERIR] e o passageiro chegou ao destino com atraso
+      limitado. O dano moral, se algum, é mínimo.
+    condicoes_aplicacao:
+      - { campo: assistencia_comprovantes_disponiveis, operador: "==", valor: true }
+      - { campo: opcao_oferecida, operador: "!=", valor: nenhuma }
+    provas_necessarias:
+      - { tipo_documento: comunicacao_passageiro, descricao: "Registro de aviso ao passageiro (e-mail/SMS/app) com data/hora e conteúdo", origem: subsidio, obrigatoria: true, peso: 0.9 }
+      - { tipo_documento: voucher_assistencia, descricao: "Vouchers de alimentação, hospedagem e transporte emitidos em nome do passageiro, com data/hora", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: registro_reacomodacao, descricao: "Registro da oferta de alternativas e da opção escolhida; novo bilhete/boarding pass", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: comprovante_reembolso, descricao: "Comprovante de reembolso integral (data, valor, meio), quando escolhido", origem: subsidio, obrigatoria: false, peso: 1.0 }
+    provas_que_afastam:
+      - { tipo_documento: voucher_assistencia, descricao: "Vouchers em nome de outro passageiro, de outra data, ou ausentes para faixa de espera atingida", origem: subsidio, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: comunicacao_passageiro, descricao: "Aviso com antecedência inferior à regulatória para alteração programada [A CONFERIR 72h]", origem: subsidio, obrigatoria: false, peso: 0.9 }
+      - { tipo_documento: registro_reacomodacao, descricao: "Reacomodação só para dias depois sem oferta de outra cia/reembolso", origem: subsidio, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "Res. ANAC 400/2016, arts. 12 (alteração programada — aviso 72h), 20-22 (informação), 21 (alternativas: reacomodação/reembolso/outro meio), 26-27 (assistência material escalonada 1h/2h/4h), 28-29 (reembolso) [A CONFERIR artigos e prazos]", tipo: norma_regulatoria, para_que_serve: "pauta objetiva do que a companhia devia e cumpriu", conferido: false, nota: "[A CONFERIR pelo advogado-dono — versão consolidada da Res. 400 com alterações; conferir cada prazo]" }
+        - { ref: "CDC, arts. 6º, III, 14 e 20", tipo: dispositivo, para_que_serve: "dever de informação e adequação do serviço — demonstrar atendimento", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CC, art. 741", tipo: dispositivo, para_que_serve: "interrupção da viagem: dever de concluir o transporte e custear estada", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STJ — assistência material prestada como fator que afasta ou reduz o dano moral por atraso (precedentes A CONFERIR)", tipo: precedente, para_que_serve: "efeito jurídico do cumprimento da Res. 400", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "TJPA / Turmas Recursais — peso da assistência comprovada no quantum [A CONFERIR]", tipo: precedente, para_que_serve: "jurisprudência local", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "O passageiro foi informado às HHhMM, recebeu voucher de alimentação/hotel/transporte (anexos) e foi reacomodado no voo Z, chegando com X horas de atraso."
+        - "O cumprimento da Res. ANAC 400 esgota o dever regulatório; não há falha adicional que fundamente dano moral."
+    pedidos:
+      - "Improcedência; subsidiariamente, redução substancial do dano moral pela assistência prestada."
+    pedidos_subsidiarios:
+      - "Abatimento de valores já reembolsados/pagos de qualquer condenação."
+    risco_se_mal_aplicada: "Afirmar assistência prestada sem voucher em nome do passageiro anexo é o erro mais comum da tipologia e inverte o resultado."
+    ativa: true
+
+  - id: T08.1
+    nome: "Reembolso integral já efetuado / opção do passageiro pelo reembolso"
+    categoria: merito
+    ordem: 10
+    pai: T08
+    resumo: >-
+      O passageiro optou pelo reembolso (ou pela execução por outro meio) e foi integralmente
+      reembolsado no prazo regulatório; não há dano material remanescente e o dano moral não decorre
+      de opção voluntária.
+    condicoes_aplicacao:
+      - { campo: reembolso_realizado, operador: "==", valor: true }
+    provas_necessarias:
+      - { tipo_documento: comprovante_reembolso, descricao: "Comprovante do estorno (data, valor, forma, prazo)", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: registro_reacomodacao, descricao: "Registro da escolha do passageiro pelo reembolso", origem: subsidio, obrigatoria: true, peso: 0.9 }
+    provas_que_afastam:
+      - { tipo_documento: comprovante_reembolso, descricao: "Reembolso parcial, em crédito não aceito, ou fora do prazo de 7 dias [A CONFERIR]", origem: subsidio, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "Res. ANAC 400/2016, arts. 28-29 (reembolso integral em 7 dias) [A CONFERIR]", tipo: norma_regulatoria, para_que_serve: "regularidade do reembolso", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CC, art. 884", tipo: dispositivo, para_que_serve: "vedação ao enriquecimento sem causa (reembolso + dano material do bilhete)", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes: []
+      argumentos_chave:
+        - "O valor do bilhete já foi estornado; o pedido de dano material é bis in idem."
+    pedidos:
+      - "Improcedência do dano material; consideração do reembolso tempestivo no dano moral."
+    pedidos_subsidiarios: []
+    risco_se_mal_aplicada: "Alegar reembolso realizado quando foi em crédito/voucher recusado pelo passageiro."
+    ativa: true
+
+  - id: T09
+    nome: "Preterição de embarque (overbooking) — chamada de voluntários e compensação paga"
+    categoria: merito
+    ordem: 11
+    pai: null
+    resumo: >-
+      Na preterição, a companhia seguiu o procedimento regulatório: buscou voluntários, ofereceu
+      compensação negociada, e ao passageiro preterido involuntariamente pagou a compensação
+      financeira mínima da Res. 400 (DES) além da assistência e reacomodação; a compensação paga
+      deve ser considerada/abatida.
+    condicoes_aplicacao:
+      - { campo: subtipo, operador: in, valor: [overbooking, misto] }
+      - { campo: overbooking_voluntarios_chamados, operador: "==", valor: true }
+    provas_necessarias:
+      - { tipo_documento: registro_pretericao, descricao: "Registro operacional da chamada de voluntários e da preterição (horários, nº de passageiros)", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: comprovante_compensacao, descricao: "Comprovante de pagamento da compensação (valor em DES convertido) e termo assinado", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: voucher_assistencia, descricao: "Assistência material e reacomodação do preterido", origem: subsidio, obrigatoria: true, peso: 0.9 }
+    provas_que_afastam:
+      - { tipo_documento: registro_pretericao, descricao: "Sem chamada de voluntários; preterição de passageiro com check-in e no portão no horário", origem: subsidio, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: comprovante_compensacao, descricao: "Compensação não paga ou abaixo do mínimo regulatório", origem: subsidio, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "Res. ANAC 400/2016, arts. 22 a 24 (preterição: voluntários, compensação de 250/500 DES, assistência) [A CONFERIR artigos e valores]", tipo: norma_regulatoria, para_que_serve: "procedimento e compensação tarifada", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CC, art. 944", tipo: dispositivo, para_que_serve: "compensação paga abate a indenização", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STJ — overbooking: dano moral in re ipsa × efeito da compensação paga [A CONFERIR]", tipo: precedente, para_que_serve: "risco: STJ tende a presumir dano moral em preterição; a compensação paga reduz o quantum", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "O procedimento regulatório foi observado e o passageiro recebeu compensação de R$ X e reacomodação em Y horas."
+        - "A compensação paga deve ser abatida de qualquer condenação."
+    pedidos:
+      - "Improcedência; subsidiariamente, abatimento da compensação paga e quantum reduzido."
+    pedidos_subsidiarios:
+      - "Compensação dos valores pagos administrativamente."
+    risco_se_mal_aplicada: "Defender overbooking sem comprovante de compensação paga: dano moral presumido com quantum alto."
+    ativa: true
+
+  - id: T10
+    nome: "No-show / culpa exclusiva do passageiro (apresentação tardia, documentação irregular, conexão com margem insuficiente de outra cia)"
+    categoria: merito
+    ordem: 12
+    pai: null
+    resumo: >-
+      O passageiro não se apresentou no tempo mínimo para check-in/embarque, apresentou documentação
+      irregular, ou perdeu conexão comprada separadamente (outro bilhete/cia) com margem insuficiente;
+      o fato é imputável exclusivamente ao consumidor.
+    condicoes_aplicacao:
+      - { campo: passageiro_no_show, operador: "==", valor: true }
+      - { campo: status_voo, operador: "==", valor: operado_no_horario }
+    provas_necessarias:
+      - { tipo_documento: registro_voo, descricao: "Voo operado no horário; horário de fechamento do check-in e do portão", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: pnr, descricao: "PNR sem check-in/boarding; bilhetes separados quando conexão de outra cia", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: comunicacao_passageiro, descricao: "Comunicação dos horários limite ao passageiro (bilhete/e-mail)", origem: subsidio, obrigatoria: false, peso: 0.7 }
+    provas_que_afastam:
+      - { tipo_documento: registro_voo, descricao: "Voo antecipado sem aviso ou fila de check-in da própria cia que causou a perda", origem: subsidio, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: pnr, descricao: "Conexão no mesmo bilhete (responsabilidade da cia pela margem)", origem: subsidio, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CDC, art. 14, § 3º, II", tipo: dispositivo, para_que_serve: "culpa exclusiva do consumidor", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "Res. ANAC 400/2016 — tempo mínimo de apresentação e regras de no-show [A CONFERIR artigos]", tipo: norma_regulatoria, para_que_serve: "ônus do passageiro de se apresentar no prazo", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STJ / TJPA — no-show e conexão em bilhetes separados [A CONFERIR]", tipo: precedente, para_que_serve: "jurisprudência", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "O voo operou no horário; o passageiro não se apresentou/compareceu após o fechamento do portão."
+        - "Conexão comprada em bilhete separado é risco assumido pelo passageiro."
+    pedidos:
+      - "Improcedência por culpa exclusiva do consumidor."
+    pedidos_subsidiarios: []
+    risco_se_mal_aplicada: "Alegar no-show quando o sistema registra check-in do passageiro, ou quando o voo foi antecipado."
+    ativa: true
+
+  # ---------------------------------------------------------------- MÉRITO — BAGAGEM
+  - id: T11
+    nome: "Bagagem — devolução em prazo curto, ausência de declaração de valor, limite indenizatório (Convenção de Montreal no internacional) e PIR"
+    categoria: merito
+    ordem: 13
+    pai: null
+    resumo: >-
+      A bagagem foi localizada e entregue em poucos dias (extravio temporário), não houve
+      declaração especial de valor, o conteúdo alegado não foi comprovado, e a companhia já
+      indenizou/ressarciu administrativamente. No transporte internacional, aplica-se o limite de
+      1.288 DES [A CONFERIR] da Convenção de Montreal ao dano material (STF, Tema 210).
+    condicoes_aplicacao:
+      - { campo: subtipo, operador: in, valor: [bagagem_extravio, bagagem_avaria, bagagem_violacao, misto] }
+      - { campo: pir_registrado, operador: "==", valor: true }
+    provas_necessarias:
+      - { tipo_documento: pir, descricao: "PIR com data/hora, descrição da bagagem e etiqueta", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: registro_entrega_bagagem, descricao: "Comprovante de entrega da bagagem (data, local, assinatura) ou de indenização paga", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: etiqueta_bagagem, descricao: "Etiqueta/recibo de despacho e ausência de declaração especial de valor", origem: subsidio, obrigatoria: false, peso: 0.8 }
+      - { tipo_documento: comprovante_pagamento, descricao: "Ressarcimento administrativo de itens de primeira necessidade/indenização", origem: subsidio, obrigatoria: false, peso: 0.8 }
+    provas_que_afastam:
+      - { tipo_documento: registro_entrega_bagagem, descricao: "Bagagem não localizada após o prazo regulatório (7 dias doméstico / 21 internacional [A CONFERIR]) ou devolvida violada com registro", origem: subsidio, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: pir, descricao: "PIR não registrado por recusa do balcão (reclamação administrativa do passageiro comprova)", origem: extracao, obrigatoria: false, peso: 0.9 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "Res. ANAC 400/2016, arts. 32 a 35 (bagagem: PIR, prazo de devolução, ressarcimento de despesas, indenização em 7 dias) [A CONFERIR artigos e prazos]", tipo: norma_regulatoria, para_que_serve: "procedimento e prazos regulatórios", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "Convenção de Montreal (Decreto 5.910/2006), arts. 17, 22 (limite de 1.288 DES para bagagem) e 31 (protesto em prazo)", tipo: dispositivo, para_que_serve: "limite indenizatório e prazo de reclamação no internacional", conferido: false, nota: "[A CONFERIR pelo advogado-dono — valor atualizado do limite em DES e tese do STF sobre alcance (dano material apenas)]" }
+        - { ref: "CDC, art. 14; CC, art. 734, parágrafo único", tipo: dispositivo, para_que_serve: "declaração de valor como pressuposto de indenização acima do padrão — enfrentar o CDC", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STF, RE 636.331 (Tema 210) — limites da Convenção aplicam-se ao dano material no internacional; dano moral fora do limite", tipo: tema, para_que_serve: "teto da indenização material por bagagem internacional", conferido: false, nota: "[A CONFERIR pelo advogado-dono — tese e alcance]" }
+        - { ref: "STJ — extravio temporário × definitivo; dano moral por extravio temporário de poucos dias (precedentes A CONFERIR)", tipo: precedente, para_que_serve: "quantum ou afastamento por devolução rápida", conferido: false, nota: "[A CONFERIR pelo advogado-dono — risco: STJ reconhece dano moral in re ipsa no extravio, mesmo temporário]" }
+        - { ref: "TJPA — faixa de dano moral por extravio temporário/definitivo [A CONFERIR]", tipo: precedente, para_que_serve: "quantum local", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "A bagagem foi entregue em X dias no endereço do passageiro; extravio temporário de curta duração."
+        - "Sem declaração especial de valor e sem prova do conteúdo, o dano material não pode superar o padrão/limite."
+        - "Internacional: dano material limitado a 1.288 DES [A CONFERIR] (Tema 210 STF)."
+    pedidos:
+      - "Improcedência do dano moral (extravio temporário breve) e limitação do dano material ao comprovado/limite convencional."
+    pedidos_subsidiarios:
+      - "Abatimento do que já foi pago administrativamente; dano material limitado ao teto de DES no internacional."
+    risco_se_mal_aplicada: "Invocar limite da Convenção em voo doméstico, ou para dano moral; negar extravio quando a bagagem nunca foi devolvida."
+    ativa: true
+
+  # ---------------------------------------------------------------- MÉRITO — DANO MORAL
+  - id: T12
+    nome: "Inexistência de dano moral — atraso inferior a 4 horas / ausência de prova de circunstância concreta"
+    categoria: merito
+    ordem: 14
+    pai: null
+    resumo: >-
+      Atraso/cancelamento com chegada ao destino em poucas horas, com assistência prestada e sem
+      demonstração de circunstância agravante (perda de compromisso comprovado, pernoite em
+      aeroporto, vulnerabilidade), é mero dissabor. O STJ exige prova do dano moral em atraso de
+      voo (não é in re ipsa) [A CONFERIR — Tema/REsp], ressalvadas circunstâncias excepcionais.
+    condicoes_aplicacao:
+      - { campo: valor_dano_moral_pedido, operador: ">", valor: 0 }
+    provas_necessarias:
+      - { tipo_documento: registro_voo, descricao: "Horário real de chegada ao destino final (atraso total)", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: voucher_assistencia, descricao: "Assistência prestada na espera", origem: subsidio, obrigatoria: false, peso: 0.8 }
+    provas_que_afastam:
+      - { tipo_documento: registro_voo, descricao: "Atraso total ≥ 4h [A CONFERIR] ou pernoite não assistido", origem: subsidio, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: comprovante_compromisso, descricao: "Prova documental de compromisso perdido (evento, consulta, trabalho, cruzeiro)", origem: extracao, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: documento_identidade, descricao: "Passageiro criança, idoso, gestante, PcD ou PNAE", origem: extracao, obrigatoria: false, peso: 0.9 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CC, arts. 186, 927 e 944", tipo: dispositivo, para_que_serve: "pressupostos e proporcionalidade", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "Res. ANAC 400/2016, art. 26 (4h como marco da assistência de hospedagem/reacomodação) [A CONFERIR]", tipo: norma_regulatoria, para_que_serve: "parâmetro regulatório para 'atraso relevante'", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STJ, REsp 1.584.465 e precedentes da 3ª/4ª Turmas — dano moral por atraso de voo não é presumido; depende das circunstâncias (tempo, assistência, perda de compromisso) [A CONFERIR número e tese; verificar Tema afetado]", tipo: precedente, para_que_serve: "base principal da tese", conferido: false, nota: "[A CONFERIR pelo advogado-dono — conferir se há tema repetitivo em andamento/julgado sobre dano moral em atraso de voo e sua tese exata]" }
+        - { ref: "TJPA / Turmas Recursais — orientação local sobre atraso < 4h e assistência prestada [A CONFERIR]", tipo: precedente, para_que_serve: "jurisprudência local", conferido: false, nota: "[A CONFERIR pelo advogado-dono — risco: Turmas Recursais do PA podem presumir dano em cancelamento]" }
+        - { ref: "TJPA — faixa usual de dano moral por subtipo (atraso/cancelamento/overbooking/bagagem) [A CONFERIR]", tipo: precedente, para_que_serve: "quantum subsidiário", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "Atraso total de X horas, com assistência; nenhuma circunstância concreta de abalo foi provada."
+        - "O STJ não presume dano moral em atraso de voo; o ônus da prova das circunstâncias é do autor."
+        - "Subsidiariamente, quantum moderado, proporcional ao tempo e à assistência prestada."
+    pedidos:
+      - "Improcedência do pedido de dano moral."
+    pedidos_subsidiarios:
+      - "Fixação em patamar moderado (faixa do TJPA [A CONFERIR]); juros e correção do arbitramento (Súmula 362 STJ [A CONFERIR])."
+    risco_se_mal_aplicada: "Chamar de 'mero dissabor' pernoite em aeroporto sem assistência, ou cancelamento com criança/idoso; agrava o quantum."
+    ativa: true
+
+  # ---------------------------------------------------------------- SUBSIDIÁRIAS
+  - id: T13
+    nome: "Limites do dano material, abatimento de valores pagos e termo inicial de juros/correção"
+    categoria: subsidiaria
+    ordem: 15
+    pai: null
+    resumo: >-
+      Dano material só o comprovado por documento (notas, recibos) e com nexo com o evento;
+      abatimento de reembolsos, compensações e assistência já pagos; no internacional, teto da
+      Convenção para o dano material; juros e correção do dano moral desde o arbitramento.
+    condicoes_aplicacao:
+      - { campo: valor_causa, operador: ">", valor: 0 }
+    provas_necessarias:
+      - { tipo_documento: comprovante_reembolso, descricao: "Valores já pagos (reembolso, compensação, ressarcimento de bagagem)", origem: subsidio, obrigatoria: false, peso: 0.9 }
+      - { tipo_documento: peticao_inicial, descricao: "Documentos de despesas juntados pelo autor (para impugnar os sem nexo/sem comprovante)", origem: extracao, obrigatoria: true, peso: 0.8 }
+    provas_que_afastam: []
+    fundamentacao:
+      dispositivos:
+        - { ref: "CC, arts. 402, 403 e 944", tipo: dispositivo, para_que_serve: "dano material efetivo e direto; extensão do dano", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CPC, art. 373, I", tipo: dispositivo, para_que_serve: "ônus do autor quanto ao dano material", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "Convenção de Montreal, arts. 19 e 22", tipo: dispositivo, para_que_serve: "tetos no internacional (atraso: 5.346 DES [A CONFERIR]; bagagem: 1.288 DES [A CONFERIR])", conferido: false, nota: "[A CONFERIR pelo advogado-dono — valores atualizados]" }
+      precedentes:
+        - { ref: "STJ, Súmula 362 e Súmula 54", tipo: sumula, para_que_serve: "correção do dano moral desde o arbitramento; juros — discutir termo inicial (contratual × extracontratual)", conferido: false, nota: "[A CONFERIR pelo advogado-dono — relação contratual: juros da citação]" }
+        - { ref: "Lei 14.905/2024 (taxa legal — SELIC deduzido IPCA) [A CONFERIR]", tipo: dispositivo, para_que_serve: "índice de juros/correção após a vigência", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "Despesas sem comprovante ou sem nexo (ex.: compras no destino) não são indenizáveis."
+        - "Valores já pagos devem ser abatidos; juros do dano moral só da citação (relação contratual) e correção do arbitramento."
+    pedidos:
+      - "Limitação do dano material ao comprovado; abatimento dos valores pagos; termo inicial de juros/correção conforme súmulas."
+    pedidos_subsidiarios:
+      - "Aplicação dos tetos da Convenção de Montreal ao dano material no internacional."
+    risco_se_mal_aplicada: "Pedir abatimento de valores que não constam de comprovante anexo."
+    ativa: true
+
+  # ---------------------------------------------------------------- SINAL (não é argumento autônomo)
+  - id: T14
+    nome: "Sinais de litigância predatória — providências processuais"
+    categoria: sinal
+    ordem: 16
+    pai: null
+    resumo: >-
+      Conjunto de providências (depoimento pessoal, exibição de documentos, ofício ao órgão de
+      proteção/ANAC, comunicação ao Centro de Inteligência do TJPA) que só entra na peça se o
+      advogado-revisor confirmar os flags do M4: mesma reserva em várias ações, passageiro que não
+      embarcou, concentração de advogado, comprovante de endereço de outra UF. Jamais rotular autor
+      ou advogado.
+    condicoes_aplicacao:
+      - { campo: acoes_mesmo_advogado_mes_n, operador: ">=", valor: 30, nota: "N a calibrar com a carteira [A CONFERIR pelo advogado-dono]" }
+    provas_necessarias:
+      - { tipo_documento: relatorio_antifraude, descricao: "Flags do M4 com evidência e decisão humana registrada (human_decide)", origem: antifraude, obrigatoria: true, peso: 1.0 }
+    provas_que_afastam:
+      - { tipo_documento: relatorio_antifraude, descricao: "Flags não confirmados por advogado com OAB", origem: antifraude, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CPC, arts. 77, 80, 139, III e 385", tipo: dispositivo, para_que_serve: "poderes do juiz, boa-fé, depoimento pessoal", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "CNJ — Recomendação sobre litigância predatória; TJPA — Centro de Inteligência / NUMOPEDE [A CONFERIR]", tipo: norma_regulatoria, para_que_serve: "canal institucional", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "Requerer depoimento pessoal do autor (ciência da ação, embarque, bagagem, domicílio)."
+        - "Requerer exibição de documento de embarque, comprovante de residência atual e documentos originais dos gastos."
+        - "Comunicar o padrão ao Centro de Inteligência sem imputar conduta a pessoa determinada."
+    pedidos:
+      - "Depoimento pessoal sob pena de confissão; exibição de documentos; demais providências."
+    pedidos_subsidiarios: []
+    risco_se_mal_aplicada: "Acusação de má-fé sem lastro gera condenação do réu; só entra após decisão humana registrada."
+    ativa: true
+
+# -----------------------------------------------------------------------------
+# EXCEÇÕES — a esteira para e devolve ao humano
+# -----------------------------------------------------------------------------
+excecoes:
+  - id: X01
+    descricao: "PNR não localizado ou status/motivo do voo não entregue pelo cliente"
+    condicoes:
+      - { campo: motivo_categoria, operador: "==", valor: desconhecido }
+    acao: pedir_subsidio
+    nota: "Volta ao M3 com prazo; sem motivo codificado não há T06/T07 e a defesa fica só em T08/T12."
+  - id: X02
+    descricao: "Indício de falha real imputável sem assistência (motivo comercial/malha, sem vouchers, atraso longo, bagagem não devolvida)"
+    condicoes:
+      - { campo: indicio_falha_real_cia, operador: "==", valor: true }
+    acao: sinalizar_acordo
+    nota: "Defender aqui é temerário; acordo cedo reduz dano moral e honorários."
+  - id: X03
+    descricao: "Autor não consta como passageiro no PNR"
+    condicoes:
+      - { campo: pnr_autor_e_passageiro, operador: "==", valor: false }
+    acao: escalar_socio
+    nota: "Pode ser ilegitimidade (peça específica) ou erro de subsídio; decisão humana antes de qualquer minuta."
+  - id: X04
+    descricao: "Passageiro vulnerável (criança, idoso, gestante, PcD/PNAE) com atraso ≥ 12h ou pernoite"
+    condicoes:
+      - { campo: autor_menor_idoso_pcd, operador: "==", valor: true }
+      - { campo: atraso_total_horas, operador: ">=", valor: 12, nota: "[A CONFERIR pelo advogado-dono]" }
+    acao: escalar_socio
+    nota: "Exposição alta a dano moral majorado; defender × acordar é decisão do sócio."
+  - id: X05
+    descricao: "Motivo meteorológico alegado sem METAR/TAF disponível"
+    condicoes:
+      - { campo: motivo_categoria, operador: "==", valor: meteorologia }
+      - { campo: metar_taf_disponivel, operador: "==", valor: false }
+    acao: pedir_subsidio
+    nota: "T06 bloqueada até o METAR/TAF ser anexado (REDEMET/ICEA); nunca alegar 'mau tempo' sem o dado."
+  - id: X06
+    descricao: "Autor possivelmente falecido antes da procuração/ajuizamento"
+    condicoes:
+      - { campo: autor_falecido, operador: "==", valor: true }
+    acao: escalar_socio
+    nota: "Não gerar minuta padrão; peça específica por advogado."
+  - id: X07
+    descricao: "Valor da causa acima da alçada de contestação padrão"
+    condicoes:
+      - { campo: valor_causa, operador: ">", valor: 50000.0, nota: "[A CONFERIR pelo advogado-dono] alçada do cliente" }
+    acao: alertar_revisor
+    nota: "Exige segunda revisão por sócio."
+  - id: X08
+    descricao: "Fora da tipologia: acidente aéreo, milhas/fidelidade, cobrança no cartão, pacote de agência"
+    condicoes:
+      - { campo: subtipo, operador: not_in, valor: [cancelamento, atraso, perda_conexao, overbooking, bagagem_extravio, bagagem_avaria, bagagem_violacao, assistencia, misto] }
+    acao: nao_gerar_minuta
+    nota: "Reclassificar."
+  - id: X09
+    descricao: "Voo internacional — regime da Convenção de Montreal"
+    condicoes:
+      - { campo: voo_internacional, operador: "==", valor: true }
+    acao: alertar_revisor
+    nota: "Revisor deve verificar aplicação do Tema 210 STF (prazo bienal, tetos de DES ao dano material) e não estender aos pedidos de dano moral."
+
+# -----------------------------------------------------------------------------
+# SINAIS DE ACORDO
+# -----------------------------------------------------------------------------
+sinais_acordo:
+  politica: >-
+    Defender quando há causa externa documentada (METAR/TAF/NOTAM) ou culpa do passageiro, e
+    assistência comprovada com vouchers em nome do passageiro. Acordar cedo quando o motivo é
+    comercial/malha, quando falta comprovante de assistência, quando o atraso é longo com
+    passageiro vulnerável, ou quando a bagagem não foi devolvida. Valores e alçadas abaixo são
+    ilustrativos e devem ser calibrados com a carteira do cliente por comarca e subtipo
+    [A CONFERIR pelo advogado-dono]. Este playbook é só de defesa; o lado do autor é do spinoff.
+  quando_acordar:
+    - condicoes:
+        - { campo: indicio_falha_real_cia, operador: "==", valor: true }
+      racional: "Falha imputável e sem assistência; defender só aumenta sucumbência."
+    - condicoes:
+        - { campo: motivo_categoria, operador: in, valor: [malha_rotativa, tripulacao, comercial] }
+        - { campo: atraso_total_horas, operador: ">=", valor: 4, nota: "[A CONFERIR pelo advogado-dono]" }
+      racional: "Fortuito interno com atraso relevante: condenação por dano moral é a regra."
+    - condicoes:
+        - { campo: assistencia_comprovantes_disponiveis, operador: "==", valor: false }
+        - { campo: atraso_total_horas, operador: ">=", valor: 4, nota: "[A CONFERIR pelo advogado-dono]" }
+      racional: "Sem voucher não se prova a Res. 400; exposição alta."
+    - condicoes:
+        - { campo: subtipo, operador: in, valor: [bagagem_extravio] }
+        - { campo: bagagem_entregue_dias, operador: ">", valor: 7, nota: "[A CONFERIR pelo advogado-dono] prazo doméstico" }
+      racional: "Extravio além do prazo regulatório: dano moral presumido pelo STJ."
+    - condicoes:
+        - { campo: subtipo, operador: in, valor: [overbooking] }
+        - { campo: overbooking_voluntarios_chamados, operador: "==", valor: false }
+      racional: "Preterição sem procedimento: dano moral in re ipsa."
+  quando_nao_acordar:
+    - condicoes:
+        - { campo: motivo_categoria, operador: in, valor: [meteorologia, atc_infraestrutura_aeroportuaria] }
+        - { campo: metar_condicao_abaixo_minimos, operador: "==", valor: true }
+        - { campo: assistencia_comprovantes_disponiveis, operador: "==", valor: true }
+      racional: "Caso forte: causa externa documentada + assistência; acordo alimenta ações em série por voo."
+    - condicoes:
+        - { campo: passageiro_no_show, operador: "==", valor: true }
+        - { campo: status_voo, operador: "==", valor: operado_no_horario }
+      racional: "Culpa exclusiva do passageiro."
+    - condicoes:
+        - { campo: atraso_total_horas, operador: "<", valor: 4, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { campo: autor_alega_compromisso_perdido, operador: "==", valor: false }
+      racional: "Atraso curto sem circunstância agravante: jurisprudência do STJ favorável."
+    - condicoes:
+        - { campo: acoes_mesmo_pnr_n, operador: ">=", valor: 3 }
+      racional: "Fracionamento por PNR; não acordar antes de reunir os feitos."
+    - condicoes:
+        - { campo: autor_domicilio_outra_uf, operador: "==", valor: true }
+      racional: "Foro artificial: arguir incompetência antes de qualquer negociação."
+  faixas_valor:
+    - grupo_comarcas: "Região Metropolitana de Belém"
+      comarcas: ["Belém", "Ananindeua", "Marituba", "Benevides", "Santa Bárbara do Pará", "Santa Izabel do Pará"]
+      valor_min: 1000.0
+      valor_max: 4000.0
+      moeda: BRL
+      base: "ILUSTRATIVO [A CONFERIR pelo advogado-dono] — substituir pela média de condenação da carteira por subtipo (atraso < 4h, 4–12h, > 12h/pernoite, overbooking, bagagem), 12 meses"
+      calibrar: true
+    - grupo_comarcas: "Interior — polos com aeroporto (Santarém, Marabá, Altamira, Parauapebas/Carajás)"
+      comarcas: ["Santarém", "Marabá", "Altamira", "Parauapebas"]
+      valor_min: 1500.0
+      valor_max: 5000.0
+      moeda: BRL
+      base: "ILUSTRATIVO [A CONFERIR pelo advogado-dono]"
+      calibrar: true
+    - grupo_comarcas: "Interior — demais comarcas"
+      comarcas: ["*"]
+      valor_min: 1500.0
+      valor_max: 6000.0
+      moeda: BRL
+      base: "ILUSTRATIVO [A CONFERIR pelo advogado-dono] — verificar comarcas sem aeroporto usadas como foro de conveniência"
+      calibrar: true
+  alcadas:
+    - { ate_valor: 3000.0, aprovador: "advogado responsável pela carteira [A CONFERIR]" }
+    - { ate_valor: 10000.0, aprovador: "sócio FBS + jurídico do cliente [A CONFERIR]" }
+    - { ate_valor: 999999.0, aprovador: "comitê do cliente [A CONFERIR]" }
+  decisao_final: "A decisão de acordar é do advogado/cliente; a plataforma só sinaliza e registra."
+
+# -----------------------------------------------------------------------------
+# ANTIFRAUDE ESPECÍFICO (M4)
+# -----------------------------------------------------------------------------
+antifraude:
+  regra_inviolavel: "Nenhuma checagem produz rótulo de 'fraudador'; só flags com evidência. Apenas decisão humana registrada com OAB (human_decide) confirma um flag."
+  checagens:
+    - codigo: procuracao_presente
+      descricao: "Procuração juntada aos autos"
+      parametros: {}
+      severidade: high
+      evidencia_esperada: "page_type 'procuracao' ausente"
+      implementada_em_m4: true
+      calibrar: false
+    - codigo: procuracao_antiga
+      descricao: "Procuração datada há mais de N dias do ajuizamento (outorga em massa)"
+      parametros: { max_dias: 180, nota: "[A CONFERIR pelo advogado-dono]" }
+      severidade: medium
+      evidencia_esperada: "data_procuracao, data_ajuizamento e diferença em dias"
+      implementada_em_m4: false
+      calibrar: true
+    - codigo: comprovante_endereco_terceiro
+      descricao: "Comprovante de endereço em nome de terceiro"
+      parametros: {}
+      severidade: medium
+      evidencia_esperada: "nome no comprovante ≠ autor e sem declaração de residência"
+      implementada_em_m4: false
+      calibrar: false
+    - codigo: comprovante_endereco_outra_uf
+      descricao: "Comprovante de endereço na comarca, mas PNR/cadastro/DDD/outras ações apontam domicílio em outra UF (forçar foro)"
+      parametros: { fontes: ["pnr_cadastro", "ddd_telefone", "outras_acoes", "comprovante"] }
+      severidade: high
+      evidencia_esperada: "endereço do PNR/cadastro × comprovante × UF das outras ações"
+      implementada_em_m4: false
+      calibrar: false
+    - codigo: mesmo_pnr_varias_acoes
+      descricao: "Mesma reserva (PNR) em N+ ações (passageiros da mesma reserva em processos separados ou mesmo autor duplicado)"
+      parametros: { n_min: 2, janela_dias: 365 }
+      severidade: high
+      evidencia_esperada: "PNR, lista de CNJs, autores e pedidos"
+      implementada_em_m4: false
+      calibrar: true
+    - codigo: passageiro_nao_embarcou
+      descricao: "Autor pede dano por atraso/bagagem mas o registro mostra no-show no voo original e na reacomodação, ou nenhuma bagagem despachada"
+      parametros: {}
+      severidade: high
+      evidencia_esperada: "registro de check-in/boarding e de despacho de bagagem"
+      implementada_em_m4: false
+      calibrar: false
+    - codigo: autor_nao_consta_pnr
+      descricao: "Autor não é passageiro da reserva informada"
+      parametros: {}
+      severidade: high
+      evidencia_esperada: "lista de passageiros do PNR × qualificação do autor"
+      implementada_em_m4: false
+      calibrar: false
+    - codigo: acoes_em_serie_mesmo_voo
+      descricao: "Muitas ações pelo mesmo voo/data com o mesmo advogado e narrativa padronizada"
+      parametros: { n_min: 10, janela_dias: 90, nota: "[A CONFERIR pelo advogado-dono]" }
+      severidade: medium
+      evidencia_esperada: "voo, data, CNJs, advogado, score de similaridade das iniciais"
+      implementada_em_m4: false
+      calibrar: true
+    - codigo: concentracao_advogado_mes
+      descricao: "Mesmo advogado com mais de N ações contra o cliente no mês"
+      parametros: { n_min: 30, janela_dias: 30, nota: "[A CONFERIR pelo advogado-dono] calibrar N com a carteira" }
+      severidade: low
+      evidencia_esperada: "lista de CNJs do mesmo advogado na janela"
+      implementada_em_m4: false
+      calibrar: true
+    - codigo: concentracao_autor
+      descricao: "Mesmo autor com 3+ ações na carteira do cliente (viajante litigante)"
+      parametros: { n_min: 3 }
+      severidade: medium
+      evidencia_esperada: "lista de CNJs do mesmo autor"
+      implementada_em_m4: true
+      calibrar: true
+    - codigo: autor_falecido
+      descricao: "Indício de óbito do autor anterior à procuração/ajuizamento"
+      parametros: { fontes: ["subsidio_cliente", "publicacoes", "fonte_publica_a_definir"] }
+      severidade: high
+      evidencia_esperada: "fonte, data do óbito e data da procuração"
+      implementada_em_m4: false
+      calibrar: false
+    - codigo: litispendencia
+      descricao: "Processo duplicado (mesmas partes/PNR/voo) em curso"
+      parametros: {}
+      severidade: high
+      evidencia_esperada: "CNJs duplicados"
+      implementada_em_m4: true
+      calibrar: false
+    - codigo: gratuidade_x_renda
+      descricao: "Pedido de gratuidade com renda declarada acima do parâmetro ou perfil de viagem incompatível"
+      parametros: { limite_salarios_minimos: 5, nota: "[A CONFERIR pelo advogado-dono] parâmetro do TJPA" }
+      severidade: medium
+      evidencia_esperada: "renda extraída, classe tarifária/frequência e fonte"
+      implementada_em_m4: true
+      calibrar: true
+    - codigo: peticao_padronizada
+      descricao: "Inicial com alta similaridade com outras do mesmo advogado, sem individualizar voo/horários/assistência recebida"
+      parametros: { similaridade_min: 0.95 }
+      severidade: low
+      evidencia_esperada: "score de similaridade e CNJs semelhantes"
+      implementada_em_m4: false
+      calibrar: true
+    - codigo: despesas_sem_nexo
+      descricao: "Notas de despesas com data/local incompatíveis com o evento (antes do voo, em outra cidade) ou repetidas em outras ações"
+      parametros: {}
+      severidade: medium
+      evidencia_esperada: "data/local das notas × data/aeroporto do voo; hash das notas em outras ações"
+      implementada_em_m4: false
+      calibrar: false
+    - codigo: indicio_falha_real_cia
+      descricao: "Checagem a favor do autor: motivo comercial/malha, sem comprovante de assistência, atraso > 12h, bagagem não devolvida, overbooking sem compensação — sinaliza que defender é temerário"
+      parametros: {}
+      severidade: high
+      evidencia_esperada: "registros do próprio cliente (status, motivo, vouchers, PIR)"
+      implementada_em_m4: false
+      calibrar: false
+
+# -----------------------------------------------------------------------------
+# MODELO DE PEÇA (M6)
+# -----------------------------------------------------------------------------
+modelo_peca:
+  tipo: contestacao
+  formato_saida: markdown
+  regra_citacao: "Toda afirmação de fato cita document_page_id (draft_citations). Sem página, sem afirmação. METAR/TAF e vouchers só entram com o documento-fonte anexo."
+  secoes:
+    - { ordem: 1, id: enderecamento, titulo: "Endereçamento, qualificação e tempestividade", obrigatoria: true, teses_vinculadas: [], instrucoes: "Juízo, vara/juizado, número CNJ, partes; data da citação e tempestividade.", exige_citacao_de_pagina: false }
+    - { ordem: 2, id: sintese, titulo: "Síntese da demanda", obrigatoria: true, teses_vinculadas: [], instrucoes: "Resumir pedidos e causa de pedir em até 8 linhas; identificar subtipo, voo, data, trechos e se é internacional.", exige_citacao_de_pagina: true }
+    - { ordem: 3, id: preliminares, titulo: "Preliminares", obrigatoria: false, teses_vinculadas: [T01, T02, T03, T03.1, T04], instrucoes: "Uma subseção por tese aplicável, na ordem do playbook; incompetência relativa (T02) obrigatoriamente aqui, sob pena de prorrogação. Omitir se nenhuma se aplicar.", exige_citacao_de_pagina: true }
+    - { ordem: 4, id: prejudicial, titulo: "Prejudicial de mérito — prescrição", obrigatoria: false, teses_vinculadas: [T05], instrucoes: "Só se o prazo (5 anos doméstico / 2 anos internacional) tiver transcorrido.", exige_citacao_de_pagina: true }
+    - { ordem: 5, id: fatos, titulo: "Dos fatos — a reserva, o voo e o atendimento", obrigatoria: true, teses_vinculadas: [], instrucoes: "Linha do tempo do dossiê: PNR e passageiros, voo programado, comunicação, causa (código), METAR/NOTAM, alternativas oferecidas, assistência (vouchers), reacomodação/reembolso, chegada ao destino, PIR/entrega de bagagem, reclamação, ajuizamento. Cada evento com página.", exige_citacao_de_pagina: true }
+    - { ordem: 6, id: merito_causa, titulo: "Do mérito — causa do atraso/cancelamento", obrigatoria: false, teses_vinculadas: [T06, T07, T10], instrucoes: "Só para subtipos de voo. Descrever a causa com registro do voo + METAR/TAF/NOTAM ou log de manutenção anexos; no-show com registro de check-in/portão. Nunca 'mau tempo' sem METAR.", exige_citacao_de_pagina: true }
+    - { ordem: 7, id: merito_res400, titulo: "Do cumprimento da Resolução ANAC 400/2016", obrigatoria: false, teses_vinculadas: [T08, T08.1, T09], instrucoes: "Tabela: obrigação regulatória × prova anexa (aviso, alternativas, alimentação, hospedagem, transporte, reembolso, compensação por preterição). Só itens com comprovante.", exige_citacao_de_pagina: true }
+    - { ordem: 8, id: merito_bagagem, titulo: "Do mérito — bagagem", obrigatoria: false, teses_vinculadas: [T11], instrucoes: "Só para subtipos de bagagem. PIR, prazo de devolução, declaração de valor, indenização paga; no internacional, teto de DES só para dano material.", exige_citacao_de_pagina: true }
+    - { ordem: 9, id: dano_moral, titulo: "Da inexistência de dano moral", obrigatoria: true, teses_vinculadas: [T12], instrucoes: "Atraso total, assistência, ausência de circunstância concreta; enfrentar vulnerabilidade/compromisso se alegados; tom respeitoso; quantum subsidiário com faixa do TJPA.", exige_citacao_de_pagina: true }
+    - { ordem: 10, id: subsidiarios, titulo: "Pedidos subsidiários — dano material, abatimentos, juros e correção", obrigatoria: true, teses_vinculadas: [T13], instrucoes: "Impugnar despesas sem comprovante/nexo; abater pagos; tetos da Convenção no internacional; Súmulas 362/54 e Lei 14.905/2024 [A CONFERIR].", exige_citacao_de_pagina: true }
+    - { ordem: 11, id: providencias, titulo: "Providências processuais", obrigatoria: false, teses_vinculadas: [T14], instrucoes: "Só com flags confirmados por human_decide. Linguagem neutra; sem imputar fraude a pessoa.", exige_citacao_de_pagina: true }
+    - { ordem: 12, id: provas, titulo: "Das provas", obrigatoria: true, teses_vinculadas: [], instrucoes: "Protestar por depoimento pessoal, juntada de registros operacionais, ofício à ANAC/DECEA/REDEMET se necessário; especificar.", exige_citacao_de_pagina: false }
+    - { ordem: 13, id: pedidos, titulo: "Dos pedidos", obrigatoria: true, teses_vinculadas: [], instrucoes: "Consolidar na ordem: preliminares (incompetência primeiro), prejudicial, improcedência por subtipo, subsidiários, sucumbência, intimações.", exige_citacao_de_pagina: false }
+    - { ordem: 14, id: anexos, titulo: "Rol de documentos", obrigatoria: true, teses_vinculadas: [], instrucoes: "Listar cada anexo com o tipo do playbook (pnr, registro_voo, metar_taf, voucher_assistencia, registro_reacomodacao, pir…).", exige_citacao_de_pagina: false }
+  estilo:
+    - "Português formal; frases curtas; sem adjetivação do autor ou do advogado adverso."
+    - "Nenhuma afirmação de fato sem página dos autos ou documento anexo identificado; 'condições meteorológicas' só com METAR/TAF anexo e horário."
+    - "Referências legais, artigos da Res. ANAC 400 e da Convenção de Montreal só os conferidos no playbook; nunca estender a Convenção ao dano moral sem decisão do advogado-dono."
+    - "Tom respeitoso com passageiro vulnerável (criança, idoso, gestante, PcD/PNAE)."
+
+# -----------------------------------------------------------------------------
+# CRITÉRIOS DE REVISÃO (M7)
+# -----------------------------------------------------------------------------
+criterios_revisao:
+  tempo_minimo_segundos: 900
+  papel_minimo_revisor: lawyer
+  exige_segunda_revisao_se:
+    - { campo: valor_causa, operador: ">", valor: 50000.0, nota: "[A CONFERIR pelo advogado-dono]" }
+    - { campo: autor_falecido, operador: "==", valor: true }
+    - { campo: indicio_falha_real_cia, operador: "==", valor: true }
+    - { campo: voo_internacional, operador: "==", valor: true }
+    - { campo: autor_menor_idoso_pcd, operador: "==", valor: true }
+  checklist:
+    - { id: R01, item: "Cada fato da peça tem citação de página dos autos ou documento anexo identificado", bloqueante: true }
+    - { id: R02, item: "Todas as referências legais, artigos da Res. ANAC 400 e da Convenção de Montreal citados estão conferidos no playbook (nenhum placeholder sobrou)", bloqueante: true }
+    - { id: R03, item: "T06 (meteorologia/ATC) só foi usada com registro do voo + METAR/TAF/NOTAM anexos e horários compatíveis", bloqueante: true }
+    - { id: R04, item: "T08 só foi usada com vouchers/registros em nome do passageiro e na data do evento; tabela obrigação × prova preenchida", bloqueante: true }
+    - { id: R05, item: "Convenção de Montreal só invocada em voo internacional e só para dano material/prazo", bloqueante: true }
+    - { id: R06, item: "Incompetência relativa (T02), se cabível, está nas preliminares (não se prorroga por omissão)", bloqueante: true }
+    - { id: R07, item: "Nenhuma expressão imputa fraude/má-fé ao autor ou ao advogado sem flag confirmado por human_decide", bloqueante: true }
+    - { id: R08, item: "Subtipo, PNR, voo, datas, atraso total e valores batem com o dossiê; seções de mérito não aplicáveis foram omitidas", bloqueante: true }
+    - { id: R09, item: "Pedidos subsidiários presentes (dano material limitado, abatimentos, quantum, juros/correção)", bloqueante: true }
+    - { id: R10, item: "Tom respeitoso; sem 'mero dissabor' em pernoite não assistido ou com passageiro vulnerável", bloqueante: false }
+    - { id: R11, item: "Sinal de acordo avaliado e registrado (defender × acordar) antes de protocolar", bloqueante: false }
+  motivos_recusa_padrao:
+    - "Fato sem prova citável"
+    - "Tese aplicada sem prova necessária (meteorologia sem METAR; assistência sem voucher)"
+    - "Referência legal/regulatória não conferida ou inexistente"
+    - "Convenção de Montreal aplicada fora do escopo (doméstico ou dano moral)"
+    - "Subtipo/PNR/voo/valores/datas divergentes do dossiê"
+    - "Linguagem imputa fraude sem decisão humana"
+    - "Caso deveria ir para acordo/escalada, não para contestação padrão"
+
+# -----------------------------------------------------------------------------
+# MÉTRICAS (M10/M11)
+# -----------------------------------------------------------------------------
+metricas:
+  - { id: M01, nome: "Tempo médio de revisão por contestação", definicao: "média de reviews.review_seconds para drafts desta tipologia", meta: "< 25 min com qualidade [A CONFERIR]", fonte: reviews }
+  - { id: M02, nome: "Aprovação sem alteração substancial", definicao: "% de reviews aprovadas com substantial_change = false", meta: "> 60 % após 200 casos [A CONFERIR]", fonte: reviews }
+  - { id: M03, nome: "Subsídios faltantes detectados antes da defesa", definicao: "% de casos com exceção X01/X05 aberta antes de gerar minuta", meta: "> 90 %", fonte: "dossiers + excecoes" }
+  - { id: M04, nome: "Taxa de êxito por tese × subtipo × comarca", definicao: "outcomes.result ∈ {improcedente, parcial} por thesis_version_id, subtipo e comarca vs. baseline", meta: "≥ baseline + 10 p.p. [A CONFERIR]", fonte: outcomes }
+  - { id: M05, nome: "Condenação média por subtipo e faixa de atraso", definicao: "média de outcomes.award_value por subtipo × faixa (<4h, 4–12h, >12h) × comarca; alimenta faixas_valor", meta: "queda de 20 % vs. baseline [A CONFERIR]", fonte: outcomes }
+  - { id: M06, nome: "Custo de tokens por processo", definicao: "soma de llm_calls.cost_usd por case_id", meta: "< US$ 2 por contestação [A CONFERIR]", fonte: llm_calls }
+  - { id: M07, nome: "Concordância modelo × revisor sênior", definicao: "gt_tasks.agreement_score médio (amostra semanal)", meta: "> 0,85", fonte: gt_tasks }
+  - { id: M08, nome: "Flags antifraude confirmados por humano", definicao: "% de fraud_checks com result = flag e human_decision = confirmed, por código", meta: "monitorar precisão; recalibrar se < 50 %", fonte: fraud_checks }
+  - { id: M09, nome: "Acordos sinalizados × realizados", definicao: "casos com sinal de acordo vs. outcomes.result = acordo e valor médio", meta: "calibrar faixas_valor trimestralmente", fonte: outcomes }
+  - { id: M10, nome: "Cobertura de METAR/TAF em T06", definicao: "% de peças com T06 em que há metar_taf anexo com horário dentro da janela do voo", meta: "100 %", fonte: "drafts + draft_citations" }
+  - { id: M11, nome: "Declínios de competência obtidos (T02)", definicao: "% de T02 arguidas com decisão de declínio", meta: "monitorar; recalibrar comprovante_endereco_outra_uf", fonte: outcomes }

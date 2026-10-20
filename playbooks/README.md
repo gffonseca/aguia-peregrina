@@ -10,6 +10,9 @@
 | `playbook.schema.json` | JSON Schema (draft 2020-12) gerado do pydantic. Use no editor (VS Code: `yaml.schemas`) para autocompletar e apontar erro ao digitar. |
 | `consignado-rmc-tjpa.playbook.yaml` | Primeiro playbook: consignado/RMC não reconhecido, defesa de instituição financeira regional, TJPA. **Em revisão** — sessão 1 (19/10/2026) aplicada; referências legais ainda `conferido: false` (levantamento em 20/10/2026). Sem cliente-piloto: piloto interno com casos encerrados da FBS primeiro; prospecção de Banpará/Basa/financeira regional em paralelo. |
 | `consignado-rmc-tjpa.playbook.md` | O mesmo conteúdo em prosa e tabelas para quem não edita YAML. **Derivado**: o YAML é a fonte da verdade. |
+| `energia-falha-fornecimento-tjpa.playbook.yaml` / `.md` | Energia elétrica: interrupção/oscilação, danos em equipamentos, TOI, religação e negativação — defesa de distribuidora (Equatorial Pará / Norte Energia), TJPA. **Rascunho** — tudo `[A CONFERIR pelo advogado-dono]`. |
+| `aereo-cancelamento-atraso-tjpa.playbook.yaml` / `.md` | Transporte aéreo: cancelamento, atraso, overbooking e bagagem — defesa de companhia aérea (Azul/LATAM/Gol no PA), TJPA. **Rascunho**; só defesa (o lado do autor é do spinoff de créditos). |
+| `trabalhista-reclamatoria-trt8.playbook.yaml` / `.md` | Reclamatória trabalhista típica — defesa do empregador (terceirizadas, mineração/serviços, call center, varejo), TRT-8. **Rascunho**; teses por pedido, briefing de audiência e modelagem de acordo por pedido. |
 
 Código: `app/modules/m00_playbook/schema.py` (modelo pydantic, `validate_playbook(path)`, `to_thesis_payloads()`), testes em `tests/test_playbook_schema.py`.
 

@@ -1,0 +1,1054 @@
+# =============================================================================
+# Águia Peregrina — M0 Playbook — Energia: falha de fornecimento / TOI / danos (defesa) — TJPA
+# =============================================================================
+# PRIMEIRO RASCUNHO. Nenhuma citação legal, número, prazo ou valor aqui foi
+# conferido por advogado. Todo item marcado "[A CONFERIR pelo advogado-dono]"
+# e `conferido: false` precisa ser validado (texto vigente da Res. ANEEL
+# 1.000/2021 e alterações, números de temas/súmulas, jurisprudência atual do
+# TJPA e das Turmas Recursais) antes de o status virar `aprovado`.
+# O validador recusa `status: aprovado` enquanto houver pendência.
+#
+# Fonte da verdade: este YAML. A versão em prosa
+# (energia-falha-fornecimento-tjpa.playbook.md) é derivada.
+# =============================================================================
+
+schema_version: "1.0"
+
+metadata:
+  id: energia-falha-fornecimento-tjpa
+  nome: "Energia elétrica — interrupção/oscilação, danos em equipamentos, TOI e negativação — defesa de distribuidora — TJPA"
+  tipologia: energia_falha_fornecimento
+  tribunal: TJPA
+  reu_tipo: concessionaria_distribuicao_energia
+  lado: defesa
+  tipo_peca_padrao: contestacao
+  versao: 1
+  supera_versao: null
+  autor_nome: "Gustavo Fonseca — OAB/PA 12.724 — revisão própria até nomear advogado-dono da tipologia"
+  autor_oab: "PA 12724"
+  criado_em: 2026-10-19T12:00:00-03:00
+  status: rascunho
+  aprovado_por_nome: null
+  aprovado_por_oab: null
+  aprovado_em: null
+  descricao: >-
+    Ações de consumidor contra distribuidora de energia elétrica (foco: Equatorial Pará; em menor
+    escala, Norte Energia e cooperativas/permissionárias) por interrupção ou oscilação de
+    fornecimento, queima de equipamentos, cobrança por recuperação de consumo (TOI/fatura de
+    diferença), demora na religação, suspensão indevida e negativação. Pedidos típicos: declaração
+    de inexigibilidade do débito, ressarcimento de equipamentos, repetição em dobro, dano moral,
+    tutela de urgência para religação/baixa da negativação.
+  observacoes: >-
+    Rascunho gerado para validação. Antes de aprovar: (1) conferir a numeração dos artigos da
+    Res. Normativa ANEEL 1.000/2021 (consolidada, com alterações posteriores) para ressarcimento
+    de danos, TOI, DIC/FIC/DMIC e suspensão; (2) conferir Temas/Súmulas do STJ e orientação das
+    Câmaras Cíveis e Turmas Recursais do TJPA sobre dano moral por interrupção e por TOI;
+    (3) calibrar faixas de acordo com a carteira do cliente por comarca, separando capital
+    e polos do interior (Santarém, Marabá, Castanhal) onde há concentração de litigância;
+    (4) confirmar com o cliente quais subsídios (histórico de interrupções da UC, OS, laudo de
+    vistoria, compensações pagas, protocolos, registros ONS/ANEEL) ele entrega em até 5 dias úteis.
+
+# -----------------------------------------------------------------------------
+# GATILHOS DE CLASSIFICAÇÃO (M1/M9)
+# -----------------------------------------------------------------------------
+gatilhos_classificacao:
+  assuntos_cnj:
+    - { codigo: "7760", nome: "Fornecimento de energia elétrica [A CONFERIR pelo advogado-dono — código TPU]", conferido: false }
+    - { codigo: "7771", nome: "Indenização por dano moral — consumidor [A CONFERIR pelo advogado-dono]", conferido: false }
+    - { codigo: "7779", nome: "Indenização por dano material — consumidor [A CONFERIR pelo advogado-dono]", conferido: false }
+    - { codigo: "10433", nome: "Inexistência/inexigibilidade de débito [A CONFERIR pelo advogado-dono]", conferido: false }
+    - { codigo: "7768", nome: "Inclusão indevida em cadastro de inadimplentes [A CONFERIR pelo advogado-dono]", conferido: false }
+    - { codigo: "11810", nome: "Cobrança indevida / recuperação de consumo [A CONFERIR pelo advogado-dono]", conferido: false }
+  classes_cnj:
+    - { codigo: "7", nome: "Procedimento Comum Cível [A CONFERIR pelo advogado-dono]", conferido: false }
+    - { codigo: "436", nome: "Procedimento do Juizado Especial Cível [A CONFERIR pelo advogado-dono]", conferido: false }
+  palavras_chave:
+    - "interrupção de energia"
+    - "falta de energia"
+    - "oscilação"
+    - "queda de energia"
+    - "apagão"
+    - "queima de equipamento"
+    - "eletrodoméstico"
+    - "ressarcimento de danos"
+    - "TOI"
+    - "termo de ocorrência e inspeção"
+    - "recuperação de consumo"
+    - "fatura de diferença"
+    - "irregularidade no medidor"
+    - "religação"
+    - "corte indevido"
+    - "suspensão do fornecimento"
+    - "unidade consumidora"
+    - "Equatorial"
+    - "Celpa"
+    - "negativação"
+  palavras_que_excluem:
+    - "servidão administrativa"
+    - "desapropriação"
+    - "linha de transmissão"
+    - "tarifa social — ação coletiva"
+    - "ação civil pública"
+    - "acidente com rede elétrica"
+    - "choque elétrico"
+    - "morte"
+  confianca_minima: 0.85
+
+# -----------------------------------------------------------------------------
+# CAMPOS OBRIGATÓRIOS DO DOSSIÊ (M5)
+# -----------------------------------------------------------------------------
+campos_dossie_obrigatorios:
+  # --- identificação do caso (extração dos autos) ---
+  - { campo: comarca, tipo: texto, origem: extracao, descricao: "Comarca do juízo", obrigatorio: true }
+  - { campo: juizado_especial, tipo: booleano, origem: extracao, descricao: "Tramita em Juizado Especial (rito da Lei 9.099)", obrigatorio: true }
+  - { campo: subtipo, tipo: texto, origem: extracao, descricao: "interrupcao | oscilacao_dano_equipamento | toi_recuperacao_consumo | religacao | suspensao_indevida | negativacao | misto", obrigatorio: true, bloqueia_minuta_se_ausente: true }
+  - { campo: valor_causa, tipo: valor_monetario, origem: extracao, descricao: "Valor da causa", obrigatorio: true }
+  - { campo: valor_dano_moral_pedido, tipo: valor_monetario, origem: extracao, descricao: "Valor pedido a título de dano moral", obrigatorio: false }
+  - { campo: valor_dano_material_pedido, tipo: valor_monetario, origem: extracao, descricao: "Valor pedido a título de dano material (equipamentos)", obrigatorio: false }
+  - { campo: valor_toi, tipo: valor_monetario, origem: subsidio, descricao: "Valor da fatura de recuperação de consumo impugnada", obrigatorio: false }
+  - { campo: data_ajuizamento, tipo: data, origem: extracao, descricao: "Data de distribuição", obrigatorio: true }
+  - { campo: data_evento, tipo: data, origem: extracao, descricao: "Data do evento alegado (interrupção/queima/corte/TOI)", obrigatorio: true, bloqueia_minuta_se_ausente: true }
+  - { campo: autor_pede_gratuidade, tipo: booleano, origem: extracao, descricao: "Pedido de justiça gratuita", obrigatorio: true }
+  - { campo: renda_declarada_autor, tipo: valor_monetario, origem: extracao, descricao: "Renda mensal que consta dos autos", obrigatorio: false }
+  - { campo: autor_pede_tutela_urgencia, tipo: booleano, origem: extracao, descricao: "Há pedido liminar (religação / baixa de negativação / suspensão da cobrança)", obrigatorio: true }
+  - { campo: tutela_deferida, tipo: booleano, origem: publicacao, descricao: "Liminar já deferida", obrigatorio: false }
+  - { campo: autor_alega_dano_equipamento, tipo: booleano, origem: extracao, descricao: "Inicial pede ressarcimento de equipamento queimado", obrigatorio: true }
+  - { campo: equipamento_nota_fiscal_juntada, tipo: booleano, origem: extracao, descricao: "Há nota fiscal/orçamento do equipamento nos autos", obrigatorio: false }
+  - { campo: equipamento_nota_fiscal_hash, tipo: texto, origem: antifraude, descricao: "Identificador (número/CNPJ emitente/valor) da nota fiscal para cruzamento entre ações", obrigatorio: false }
+  - { campo: laudo_autor_generico, tipo: booleano, origem: antifraude, descricao: "Laudo/orçamento do autor é texto padronizado já visto em outras ações", obrigatorio: false }
+  - { campo: comprovante_endereco_titular, tipo: texto, origem: extracao, descricao: "autor | terceiro | ausente", obrigatorio: true }
+  - { campo: data_procuracao, tipo: data, origem: extracao, descricao: "Data da procuração juntada", obrigatorio: true }
+  # --- subsídios do cliente (M3) ---
+  - { campo: uc_numero, tipo: texto, origem: subsidio, descricao: "Número da unidade consumidora", obrigatorio: true, bloqueia_minuta_se_ausente: true }
+  - { campo: uc_titular_e_autor, tipo: booleano, origem: subsidio, descricao: "Autor é o titular cadastral da UC", obrigatorio: true }
+  - { campo: uc_classe, tipo: texto, origem: subsidio, descricao: "residencial | residencial_baixa_renda | comercial | rural | industrial", obrigatorio: true }
+  - { campo: historico_interrupcoes_uc, tipo: lista, origem: subsidio, descricao: "Interrupções registradas na UC/alimentador no período (data, duração, causa)", obrigatorio: true }
+  - { campo: interrupcao_registrada_na_data, tipo: booleano, origem: subsidio, descricao: "Há interrupção/oscilação registrada no sistema na data do evento", obrigatorio: true }
+  - { campo: interrupcao_duracao_horas, tipo: numero, origem: subsidio, descricao: "Duração da interrupção na data do evento (horas)", obrigatorio: false }
+  - { campo: causa_interrupcao, tipo: texto, origem: subsidio, descricao: "climatica | terceiro | vegetacao | falha_rede | manutencao_programada | rede_basica_ons | desconhecida", obrigatorio: true }
+  - { campo: evento_climatico_registrado, tipo: booleano, origem: subsidio, descricao: "Há registro meteorológico (INMET/METAR) ou Defesa Civil de chuva/vento/descarga na data e região", obrigatorio: false }
+  - { campo: evento_rede_basica, tipo: booleano, origem: subsidio, descricao: "Perturbação na Rede Básica/transmissão registrada pelo ONS/ANEEL na data", obrigatorio: false }
+  - { campo: manutencao_programada_avisada, tipo: booleano, origem: subsidio, descricao: "Interrupção programada com aviso prévio nos termos regulatórios", obrigatorio: false }
+  - { campo: compensacoes_dic_fic_pagas, tipo: booleano, origem: subsidio, descricao: "Houve crédito automático de compensação DIC/FIC/DMIC/DICRI na fatura da UC pelo período", obrigatorio: true }
+  - { campo: compensacoes_valor_total, tipo: valor_monetario, origem: subsidio, descricao: "Valor total de compensações creditadas na UC nos 12 meses", obrigatorio: false }
+  - { campo: ordens_servico, tipo: lista, origem: subsidio, descricao: "OS abertas/encerradas para a UC (nº, data, tipo, prazo)", obrigatorio: true }
+  - { campo: protocolo_reclamacao_autor, tipo: booleano, origem: subsidio, descricao: "Autor registrou reclamação (call center/agência/ouvidoria/ANEEL) sobre o evento", obrigatorio: true }
+  - { campo: pedido_ressarcimento_prazo_dias, tipo: numero, origem: subsidio, descricao: "Dias entre o evento e o pedido administrativo de ressarcimento (PID); null se não houve pedido", obrigatorio: false }
+  - { campo: pedido_ressarcimento_formulado, tipo: booleano, origem: subsidio, descricao: "Autor formulou pedido administrativo de ressarcimento de danos (PID)", obrigatorio: true }
+  - { campo: vistoria_realizada, tipo: booleano, origem: subsidio, descricao: "Distribuidora realizou vistoria/inspeção do equipamento", obrigatorio: false }
+  - { campo: laudo_vistoria_conclusao, tipo: texto, origem: subsidio, descricao: "nexo_afastado | nexo_confirmado | inconclusivo | nao_realizada", obrigatorio: false }
+  - { campo: ressarcimento_administrativo_pago, tipo: booleano, origem: subsidio, descricao: "Já houve ressarcimento administrativo (pagamento/conserto/substituição)", obrigatorio: false }
+  - { campo: toi_lavrado, tipo: booleano, origem: subsidio, descricao: "Há TOI lavrado para a UC", obrigatorio: false }
+  - { campo: toi_assinado_ou_recusa, tipo: booleano, origem: subsidio, descricao: "TOI assinado pelo consumidor/responsável, ou recusa registrada com testemunhas", obrigatorio: false }
+  - { campo: toi_pericia_medidor, tipo: texto, origem: subsidio, descricao: "nao_realizada | laboratorio_distribuidora | orgao_metrologico_terceiro", obrigatorio: false }
+  - { campo: toi_consumidor_notificado_pericia, tipo: booleano, origem: subsidio, descricao: "Consumidor notificado para acompanhar a perícia do medidor", obrigatorio: false }
+  - { campo: toi_criterio_calculo, tipo: texto, origem: subsidio, descricao: "Critério do art. da Res. 1.000 usado (fator de carga, média 12 meses, carga instalada) [A CONFERIR]", obrigatorio: false }
+  - { campo: toi_contraditorio_administrativo, tipo: booleano, origem: subsidio, descricao: "Consumidor teve prazo e recurso administrativo contra a fatura de recuperação", obrigatorio: false }
+  - { campo: historico_consumo_queda, tipo: booleano, origem: subsidio, descricao: "Histórico de consumo mostra queda abrupta compatível com irregularidade e retomada após regularização", obrigatorio: false }
+  - { campo: suspensao_por_inadimplencia, tipo: booleano, origem: subsidio, descricao: "Corte decorreu de inadimplência de fatura regular (não de TOI)", obrigatorio: false }
+  - { campo: aviso_previo_suspensao, tipo: booleano, origem: subsidio, descricao: "Houve notificação prévia de suspensão nos termos regulatórios", obrigatorio: false }
+  - { campo: religacao_prazo_horas, tipo: numero, origem: subsidio, descricao: "Horas entre pagamento/solicitação e religação", obrigatorio: false }
+  - { campo: negativacao_realizada, tipo: booleano, origem: subsidio, descricao: "Houve inscrição em cadastro de inadimplentes", obrigatorio: false }
+  - { campo: negativacao_preexistente, tipo: booleano, origem: subsidio, descricao: "Autor tinha outra negativação legítima anterior", obrigatorio: false }
+  - { campo: debito_negativado_origem, tipo: texto, origem: subsidio, descricao: "fatura_regular | toi | parcelamento | desconhecida", obrigatorio: false }
+  - { campo: faturas_em_aberto_n, tipo: numero, origem: subsidio, descricao: "Nº de faturas em aberto da UC na data do evento", obrigatorio: false }
+  # --- cruzamentos (antifraude / publicações) ---
+  - { campo: litispendencia_cnj, tipo: lista, origem: antifraude, descricao: "Processos em curso com mesmas partes/causa/pedido", obrigatorio: true }
+  - { campo: coisa_julgada_cnj, tipo: lista, origem: antifraude, descricao: "Processos transitados com mesmas partes/causa/pedido", obrigatorio: true }
+  - { campo: acoes_mesma_uc_n, tipo: numero, origem: antifraude, descricao: "Nº de ações sobre a mesma UC (qualquer autor)", obrigatorio: true }
+  - { campo: acoes_mesmo_autor_mesmo_reu_n, tipo: numero, origem: antifraude, descricao: "Nº de ações do autor contra o cliente (carteira + publicações)", obrigatorio: true }
+  - { campo: acoes_mesmo_advogado_mes_n, tipo: numero, origem: antifraude, descricao: "Nº de ações do mesmo advogado contra o cliente no mês", obrigatorio: true }
+  - { campo: acoes_mesmo_evento_mesma_comarca_n, tipo: numero, origem: antifraude, descricao: "Nº de ações pelo mesmo evento (data/alimentador) na comarca", obrigatorio: false }
+  - { campo: nota_fiscal_repetida_n, tipo: numero, origem: antifraude, descricao: "Nº de outras ações em que a mesma nota fiscal de equipamento aparece", obrigatorio: false }
+  - { campo: autor_falecido, tipo: booleano, origem: antifraude, descricao: "Indício de óbito do autor antes do ajuizamento/procuração", obrigatorio: true }
+  - { campo: indicio_falha_real_distribuidora, tipo: booleano, origem: calculado, descricao: "Sinais de que a falha foi real e imputável (interrupção longa sem causa externa, OS não atendida no prazo, TOI sem perícia, negativação por débito já pago)", obrigatorio: true }
+
+# -----------------------------------------------------------------------------
+# ÁRVORE DE TESES
+# -----------------------------------------------------------------------------
+teses:
+  # ---------------------------------------------------------------- PRELIMINARES
+  - id: T01
+    nome: "Impugnação à gratuidade de justiça"
+    categoria: preliminar
+    ordem: 1
+    pai: null
+    resumo: >-
+      O autor pede gratuidade, mas renda, classe da UC (comercial/industrial) e consumo mensal
+      afastam a presunção de hipossuficiência; requer-se intimação para comprovar.
+    condicoes_aplicacao:
+      - { campo: autor_pede_gratuidade, operador: "==", valor: true }
+      - { campo: renda_declarada_autor, operador: ">", valor: 4554.0, nota: "~3 salários mínimos [A CONFERIR pelo advogado-dono — valor e critério local]" }
+    provas_necessarias:
+      - { tipo_documento: holerite, descricao: "Comprovante de renda nos autos ou cadastro do cliente", origem: extracao, obrigatoria: true, peso: 0.9 }
+      - { tipo_documento: fatura_energia, descricao: "Faturas com classe de consumo e consumo médio incompatíveis com hipossuficiência", origem: subsidio, obrigatoria: false, peso: 0.6 }
+    provas_que_afastam:
+      - { tipo_documento: fatura_energia, descricao: "UC classificada como residencial baixa renda / tarifa social", origem: subsidio, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CPC, arts. 98 a 100", tipo: dispositivo, para_que_serve: "presunção relativa e impugnação à gratuidade", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CPC, art. 99, § 2º", tipo: dispositivo, para_que_serve: "indeferimento se houver elementos que evidenciem falta de pressupostos", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "TJPA — critério das Câmaras Cíveis para impugnação à gratuidade [A CONFERIR]", tipo: precedente, para_que_serve: "parâmetro local de renda", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "A presunção do art. 99, § 3º, é relativa."
+        - "Classe de consumo e consumo médio da UC indicam capacidade econômica."
+    pedidos:
+      - "Revogação/indeferimento da gratuidade ou intimação para comprová-la."
+    pedidos_subsidiarios:
+      - "Parcelamento das custas (CPC, art. 98, § 6º) [A CONFERIR pelo advogado-dono]."
+    risco_se_mal_aplicada: "Impugnar gratuidade de consumidor de tarifa social irrita o juízo e enfraquece a defesa."
+    ativa: true
+
+  - id: T02
+    nome: "Ilegitimidade ativa — autor não é titular da unidade consumidora"
+    categoria: preliminar
+    ordem: 2
+    pai: null
+    resumo: >-
+      A UC está cadastrada em nome de terceiro; o autor não demonstra relação de consumo própria
+      (contrato, posse do imóvel, pagamento das faturas) nem a titularidade dos equipamentos.
+    condicoes_aplicacao:
+      - { campo: uc_titular_e_autor, operador: "==", valor: false }
+    provas_necessarias:
+      - { tipo_documento: cadastro_uc, descricao: "Tela/cadastro da UC com nome do titular", origem: subsidio, obrigatoria: true, peso: 1.0 }
+    provas_que_afastam:
+      - { tipo_documento: comprovante_residencia, descricao: "Prova de que o autor reside no imóvel e paga as faturas (contrato de locação, faturas pagas em seu nome)", origem: extracao, obrigatoria: false, peso: 0.9 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CPC, arts. 17, 18 e 485, VI", tipo: dispositivo, para_que_serve: "legitimidade e extinção sem mérito", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CDC, arts. 2º e 17", tipo: dispositivo, para_que_serve: "conceito de consumidor e de consumidor por equiparação — enfrentar", conferido: false, nota: "[A CONFERIR pelo advogado-dono — risco: tese do consumidor por equiparação (bystander) costuma afastar a preliminar em dano a equipamento]" }
+      precedentes:
+        - { ref: "TJPA / STJ — legitimidade do não titular da UC para dano moral por interrupção e para repetição de indébito [A CONFERIR]", tipo: precedente, para_que_serve: "delimitar: repetição de indébito só a quem pagou; dano moral ao morador pode ser admitido", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "Repetição de indébito e inexigibilidade só podem ser pedidas por quem é titular/pagador do débito."
+        - "Sem prova de residência no imóvel, não há relação de consumo com o autor."
+    pedidos:
+      - "Extinção sem resolução do mérito por ilegitimidade ativa (CPC, art. 485, VI)."
+    pedidos_subsidiarios:
+      - "Limitação dos pedidos ao que o autor comprove ter suportado pessoalmente."
+    risco_se_mal_aplicada: "Em dano a equipamento, o morador não titular é consumidor por equiparação; a preliminar cai e a defesa perde credibilidade."
+    ativa: true
+
+  - id: T03
+    nome: "Litispendência ou coisa julgada"
+    categoria: preliminar
+    ordem: 3
+    pai: null
+    resumo: "Há outra ação em curso (ou já julgada) com as mesmas partes, causa de pedir e pedido sobre o mesmo evento/UC/fatura."
+    condicoes_aplicacao:
+      - { campo: litispendencia_cnj, operador: existe }
+    provas_necessarias:
+      - { tipo_documento: certidao_processo, descricao: "Cópia da inicial e andamento do processo anterior", origem: antifraude, obrigatoria: true, peso: 1.0 }
+    provas_que_afastam:
+      - { tipo_documento: peticao_inicial, descricao: "Eventos/faturas comprovadamente distintos", origem: extracao, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CPC, art. 337, VI e VII, §§ 1º a 4º; art. 485, V", tipo: dispositivo, para_que_serve: "litispendência, coisa julgada e extinção", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes: []
+      argumentos_chave:
+        - "Tríplice identidade demonstrada documentalmente."
+    pedidos:
+      - "Extinção sem resolução do mérito (CPC, art. 485, V)."
+    pedidos_subsidiarios:
+      - "Reunião dos feitos por conexão (CPC, art. 55) se a identidade for parcial."
+    risco_se_mal_aplicada: "Confundir eventos distintos da mesma UC (interrupções em datas diferentes) como se fossem o mesmo."
+    ativa: true
+
+  - id: T03.1
+    nome: "Coisa julgada"
+    categoria: preliminar
+    ordem: 4
+    pai: T03
+    resumo: "Variante de T03 quando o processo anterior já transitou em julgado."
+    condicoes_aplicacao:
+      - { campo: coisa_julgada_cnj, operador: existe }
+    provas_necessarias:
+      - { tipo_documento: certidao_transito, descricao: "Certidão de trânsito em julgado e sentença anterior", origem: antifraude, obrigatoria: true, peso: 1.0 }
+    provas_que_afastam: []
+    fundamentacao:
+      dispositivos:
+        - { ref: "CPC, art. 337, VII e § 4º; arts. 502 e 508", tipo: dispositivo, para_que_serve: "coisa julgada material e eficácia preclusiva", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes: []
+      argumentos_chave:
+        - "Questão já decidida com trânsito em julgado."
+    pedidos:
+      - "Extinção sem resolução do mérito por coisa julgada."
+    pedidos_subsidiarios: []
+    risco_se_mal_aplicada: null
+    ativa: true
+
+  - id: T04
+    nome: "Fracionamento indevido de demandas (mesma UC/evento, várias ações; vários moradores)"
+    categoria: processual
+    ordem: 5
+    pai: null
+    resumo: >-
+      Um mesmo evento (interrupção de uma data, um TOI) foi pulverizado em várias ações — por
+      morador da mesma UC, por equipamento, ou por fatura — multiplicando honorários e dano moral.
+      Pede-se reunião por conexão e consideração do conjunto para dano moral e sucumbência.
+    condicoes_aplicacao:
+      - { campo: acoes_mesma_uc_n, operador: ">=", valor: 2 }
+    provas_necessarias:
+      - { tipo_documento: relatorio_antifraude, descricao: "Lista das ações sobre a mesma UC/evento com autores, datas e objetos", origem: antifraude, obrigatoria: true, peso: 1.0 }
+    provas_que_afastam:
+      - { tipo_documento: peticao_inicial, descricao: "Eventos realmente distintos (datas/causas diversas)", origem: extracao, obrigatoria: false, peso: 0.7 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CPC, arts. 55, 58 e 59", tipo: dispositivo, para_que_serve: "conexão e prevenção", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CPC, arts. 5º, 6º, 77 e 80", tipo: dispositivo, para_que_serve: "boa-fé processual e litigância de má-fé", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STJ / TJPA — fracionamento de demandas e abuso do direito de ação [A CONFERIR]", tipo: precedente, para_que_serve: "caracterização do fracionamento abusivo", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CNJ — Recomendação sobre litigância predatória; Centro de Inteligência do TJPA — nota técnica sobre ações de energia no interior [A CONFERIR]", tipo: norma_regulatoria, para_que_serve: "instrumentos de gestão do abuso", conferido: false, nota: "[A CONFERIR pelo advogado-dono — verificar se o CIJPA já emitiu nota específica sobre Equatorial/Santarém/Marabá]" }
+      argumentos_chave:
+        - "Um só evento foi desdobrado em N ações com o mesmo advogado e a mesma narrativa."
+        - "Dano moral, se houver, é único por núcleo familiar/UC."
+    pedidos:
+      - "Reunião dos feitos no juízo prevento; reconhecimento do fracionamento para fins de dano moral único e sucumbência."
+    pedidos_subsidiarios:
+      - "Fixação de dano moral considerando o conjunto das ações."
+    risco_se_mal_aplicada: "Acusar fracionamento onde moradores distintos sofreram danos próprios e individualizados."
+    ativa: true
+
+  # ---------------------------------------------------------------- PREJUDICIAL
+  - id: T05
+    nome: "Prescrição da pretensão"
+    categoria: prejudicial
+    ordem: 6
+    pai: null
+    resumo: >-
+      Entre o evento (interrupção/queima/TOI/negativação) e o ajuizamento transcorreu prazo
+      superior ao prescricional aplicável (CDC, art. 27 — 5 anos — para fato do serviço; prazo
+      menor se o advogado-dono entender aplicável o CC para repetição de tarifa).
+    condicoes_aplicacao:
+      - { campo: data_evento, operador: existe }
+      - { campo: data_ajuizamento, operador: existe }
+    provas_necessarias:
+      - { tipo_documento: fatura_energia, descricao: "Fatura/OS/registro que fixa a data do evento", origem: subsidio, obrigatoria: true, peso: 1.0 }
+    provas_que_afastam:
+      - { tipo_documento: protocolo_reclamacao, descricao: "Reclamação administrativa ou pedido de ressarcimento que interrompa/suspenda o prazo", origem: subsidio, obrigatoria: false, peso: 0.6 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CDC, art. 27", tipo: dispositivo, para_que_serve: "5 anos para reparação por fato do serviço", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CC, art. 206, § 3º, IV e V × CC, art. 205", tipo: dispositivo, para_que_serve: "prazo para repetição de tarifa de energia (discussão: 3 × 10 anos) [A CONFERIR]", conferido: false, nota: "[A CONFERIR pelo advogado-dono — STJ já decidiu prazo decenal para repetição de tarifa de serviço público? conferir tema]" }
+      precedentes:
+        - { ref: "STJ — prazo prescricional para repetição de indébito de tarifa de energia (tema repetitivo A CONFERIR)", tipo: tema, para_que_serve: "definir prazo da repetição", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "O evento tem data certa (OS/fatura); a pretensão nasceu ali."
+        - "Subsidiariamente, prescrição das parcelas/faturas anteriores ao prazo."
+    pedidos:
+      - "Reconhecimento da prescrição e extinção com resolução de mérito (CPC, art. 487, II)."
+    pedidos_subsidiarios:
+      - "Prescrição parcial das faturas/compensações anteriores ao prazo legal."
+    risco_se_mal_aplicada: "Em interrupções recorrentes o juízo pode considerar a pretensão renovada; usar apenas com data de evento bem definida."
+    ativa: true
+
+  # ---------------------------------------------------------------- MÉRITO — INTERRUPÇÃO / OSCILAÇÃO
+  - id: T06
+    nome: "Caso fortuito / força maior — evento climático amazônico ou perturbação na Rede Básica"
+    categoria: merito
+    ordem: 7
+    pai: null
+    resumo: >-
+      A interrupção decorreu de evento externo, inevitável e alheio à atividade da distribuidora:
+      descarga atmosférica, vendaval, chuva intensa (regime amazônico), queda de árvore por
+      terceiro, ou perturbação na Rede Básica (transmissão/ONS). Prova-se com registro
+      meteorológico (INMET/METAR), Defesa Civil, registro do ONS/ANEEL e com o histórico de
+      interrupções do alimentador na mesma data.
+    condicoes_aplicacao:
+      - { campo: interrupcao_registrada_na_data, operador: "==", valor: true }
+      - { campo: causa_interrupcao, operador: in, valor: [climatica, terceiro, rede_basica_ons] }
+    provas_necessarias:
+      - { tipo_documento: registro_interrupcao, descricao: "Registro do sistema de ocorrências da distribuidora: alimentador, início, fim, causa codificada", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: boletim_meteorologico, descricao: "Dados INMET (estação mais próxima) ou METAR do aeroporto da região na data/hora: precipitação, rajada, descarga", origem: subsidio, obrigatoria: true, peso: 0.9 }
+      - { tipo_documento: registro_ons_aneel, descricao: "Relatório de perturbação do ONS / comunicado ANEEL, quando a origem for a Rede Básica", origem: subsidio, obrigatoria: false, peso: 0.9 }
+      - { tipo_documento: registro_defesa_civil, descricao: "Alerta/decreto da Defesa Civil municipal/estadual na data", origem: subsidio, obrigatoria: false, peso: 0.6 }
+      - { tipo_documento: ordem_servico, descricao: "OS de atendimento emergencial com equipe, horário e causa constatada em campo (árvore, descarga, abalroamento)", origem: subsidio, obrigatoria: false, peso: 0.8 }
+    provas_que_afastam:
+      - { tipo_documento: registro_interrupcao, descricao: "Interrupções recorrentes no mesmo alimentador por falha de rede/manutenção deficiente (fortuito interno)", origem: subsidio, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: boletim_meteorologico, descricao: "Sem registro de evento climático relevante na data", origem: subsidio, obrigatoria: false, peso: 0.9 }
+      - { tipo_documento: ordem_servico, descricao: "OS mostrando demora injustificada no restabelecimento após o evento externo", origem: subsidio, obrigatoria: false, peso: 0.8 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CDC, art. 14, § 3º, II", tipo: dispositivo, para_que_serve: "excludente: culpa exclusiva de terceiro; fortuito externo", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CC, art. 393 e parágrafo único", tipo: dispositivo, para_que_serve: "caso fortuito e força maior", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "Lei 8.987/1995, art. 6º, § 3º", tipo: dispositivo, para_que_serve: "interrupção em situação de emergência não caracteriza descontinuidade", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "Res. Normativa ANEEL 1.000/2021 — dispositivos sobre interrupções de emergência e expurgo de eventos (dia crítico / força maior) [A CONFERIR]", tipo: norma_regulatoria, para_que_serve: "mostrar que o próprio regulador reconhece eventos externos", conferido: false, nota: "[A CONFERIR pelo advogado-dono — conferir artigos vigentes e PRODIST Módulo 8]" }
+      precedentes:
+        - { ref: "STJ — fortuito externo × fortuito interno na prestação de serviço público (precedentes A CONFERIR)", tipo: precedente, para_que_serve: "distinguir evento climático extraordinário (externo) de falha de rede (interno)", conferido: false, nota: "[A CONFERIR pelo advogado-dono — risco: chuva na Amazônia pode ser considerada previsível/fortuito interno]" }
+        - { ref: "TJPA — acórdãos que reconhecem força maior em interrupções por descarga atmosférica/vendaval [A CONFERIR]", tipo: precedente, para_que_serve: "jurisprudência local favorável", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "O registro meteorológico oficial comprova evento extraordinário na data e local (rajada/descarga/precipitação)."
+        - "A interrupção atingiu todo o alimentador/região, não apenas o autor; o restabelecimento se deu no prazo regulatório."
+        - "Perturbação na Rede Básica é alheia à distribuidora (responsabilidade da transmissora/ONS)."
+    pedidos:
+      - "Improcedência por rompimento do nexo causal (fortuito externo)."
+    pedidos_subsidiarios:
+      - "Reconhecimento de que a compensação regulatória (DIC/FIC) já paga esgota a reparação pela interrupção (T08)."
+    risco_se_mal_aplicada: "Alegar 'chuva' genericamente, sem dado INMET/METAR anexo, é a alegação mais rejeitada pelo TJPA nesta tipologia; viola a regra de citação."
+    ativa: true
+
+  - id: T07
+    nome: "Ausência de nexo causal entre o serviço e o dano ao equipamento (laudo de vistoria / prazo do pedido administrativo)"
+    categoria: merito
+    ordem: 8
+    pai: null
+    resumo: >-
+      Não há prova de que a queima do equipamento decorreu de oscilação na rede da distribuidora:
+      não houve perturbação registrada na data, a vistoria afastou o nexo, ou o autor não
+      formulou o pedido administrativo de ressarcimento no prazo regulatório (90 dias do evento,
+      conforme procedimento da Res. ANEEL 1.000/2021 [A CONFERIR]), inviabilizando a inspeção.
+    condicoes_aplicacao:
+      - { campo: autor_alega_dano_equipamento, operador: "==", valor: true }
+    provas_necessarias:
+      - { tipo_documento: registro_interrupcao, descricao: "Histórico do alimentador na data: ausência de perturbação ou perturbação de outra natureza", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: laudo_vistoria, descricao: "Laudo técnico da inspeção do equipamento/UC (padrão de entrada, aterramento, DPS) com conclusão", origem: subsidio, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: protocolo_pid, descricao: "Registro do pedido administrativo de ressarcimento (PID) ou sua ausência", origem: subsidio, obrigatoria: true, peso: 0.9 }
+      - { tipo_documento: fotos_vistoria, descricao: "Fotos da instalação interna e do equipamento", origem: subsidio, obrigatoria: false, peso: 0.6 }
+    provas_que_afastam:
+      - { tipo_documento: registro_interrupcao, descricao: "Oscilação/sobretensão registrada na data, ou várias reclamações de queima no mesmo alimentador", origem: subsidio, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: laudo_vistoria, descricao: "Vistoria concluindo pelo nexo, ou vistoria não realizada no prazo regulatório apesar do pedido tempestivo", origem: subsidio, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: laudo_pericial, descricao: "Laudo de assistência técnica idônea com diagnóstico de sobretensão", origem: extracao, obrigatoria: false, peso: 0.8 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CDC, art. 14, caput e § 3º, I", tipo: dispositivo, para_que_serve: "inexistência de defeito do serviço / nexo", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CPC, art. 373, I e § 1º", tipo: dispositivo, para_que_serve: "ônus do autor quanto ao fato constitutivo (dano e nexo); limites da inversão", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "Res. Normativa ANEEL 1.000/2021, arts. 203 e seguintes (ressarcimento de danos elétricos): prazo de 90 dias para o pedido, prazos de inspeção e resposta, hipóteses de recusa [A CONFERIR]", tipo: norma_regulatoria, para_que_serve: "procedimento administrativo, prazo do consumidor e hipóteses regulatórias de não ressarcimento", conferido: false, nota: "[A CONFERIR pelo advogado-dono — numeração exata dos artigos na versão consolidada; prazo de 90 dias; prazos de 10 dias para inspeção e 15 para resposta?]" }
+      precedentes:
+        - { ref: "TJPA / Turmas Recursais — necessidade de prova mínima do nexo (laudo de assistência técnica) e efeito da ausência de PID [A CONFERIR]", tipo: precedente, para_que_serve: "saber se o TJPA exige PID como condição ou só como indício", conferido: false, nota: "[A CONFERIR pelo advogado-dono — risco: muitos juízos não exigem PID e invertem o ônus]" }
+        - { ref: "STJ, Súmula 297 / entendimento sobre inversão do ônus (CDC, art. 6º, VIII) — enfrentar", tipo: sumula, para_que_serve: "delimitar a inversão: não dispensa prova mínima do dano e da data", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "Nenhuma perturbação registrada no alimentador na data alegada; não há fato do serviço."
+        - "O autor não acionou o procedimento regulatório no prazo, impedindo a inspeção; a inversão do ônus não supre a ausência de prova mínima."
+        - "A instalação interna (sem DPS/aterramento) é de responsabilidade do consumidor."
+    pedidos:
+      - "Improcedência do pedido de dano material."
+    pedidos_subsidiarios:
+      - "Limitação do ressarcimento ao valor de reparo (menor entre conserto e substituição por equivalente), comprovado por nota fiscal idônea; abatimento de depreciação."
+    risco_se_mal_aplicada: "Negar nexo quando o próprio sistema registra sobretensão e várias queimas no mesmo alimentador expõe o cliente a dano moral agravado."
+    ativa: true
+
+  - id: T08
+    nome: "Compensações regulatórias DIC/FIC/DMIC/DICRI já creditadas automaticamente"
+    categoria: merito
+    ordem: 9
+    pai: null
+    resumo: >-
+      A violação dos limites de continuidade (duração e frequência de interrupções) já foi
+      compensada automaticamente na fatura, conforme PRODIST/Res. 1.000; não há dano material
+      remanescente pela interrupção em si, e a compensação regulatória deve ser considerada
+      na avaliação do dano moral.
+    condicoes_aplicacao:
+      - { campo: compensacoes_dic_fic_pagas, operador: "==", valor: true }
+    provas_necessarias:
+      - { tipo_documento: fatura_energia, descricao: "Faturas da UC com o lançamento 'compensação DIC/FIC' (valor e período)", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: relatorio_continuidade, descricao: "Relatório de indicadores individuais da UC (DIC/FIC/DMIC) no período", origem: subsidio, obrigatoria: true, peso: 0.9 }
+    provas_que_afastam:
+      - { tipo_documento: relatorio_continuidade, descricao: "Limites violados sem compensação creditada, ou compensação creditada só após o ajuizamento", origem: subsidio, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "Res. Normativa ANEEL 1.000/2021 e PRODIST Módulo 8 — compensação por violação de DIC/FIC/DMIC/DICRI [A CONFERIR artigos]", tipo: norma_regulatoria, para_que_serve: "a reparação pela descontinuidade é regulada e automática", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CC, art. 944", tipo: dispositivo, para_que_serve: "indenização mede-se pela extensão do dano; vedado bis in idem", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "TJPA / Turmas Recursais — compensação DIC/FIC como fator de redução ou afastamento do dano moral [A CONFERIR]", tipo: precedente, para_que_serve: "saber como o tribunal trata a compensação já paga", conferido: false, nota: "[A CONFERIR pelo advogado-dono — risco: tribunais entendem que compensação regulatória não exclui dano moral]" }
+      argumentos_chave:
+        - "A UC recebeu R$ X de compensação automática pelo período, conforme fatura anexa."
+        - "A compensação regulatória é a reparação típica pela descontinuidade; dano moral exige algo além."
+    pedidos:
+      - "Improcedência do dano material pela interrupção; consideração da compensação na fixação de eventual dano moral."
+    pedidos_subsidiarios:
+      - "Abatimento do valor já compensado de qualquer condenação."
+    risco_se_mal_aplicada: "Alegar compensação paga sem a fatura que a demonstra."
+    ativa: true
+
+  - id: T09
+    nome: "Interrupção programada / emergencial dentro dos prazos regulatórios"
+    categoria: merito
+    ordem: 10
+    pai: null
+    resumo: >-
+      A interrupção foi programada (manutenção/obra) com aviso prévio nos termos da regulação, ou
+      emergencial com restabelecimento dentro do prazo-limite; não há defeito do serviço.
+    condicoes_aplicacao:
+      - { campo: causa_interrupcao, operador: in, valor: [manutencao_programada, falha_rede, vegetacao] }
+      - { campo: interrupcao_registrada_na_data, operador: "==", valor: true }
+    provas_necessarias:
+      - { tipo_documento: aviso_interrupcao_programada, descricao: "Comprovante de aviso prévio (meio e antecedência) para interrupção programada", origem: subsidio, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: registro_interrupcao, descricao: "Registro com início/fim e tempo de restabelecimento", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: ordem_servico, descricao: "OS de atendimento com horários de despacho e conclusão", origem: subsidio, obrigatoria: true, peso: 0.9 }
+    provas_que_afastam:
+      - { tipo_documento: registro_interrupcao, descricao: "Duração acima do limite regulatório / recorrência no mesmo alimentador", origem: subsidio, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: aviso_interrupcao_programada, descricao: "Ausência de aviso prévio em interrupção programada", origem: subsidio, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "Lei 8.987/1995, art. 6º, § 3º, I", tipo: dispositivo, para_que_serve: "interrupção por razões técnicas com aviso prévio não é descontinuidade", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "Res. Normativa ANEEL 1.000/2021 — aviso prévio de interrupção programada e prazos de restabelecimento [A CONFERIR artigos]", tipo: norma_regulatoria, para_que_serve: "regularidade formal da interrupção", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "TJPA — interrupção programada com aviso não gera dano moral [A CONFERIR]", tipo: precedente, para_que_serve: "jurisprudência local", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "O serviço foi prestado nos limites regulatórios; a interrupção é inerente à manutenção da rede."
+    pedidos:
+      - "Improcedência."
+    pedidos_subsidiarios: []
+    risco_se_mal_aplicada: "Chamar de 'programada' uma interrupção sem comprovante de aviso prévio."
+    ativa: true
+
+  # ---------------------------------------------------------------- MÉRITO — TOI / RECUPERAÇÃO DE CONSUMO
+  - id: T10
+    nome: "Regularidade do TOI e da cobrança por recuperação de consumo (procedimento da Res. ANEEL 1.000/2021)"
+    categoria: merito
+    ordem: 11
+    pai: null
+    resumo: >-
+      A irregularidade no medidor/ligação foi constatada em inspeção formal, com TOI lavrado e
+      entregue, perícia do medidor com notificação do consumidor para acompanhar, critério de
+      cálculo previsto na regulação e contraditório administrativo. A cobrança é devida e o
+      histórico de consumo confirma a irregularidade.
+    condicoes_aplicacao:
+      - { campo: subtipo, operador: in, valor: [toi_recuperacao_consumo, misto] }
+      - { campo: toi_lavrado, operador: "==", valor: true }
+      - { campo: toi_pericia_medidor, operador: "!=", valor: nao_realizada }
+    provas_necessarias:
+      - { tipo_documento: toi, descricao: "Termo de Ocorrência e Inspeção com fotos, assinatura ou recusa testemunhada, e entrega de cópia", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: laudo_medidor, descricao: "Laudo de aferição do medidor (laboratório acreditado/órgão metrológico) com notificação prévia do consumidor", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: memoria_calculo_toi, descricao: "Memória de cálculo da recuperação com critério regulatório e período", origem: subsidio, obrigatoria: true, peso: 0.9 }
+      - { tipo_documento: historico_consumo, descricao: "Histórico de consumo de 24+ meses mostrando queda e retomada após regularização", origem: subsidio, obrigatoria: true, peso: 0.9 }
+      - { tipo_documento: notificacao_toi, descricao: "Notificação da fatura de recuperação com prazo para recurso administrativo", origem: subsidio, obrigatoria: false, peso: 0.7 }
+    provas_que_afastam:
+      - { tipo_documento: laudo_medidor, descricao: "Perícia feita só pela distribuidora sem notificar o consumidor, ou sem perícia", origem: subsidio, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: toi, descricao: "TOI sem assinatura/recusa testemunhada, sem fotos, lavrado na ausência do consumidor sem testemunhas", origem: subsidio, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: historico_consumo, descricao: "Consumo estável antes e depois da 'regularização' (sem degrau)", origem: subsidio, obrigatoria: false, peso: 0.9 }
+      - { tipo_documento: memoria_calculo_toi, descricao: "Critério de cálculo diverso do regulatório ou período superior ao permitido", origem: subsidio, obrigatoria: false, peso: 0.9 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "Res. Normativa ANEEL 1.000/2021 — Seção sobre procedimentos para caracterização de irregularidade e recuperação de receita (TOI, perícia, critérios de cálculo, período máximo, contraditório) [A CONFERIR artigos]", tipo: norma_regulatoria, para_que_serve: "procedimento que legitima a cobrança", conferido: false, nota: "[A CONFERIR pelo advogado-dono — antiga Res. 414/2010 arts. 129-133; conferir equivalentes na 1.000/2021 e alterações]" }
+        - { ref: "CDC, art. 42, parágrafo único", tipo: dispositivo, para_que_serve: "afastar dobra: cobrança fundada em procedimento regulatório = engano justificável", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CC, art. 884", tipo: dispositivo, para_que_serve: "vedação ao enriquecimento sem causa do consumidor que consumiu sem pagar", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STJ, Tema repetitivo 699 (REsp 1.412.433) — suspensão do fornecimento por débito de recuperação de consumo: limites (90 dias / só do titular atual) [A CONFERIR]", tipo: tema, para_que_serve: "risco: corte por TOI só é lícito em condições estritas; cobrança em si não é vedada", conferido: false, nota: "[A CONFERIR pelo advogado-dono — número do tema e tese exata]" }
+        - { ref: "STJ — TOI lavrado unilateralmente não basta; necessidade de perícia com contraditório [A CONFERIR]", tipo: precedente, para_que_serve: "risco a enfrentar; por isso laudo + notificação são obrigatórios", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "TJPA — orientação sobre validade do TOI e da recuperação de consumo (Câmaras e Turmas Recursais) [A CONFERIR]", tipo: precedente, para_que_serve: "jurisprudência local", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "A irregularidade foi constatada e documentada com fotos; o medidor foi periciado com notificação do consumidor."
+        - "O histórico de consumo mostra degrau: queda no período irregular e retomada após a troca do medidor."
+        - "O cálculo seguiu o critério regulatório e o período máximo; houve contraditório administrativo."
+    pedidos:
+      - "Improcedência do pedido de inexigibilidade; manutenção da cobrança."
+    pedidos_subsidiarios:
+      - "Recálculo pelo critério regulatório correto, se algum vício formal for reconhecido, em vez de anulação integral."
+      - "Afastamento da repetição em dobro (engano justificável)."
+    risco_se_mal_aplicada: "Defender TOI sem laudo do medidor com notificação do consumidor é derrota quase certa no TJPA; avaliar acordo (X04)."
+    ativa: true
+
+  - id: T10.1
+    nome: "Suspensão do fornecimento por inadimplência regular (não por TOI) com aviso prévio"
+    categoria: merito
+    ordem: 12
+    pai: T10
+    resumo: >-
+      O corte decorreu de faturas regulares vencidas, com notificação prévia nos termos
+      regulatórios; é exercício regular de direito. Distingue-se do corte por débito de recuperação
+      de consumo (limitado pelo STJ).
+    condicoes_aplicacao:
+      - { campo: suspensao_por_inadimplencia, operador: "==", valor: true }
+      - { campo: aviso_previo_suspensao, operador: "==", valor: true }
+    provas_necessarias:
+      - { tipo_documento: fatura_energia, descricao: "Faturas vencidas e não pagas na data do corte", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: aviso_suspensao, descricao: "Notificação prévia de suspensão (meio, data, antecedência)", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: ordem_servico, descricao: "OS de suspensão e de religação com horários", origem: subsidio, obrigatoria: true, peso: 0.8 }
+    provas_que_afastam:
+      - { tipo_documento: comprovante_pagamento, descricao: "Pagamento anterior ao corte, ou corte por fatura de TOI", origem: extracao, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: aviso_suspensao, descricao: "Aviso só na fatura, sem notificação específica, quando a regulação exigir", origem: subsidio, obrigatoria: false, peso: 0.9 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "Lei 8.987/1995, art. 6º, § 3º, II", tipo: dispositivo, para_que_serve: "corte por inadimplemento com aviso prévio não é descontinuidade", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "Res. Normativa ANEEL 1.000/2021 — suspensão por inadimplemento: notificação, prazo mínimo, vedação em dias/horários, religação [A CONFERIR artigos]", tipo: norma_regulatoria, para_que_serve: "regularidade formal da suspensão", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STJ, Tema 699 — distinção entre corte por fatura regular e por recuperação de consumo [A CONFERIR]", tipo: tema, para_que_serve: "delimitar a licitude do corte", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "Débito atual, regular e notificado; religação feita no prazo após o pagamento."
+    pedidos:
+      - "Improcedência."
+    pedidos_subsidiarios: []
+    risco_se_mal_aplicada: "Defender corte por fatura de TOI como se fosse por fatura regular contraria o Tema 699 [A CONFERIR] e agrava o dano moral."
+    ativa: true
+
+  # ---------------------------------------------------------------- MÉRITO — DANO MORAL / NEGATIVAÇÃO
+  - id: T11
+    nome: "Inexistência de dano moral — mera interrupção / mero inadimplemento contratual"
+    categoria: merito
+    ordem: 13
+    pai: null
+    resumo: >-
+      Interrupção de curta duração, restabelecida no prazo regulatório, ou cobrança discutida sem
+      corte nem negativação, não gera dano moral in re ipsa; ausência de prova de abalo concreto
+      (saúde, perda de alimentos, atividade comercial) além do dissabor.
+    condicoes_aplicacao:
+      - { campo: valor_dano_moral_pedido, operador: ">", valor: 0 }
+    provas_necessarias:
+      - { tipo_documento: registro_interrupcao, descricao: "Duração da interrupção e tempo de restabelecimento", origem: subsidio, obrigatoria: true, peso: 0.9 }
+      - { tipo_documento: fatura_energia, descricao: "Ausência de corte/negativação no período (quando o caso é só cobrança)", origem: subsidio, obrigatoria: false, peso: 0.7 }
+    provas_que_afastam:
+      - { tipo_documento: registro_interrupcao, descricao: "Interrupção superior a 24h ou recorrente, sem causa externa [limite A CONFERIR]", origem: subsidio, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: laudo_medico, descricao: "Pessoa dependente de equipamento elétrico essencial (saúde) na UC", origem: extracao, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: protocolo_reclamacao, descricao: "Reclamações reiteradas sem atendimento", origem: subsidio, obrigatoria: false, peso: 0.8 }
+      - { tipo_documento: comprovante_negativacao, descricao: "Negativação por débito indevido ou corte indevido efetivado", origem: extracao, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CC, arts. 186, 927 e 944", tipo: dispositivo, para_que_serve: "pressupostos da responsabilidade e proporcionalidade", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STJ — interrupção de energia de curta duração não gera dano moral presumido; necessidade de demonstração de circunstância excepcional (precedentes A CONFERIR)", tipo: precedente, para_que_serve: "regra geral favorável", conferido: false, nota: "[A CONFERIR pelo advogado-dono — conferir também entendimento sobre interrupção prolongada (dias) como dano in re ipsa]" }
+        - { ref: "TJPA — faixa usual de dano moral em interrupção/TOI/negativação por comarca [A CONFERIR]", tipo: precedente, para_que_serve: "quantum subsidiário", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "STJ, Súmula 385", tipo: sumula, para_que_serve: "negativação preexistente legítima afasta dano moral por nova negativação", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "Interrupção de X horas, restabelecida no prazo, sem repercussão demonstrada."
+        - "A compensação regulatória (T08) já reparou a descontinuidade."
+        - "Subsidiariamente, quantum moderado, proporcional à duração e à ausência de corte/negativação."
+    pedidos:
+      - "Improcedência do pedido de dano moral."
+    pedidos_subsidiarios:
+      - "Fixação em patamar moderado (faixa do TJPA [A CONFERIR]); juros e correção pelo índice legal a partir do arbitramento (Súmula 362 STJ [A CONFERIR])."
+    risco_se_mal_aplicada: "Chamar de 'mero aborrecimento' interrupção de dias em comunidade do interior, ou corte em casa com paciente dependente de energia, agrava o quantum."
+    ativa: true
+
+  - id: T11.1
+    nome: "Negativação legítima (débito existente e exigível) ou Súmula 385"
+    categoria: merito
+    ordem: 14
+    pai: T11
+    resumo: >-
+      A inscrição decorreu de fatura regular vencida e não paga (ou de débito de recuperação
+      mantido após contraditório), com notificação prévia pelo órgão de proteção; ou o autor já
+      possuía negativação anterior legítima.
+    condicoes_aplicacao:
+      - { campo: negativacao_realizada, operador: "==", valor: true }
+    provas_necessarias:
+      - { tipo_documento: fatura_energia, descricao: "Fatura que originou a inscrição, vencida e em aberto na data", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: comprovante_negativacao, descricao: "Registro da inscrição (data, valor, baixa) e notificação prévia do órgão (CDC, art. 43, § 2º)", origem: subsidio, obrigatoria: true, peso: 0.9 }
+      - { tipo_documento: extrato_spc_serasa, descricao: "Extrato mostrando negativações anteriores legítimas (Súmula 385)", origem: subsidio, obrigatoria: false, peso: 0.9 }
+    provas_que_afastam:
+      - { tipo_documento: comprovante_pagamento, descricao: "Pagamento anterior à inscrição ou manutenção da inscrição após pagamento", origem: extracao, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: comprovante_negativacao, descricao: "Débito inscrito é de TOI ainda em discussão administrativa/judicial", origem: subsidio, obrigatoria: false, peso: 0.9 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CDC, art. 43, § 2º", tipo: dispositivo, para_que_serve: "notificação prévia é do órgão mantenedor", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CC, art. 188, I", tipo: dispositivo, para_que_serve: "exercício regular de direito", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STJ, Súmula 385", tipo: sumula, para_que_serve: "anotação preexistente legítima afasta dano moral", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "STJ, Súmula 359", tipo: sumula, para_que_serve: "cabe ao órgão mantenedor a notificação prévia", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "Débito existente, vencido e não pago; inscrição é exercício regular de direito."
+        - "Negativação anterior legítima afasta o dano moral (Súmula 385)."
+    pedidos:
+      - "Improcedência; manutenção da inscrição até a quitação."
+    pedidos_subsidiarios:
+      - "Se reconhecida irregularidade, quantum reduzido pela existência de outras anotações."
+    risco_se_mal_aplicada: "Invocar Súmula 385 com anotações posteriores ou sub judice."
+    ativa: true
+
+  # ---------------------------------------------------------------- SUBSIDIÁRIAS
+  - id: T12
+    nome: "Limites do ressarcimento, repetição simples e compensação de valores"
+    categoria: subsidiaria
+    ordem: 15
+    pai: null
+    resumo: >-
+      Se reconhecido algum dever de indenizar: dano material limitado ao menor valor entre
+      conserto e substituição por equipamento equivalente, com nota fiscal idônea; repetição
+      simples (engano justificável — cobrança fundada em procedimento regulatório); compensação
+      com débitos em aberto da UC e com compensações DIC/FIC já pagas.
+    condicoes_aplicacao:
+      - { campo: valor_causa, operador: ">", valor: 0 }
+    provas_necessarias:
+      - { tipo_documento: fatura_energia, descricao: "Débitos em aberto da UC e compensações já creditadas", origem: subsidio, obrigatoria: true, peso: 0.9 }
+      - { tipo_documento: orcamento, descricao: "Orçamentos/pesquisa de preço de equipamento equivalente", origem: subsidio, obrigatoria: false, peso: 0.6 }
+    provas_que_afastam:
+      - { tipo_documento: comprovante_pagamento, descricao: "Autor sem débitos em aberto (nada a compensar)", origem: subsidio, obrigatoria: false, peso: 0.8 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CC, arts. 368 a 380, 884 e 944", tipo: dispositivo, para_que_serve: "compensação, enriquecimento sem causa, extensão do dano", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CDC, art. 42, parágrafo único", tipo: dispositivo, para_que_serve: "dobro só sem engano justificável", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "Res. Normativa ANEEL 1.000/2021 — opções de ressarcimento (conserto, substituição, pagamento em dinheiro) [A CONFERIR]", tipo: norma_regulatoria, para_que_serve: "a reparação regulatória é pela via menos onerosa", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STJ, EAREsp 676.608 — modulação da repetição em dobro (30/03/2021) [A CONFERIR]", tipo: precedente, para_que_serve: "delimitar quando cabe o dobro", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "Dano material só pelo valor comprovado por documento fiscal idôneo e pelo menor custo de reparação."
+        - "A cobrança regulatória discutida não configura má-fé; repetição, se houver, é simples."
+        - "Compensação com débitos em aberto e com compensações DIC/FIC já pagas."
+    pedidos:
+      - "Limitação do dano material; repetição simples; compensação."
+    pedidos_subsidiarios:
+      - "Se dobra reconhecida, limitação ao período admitido pela modulação do STJ."
+    risco_se_mal_aplicada: "Pedir compensação com débito de TOI anulado no mesmo processo."
+    ativa: true
+
+  # ---------------------------------------------------------------- SINAL (não é argumento autônomo)
+  - id: T13
+    nome: "Sinais de litigância predatória regional (Santarém / Marabá / Castanhal) — providências processuais"
+    categoria: sinal
+    ordem: 16
+    pai: null
+    resumo: >-
+      Conjunto de providências (depoimento pessoal, exibição de documentos, inspeção judicial da
+      UC, comunicação ao Centro de Inteligência do TJPA) que só entra na peça se o advogado-revisor
+      confirmar os flags do M4: múltiplas ações pela mesma UC, autor não titular, laudos genéricos
+      repetidos, mesma nota fiscal em várias ações, concentração de advogado por comarca.
+      Jamais rotular autor ou advogado.
+    condicoes_aplicacao:
+      - { campo: acoes_mesmo_advogado_mes_n, operador: ">=", valor: 30, nota: "N a calibrar com a carteira por comarca [A CONFERIR pelo advogado-dono]" }
+    provas_necessarias:
+      - { tipo_documento: relatorio_antifraude, descricao: "Flags do M4 com evidência e decisão humana registrada (human_decide)", origem: antifraude, obrigatoria: true, peso: 1.0 }
+    provas_que_afastam:
+      - { tipo_documento: relatorio_antifraude, descricao: "Flags não confirmados por advogado com OAB", origem: antifraude, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CPC, arts. 77, 80, 139, III, 385 e 481", tipo: dispositivo, para_que_serve: "poderes do juiz, boa-fé, depoimento pessoal, inspeção judicial", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "CNJ — Recomendação sobre litigância predatória; TJPA — Centro de Inteligência / NUMOPEDE; notas técnicas sobre demandas de energia no oeste e sudeste do Pará [A CONFERIR]", tipo: norma_regulatoria, para_que_serve: "canal institucional", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "Requerer depoimento pessoal do autor (ciência da ação, residência na UC, posse do equipamento)."
+        - "Requerer exibição do equipamento/nota fiscal original e inspeção da UC."
+        - "Comunicar o padrão ao Centro de Inteligência sem imputar conduta a pessoa determinada."
+    pedidos:
+      - "Depoimento pessoal sob pena de confissão; exibição de documentos e do equipamento; inspeção judicial; demais providências."
+    pedidos_subsidiarios: []
+    risco_se_mal_aplicada: "Acusação de má-fé sem lastro gera condenação do réu; só entra após decisão humana registrada."
+    ativa: true
+
+# -----------------------------------------------------------------------------
+# EXCEÇÕES — a esteira para e devolve ao humano
+# -----------------------------------------------------------------------------
+excecoes:
+  - id: X01
+    descricao: "UC não identificada ou histórico de interrupções/OS não entregue pelo cliente"
+    condicoes:
+      - { campo: historico_interrupcoes_uc, operador: nao_existe }
+    acao: pedir_subsidio
+    nota: "Volta ao M3 com prazo; sem histórico não há T06/T07/T09."
+  - id: X02
+    descricao: "Indício de falha real imputável à distribuidora (interrupção longa sem causa externa, OS fora do prazo, negativação de débito pago)"
+    condicoes:
+      - { campo: indicio_falha_real_distribuidora, operador: "==", valor: true }
+    acao: sinalizar_acordo
+    nota: "Defender nexo/fortuito aqui é temerário; acordo cedo reduz dano moral e honorários."
+  - id: X03
+    descricao: "Pessoa dependente de equipamento elétrico essencial (saúde) ou interrupção superior a 24h sem causa externa"
+    condicoes:
+      - { campo: interrupcao_duracao_horas, operador: ">", valor: 24, nota: "[A CONFERIR pelo advogado-dono] limite" }
+      - { campo: causa_interrupcao, operador: in, valor: [falha_rede, desconhecida] }
+    acao: escalar_socio
+    nota: "Exposição alta a dano moral majorado; decisão de defender × acordar é do sócio."
+  - id: X04
+    descricao: "TOI sem perícia do medidor ou sem notificação do consumidor para a perícia"
+    condicoes:
+      - { campo: toi_lavrado, operador: "==", valor: true }
+      - { campo: toi_pericia_medidor, operador: "==", valor: nao_realizada }
+    acao: sinalizar_acordo
+    nota: "T10 desativada; propor recálculo/parcelamento ou cancelamento em acordo."
+  - id: X05
+    descricao: "Corte por débito de recuperação de consumo (TOI) — Tema 699 STJ"
+    condicoes:
+      - { campo: debito_negativado_origem, operador: "==", valor: toi }
+      - { campo: suspensao_por_inadimplencia, operador: "==", valor: false }
+    acao: alertar_revisor
+    nota: "Revisor deve verificar os limites do Tema 699 [A CONFERIR] antes de defender a licitude do corte."
+  - id: X06
+    descricao: "Autor possivelmente falecido antes da procuração/ajuizamento"
+    condicoes:
+      - { campo: autor_falecido, operador: "==", valor: true }
+    acao: escalar_socio
+    nota: "Não gerar minuta padrão; peça específica por advogado."
+  - id: X07
+    descricao: "Valor da causa acima da alçada de contestação padrão"
+    condicoes:
+      - { campo: valor_causa, operador: ">", valor: 50000.0, nota: "[A CONFERIR pelo advogado-dono] alçada do cliente" }
+    acao: alertar_revisor
+    nota: "Exige segunda revisão por sócio."
+  - id: X08
+    descricao: "Fora da tipologia: acidente com rede elétrica, choque, morte, servidão/desapropriação"
+    condicoes:
+      - { campo: subtipo, operador: not_in, valor: [interrupcao, oscilacao_dano_equipamento, toi_recuperacao_consumo, religacao, suspensao_indevida, negativacao, misto] }
+    acao: nao_gerar_minuta
+    nota: "Reclassificar; responsabilidade civil por acidente tem outro playbook."
+  - id: X09
+    descricao: "Liminar de religação/baixa já deferida e descumprida (risco de multa)"
+    condicoes:
+      - { campo: tutela_deferida, operador: "==", valor: true }
+      - { campo: religacao_prazo_horas, operador: ">", valor: 24, nota: "[A CONFERIR pelo advogado-dono] prazo regulatório/da liminar" }
+    acao: alertar_revisor
+    nota: "Priorizar cumprimento e comprovação nos autos antes da contestação."
+
+# -----------------------------------------------------------------------------
+# SINAIS DE ACORDO
+# -----------------------------------------------------------------------------
+sinais_acordo:
+  politica: >-
+    Defender quando há registro de causa externa comprovada (dado meteorológico/ONS) ou ausência
+    de perturbação na data, compensação DIC/FIC paga e, no TOI, laudo com contraditório. Acordar
+    cedo quando a falha é real e imputável, quando o TOI não tem perícia válida, ou quando há
+    negativação de débito pago. Valores e alçadas abaixo são ilustrativos e devem ser calibrados
+    com a carteira do cliente por comarca [A CONFERIR pelo advogado-dono].
+  quando_acordar:
+    - condicoes:
+        - { campo: indicio_falha_real_distribuidora, operador: "==", valor: true }
+      racional: "Falha interna comprovável nos próprios registros; defender só aumenta sucumbência."
+    - condicoes:
+        - { campo: toi_lavrado, operador: "==", valor: true }
+        - { campo: toi_pericia_medidor, operador: "==", valor: nao_realizada }
+      racional: "TOI sem perícia é anulado com frequência; acordo com recálculo/parcelamento preserva parte da receita."
+    - condicoes:
+        - { campo: negativacao_realizada, operador: "==", valor: true }
+        - { campo: debito_negativado_origem, operador: "==", valor: toi }
+      racional: "Negativação por TOI em discussão tem alta taxa de condenação."
+    - condicoes:
+        - { campo: autor_alega_dano_equipamento, operador: "==", valor: true }
+        - { campo: laudo_vistoria_conclusao, operador: "==", valor: nexo_confirmado }
+      racional: "Vistoria própria confirmou o nexo; ressarcir administrativamente é mais barato que a condenação."
+    - condicoes:
+        - { campo: valor_dano_material_pedido, operador: "<", valor: 1500.0, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { campo: pedido_ressarcimento_formulado, operador: "==", valor: true }
+      racional: "Equipamento de baixo valor com PID tempestivo: custo de defesa supera o pedido."
+  quando_nao_acordar:
+    - condicoes:
+        - { campo: causa_interrupcao, operador: in, valor: [climatica, rede_basica_ons] }
+        - { campo: evento_climatico_registrado, operador: "==", valor: true }
+      racional: "Causa externa documentada; acordo aqui alimenta a litigância em série por evento."
+    - condicoes:
+        - { campo: acoes_mesma_uc_n, operador: ">=", valor: 3 }
+      racional: "Fracionamento por UC; política de não acordar salvo decisão do cliente."
+    - condicoes:
+        - { campo: uc_titular_e_autor, operador: "==", valor: false }
+        - { campo: comprovante_endereco_titular, operador: "!=", valor: autor }
+      racional: "Autor sem vínculo demonstrado com a UC; alta chance de ilegitimidade."
+    - condicoes:
+        - { campo: nota_fiscal_repetida_n, operador: ">=", valor: 1 }
+      racional: "Mesma nota fiscal em outra ação: não acordar antes de decisão humana sobre o flag."
+  faixas_valor:
+    - grupo_comarcas: "Região Metropolitana de Belém"
+      comarcas: ["Belém", "Ananindeua", "Marituba", "Benevides", "Santa Bárbara do Pará", "Santa Izabel do Pará"]
+      valor_min: 800.0
+      valor_max: 3000.0
+      moeda: BRL
+      base: "ILUSTRATIVO [A CONFERIR pelo advogado-dono] — substituir pela média de condenação (dano moral + material) da carteira, 12 meses, por subtipo"
+      calibrar: true
+    - grupo_comarcas: "Oeste e sudeste — polos de litigância (Santarém, Marabá, Castanhal, Parauapebas, Altamira, Itaituba)"
+      comarcas: ["Santarém", "Marabá", "Castanhal", "Parauapebas", "Altamira", "Itaituba"]
+      valor_min: 1000.0
+      valor_max: 4000.0
+      moeda: BRL
+      base: "ILUSTRATIVO [A CONFERIR pelo advogado-dono] — concentração de ações em série; faixa deve considerar o conjunto por evento"
+      calibrar: true
+    - grupo_comarcas: "Interior — demais comarcas"
+      comarcas: ["*"]
+      valor_min: 1000.0
+      valor_max: 5000.0
+      moeda: BRL
+      base: "ILUSTRATIVO [A CONFERIR pelo advogado-dono]"
+      calibrar: true
+  alcadas:
+    - { ate_valor: 3000.0, aprovador: "advogado responsável pela carteira [A CONFERIR]" }
+    - { ate_valor: 10000.0, aprovador: "sócio FBS + jurídico do cliente [A CONFERIR]" }
+    - { ate_valor: 999999.0, aprovador: "comitê do cliente [A CONFERIR]" }
+  decisao_final: "A decisão de acordar é do advogado/cliente; a plataforma só sinaliza e registra."
+
+# -----------------------------------------------------------------------------
+# ANTIFRAUDE ESPECÍFICO (M4)
+# -----------------------------------------------------------------------------
+antifraude:
+  regra_inviolavel: "Nenhuma checagem produz rótulo de 'fraudador'; só flags com evidência. Apenas decisão humana registrada com OAB (human_decide) confirma um flag."
+  checagens:
+    - codigo: procuracao_presente
+      descricao: "Procuração juntada aos autos"
+      parametros: {}
+      severidade: high
+      evidencia_esperada: "page_type 'procuracao' ausente"
+      implementada_em_m4: true
+      calibrar: false
+    - codigo: procuracao_antiga
+      descricao: "Procuração datada há mais de N dias do ajuizamento (outorga em massa)"
+      parametros: { max_dias: 180, nota: "[A CONFERIR pelo advogado-dono]" }
+      severidade: medium
+      evidencia_esperada: "data_procuracao, data_ajuizamento e diferença em dias"
+      implementada_em_m4: false
+      calibrar: true
+    - codigo: comprovante_endereco_terceiro
+      descricao: "Comprovante de endereço em nome de terceiro ou de UC diversa da discutida"
+      parametros: {}
+      severidade: medium
+      evidencia_esperada: "nome/endereço no comprovante ≠ autor/UC"
+      implementada_em_m4: false
+      calibrar: false
+    - codigo: autor_nao_titular_uc
+      descricao: "Autor não é o titular cadastral da UC e não junta prova de residência"
+      parametros: {}
+      severidade: medium
+      evidencia_esperada: "cadastro da UC (titular) × qualificação do autor × comprovante de endereço"
+      implementada_em_m4: false
+      calibrar: false
+    - codigo: multiplas_acoes_mesma_uc
+      descricao: "N+ ações sobre a mesma UC (mesmo ou diferentes autores) na janela"
+      parametros: { n_min: 2, janela_dias: 365, nota: "[A CONFERIR pelo advogado-dono]" }
+      severidade: high
+      evidencia_esperada: "lista de CNJs, autores e eventos por UC"
+      implementada_em_m4: false
+      calibrar: true
+    - codigo: acoes_em_serie_mesmo_evento
+      descricao: "Muitas ações pelo mesmo evento (data/alimentador) na mesma comarca com o mesmo advogado"
+      parametros: { n_min: 10, janela_dias: 60, nota: "[A CONFERIR pelo advogado-dono]" }
+      severidade: medium
+      evidencia_esperada: "CNJs, data do evento, alimentador, advogado"
+      implementada_em_m4: false
+      calibrar: true
+    - codigo: nota_fiscal_repetida
+      descricao: "Mesma nota fiscal/orçamento de equipamento (número, emitente, valor) em mais de uma ação"
+      parametros: { campos_chave: ["numero_nf", "cnpj_emitente", "valor"] }
+      severidade: high
+      evidencia_esperada: "hash da NF e CNJs em que aparece"
+      implementada_em_m4: false
+      calibrar: false
+    - codigo: laudo_generico_repetido
+      descricao: "Laudo/orçamento de assistência técnica com texto quase idêntico (embedding) ao de outras ações, sem individualização do equipamento (série, modelo)"
+      parametros: { similaridade_min: 0.95 }
+      severidade: medium
+      evidencia_esperada: "score de similaridade e CNJs semelhantes"
+      implementada_em_m4: false
+      calibrar: true
+    - codigo: equipamento_incompativel_uc
+      descricao: "Equipamentos alegados incompatíveis com a classe/carga da UC (ex.: vários ar-condicionados em UC baixa renda com consumo de 50 kWh)"
+      parametros: {}
+      severidade: low
+      evidencia_esperada: "lista de equipamentos × histórico de consumo da UC"
+      implementada_em_m4: false
+      calibrar: true
+    - codigo: concentracao_advogado_mes
+      descricao: "Mesmo advogado com mais de N ações contra o cliente no mês, por comarca"
+      parametros: { n_min: 30, janela_dias: 30, nota: "[A CONFERIR pelo advogado-dono] calibrar N por comarca (Santarém/Marabá/Castanhal)" }
+      severidade: low
+      evidencia_esperada: "lista de CNJs do mesmo advogado na janela, por comarca"
+      implementada_em_m4: false
+      calibrar: true
+    - codigo: concentracao_autor
+      descricao: "Mesmo autor com 3+ ações na carteira do cliente"
+      parametros: { n_min: 3 }
+      severidade: medium
+      evidencia_esperada: "lista de CNJs do mesmo autor"
+      implementada_em_m4: true
+      calibrar: true
+    - codigo: autor_falecido
+      descricao: "Indício de óbito do autor anterior à procuração/ajuizamento"
+      parametros: { fontes: ["subsidio_cliente", "publicacoes", "fonte_publica_a_definir"] }
+      severidade: high
+      evidencia_esperada: "fonte, data do óbito e data da procuração"
+      implementada_em_m4: false
+      calibrar: false
+    - codigo: litispendencia
+      descricao: "Processo duplicado (mesmas partes/evento/fatura) em curso"
+      parametros: {}
+      severidade: high
+      evidencia_esperada: "CNJs duplicados"
+      implementada_em_m4: true
+      calibrar: false
+    - codigo: gratuidade_x_renda
+      descricao: "Pedido de gratuidade com renda declarada ou classe de UC incompatível"
+      parametros: { limite_salarios_minimos: 5, nota: "[A CONFERIR pelo advogado-dono] parâmetro do TJPA" }
+      severidade: medium
+      evidencia_esperada: "renda extraída, classe da UC e fonte"
+      implementada_em_m4: true
+      calibrar: true
+    - codigo: peticao_padronizada
+      descricao: "Inicial com alta similaridade com outras do mesmo advogado, sem individualizar data do evento/UC/equipamento"
+      parametros: { similaridade_min: 0.95 }
+      severidade: low
+      evidencia_esperada: "score de similaridade e CNJs semelhantes"
+      implementada_em_m4: false
+      calibrar: true
+    - codigo: evento_sem_registro_externo
+      descricao: "Checagem cruzada: data do evento alegado sem interrupção registrada na UC/alimentador e sem evento meteorológico (INMET/METAR) — sinal de evento inexistente OU de falha de registro do cliente"
+      parametros: { fontes: ["registro_interrupcao", "inmet", "metar", "defesa_civil"] }
+      severidade: medium
+      evidencia_esperada: "data, UC, alimentador, consulta às fontes e resultado"
+      implementada_em_m4: false
+      calibrar: false
+    - codigo: indicio_falha_real_distribuidora
+      descricao: "Checagem a favor do autor: interrupção longa sem causa externa, OS fora do prazo, TOI sem perícia, negativação de débito pago — sinaliza que defender é temerário"
+      parametros: {}
+      severidade: high
+      evidencia_esperada: "registros do próprio cliente (OS, histórico, faturas)"
+      implementada_em_m4: false
+      calibrar: false
+
+# -----------------------------------------------------------------------------
+# MODELO DE PEÇA (M6)
+# -----------------------------------------------------------------------------
+modelo_peca:
+  tipo: contestacao
+  formato_saida: markdown
+  regra_citacao: "Toda afirmação de fato cita document_page_id (draft_citations). Sem página, sem afirmação. Dado meteorológico/ONS só entra com o documento-fonte anexo."
+  secoes:
+    - { ordem: 1, id: enderecamento, titulo: "Endereçamento, qualificação e tempestividade", obrigatoria: true, teses_vinculadas: [], instrucoes: "Juízo, vara/juizado, número CNJ, partes; data da citação e tempestividade.", exige_citacao_de_pagina: false }
+    - { ordem: 2, id: sintese, titulo: "Síntese da demanda", obrigatoria: true, teses_vinculadas: [], instrucoes: "Resumir pedidos e causa de pedir em até 8 linhas; identificar o subtipo (interrupção / equipamento / TOI / corte / negativação).", exige_citacao_de_pagina: true }
+    - { ordem: 3, id: preliminares, titulo: "Preliminares", obrigatoria: false, teses_vinculadas: [T01, T02, T03, T03.1, T04], instrucoes: "Uma subseção por tese aplicável, na ordem do playbook. Omitir se nenhuma se aplicar.", exige_citacao_de_pagina: true }
+    - { ordem: 4, id: prejudicial, titulo: "Prejudicial de mérito — prescrição", obrigatoria: false, teses_vinculadas: [T05], instrucoes: "Só se o prazo definido pelo advogado-dono tiver transcorrido; parcial como subsidiária.", exige_citacao_de_pagina: true }
+    - { ordem: 5, id: fatos, titulo: "Dos fatos — a unidade consumidora e o evento", obrigatoria: true, teses_vinculadas: [], instrucoes: "Linha do tempo do dossiê: UC/titular/classe, histórico de interrupções, evento (data/hora/causa), OS, compensações, reclamações/PID, vistoria, TOI, faturas, corte/negativação, ajuizamento. Cada evento com página.", exige_citacao_de_pagina: true }
+    - { ordem: 6, id: merito_interrupcao, titulo: "Do mérito — regularidade do serviço e causa da interrupção", obrigatoria: false, teses_vinculadas: [T06, T09, T08], instrucoes: "Só para subtipos interrupcao/oscilacao/misto. Descrever a causa com o registro do sistema e o dado externo (INMET/METAR/ONS) anexos; demonstrar restabelecimento no prazo e compensação paga.", exige_citacao_de_pagina: true }
+    - { ordem: 7, id: merito_equipamento, titulo: "Do mérito — inexistência de nexo com o dano ao equipamento", obrigatoria: false, teses_vinculadas: [T07], instrucoes: "Só se autor_alega_dano_equipamento. Histórico do alimentador na data, PID (ou ausência e prazo de 90 dias [A CONFERIR]), laudo de vistoria, instalação interna.", exige_citacao_de_pagina: true }
+    - { ordem: 8, id: merito_toi, titulo: "Do mérito — regularidade do TOI e da recuperação de consumo", obrigatoria: false, teses_vinculadas: [T10, T10.1], instrucoes: "Só para subtipos TOI/misto. Descrever inspeção, TOI, perícia com notificação, critério de cálculo, histórico de consumo com degrau, contraditório. Enfrentar Tema 699 [A CONFERIR] quando houver corte.", exige_citacao_de_pagina: true }
+    - { ordem: 9, id: dano_moral, titulo: "Da inexistência de dano moral", obrigatoria: true, teses_vinculadas: [T11, T11.1], instrucoes: "Duração/consequências concretas; compensação regulatória; negativação legítima/Súmula 385 quando aplicável; tom respeitoso; quantum subsidiário com faixa do TJPA.", exige_citacao_de_pagina: true }
+    - { ordem: 10, id: subsidiarios, titulo: "Pedidos subsidiários — limites do ressarcimento, repetição simples, compensação", obrigatoria: true, teses_vinculadas: [T12], instrucoes: "Menor valor de reparo; repetição simples; compensação com débitos e DIC/FIC; termo inicial de juros/correção.", exige_citacao_de_pagina: true }
+    - { ordem: 11, id: providencias, titulo: "Providências processuais", obrigatoria: false, teses_vinculadas: [T13], instrucoes: "Só com flags confirmados por human_decide. Linguagem neutra; sem imputar fraude a pessoa.", exige_citacao_de_pagina: true }
+    - { ordem: 12, id: provas, titulo: "Das provas", obrigatoria: true, teses_vinculadas: [], instrucoes: "Protestar por depoimento pessoal, perícia técnica (medidor/instalação), inspeção judicial, ofício ao INMET/ONS/ANEEL se necessário; especificar.", exige_citacao_de_pagina: false }
+    - { ordem: 13, id: pedidos, titulo: "Dos pedidos", obrigatoria: true, teses_vinculadas: [], instrucoes: "Consolidar na ordem: preliminares, prejudicial, improcedência por subtipo, subsidiários, sucumbência, intimações; revogação de liminar se o caso.", exige_citacao_de_pagina: false }
+    - { ordem: 14, id: anexos, titulo: "Rol de documentos", obrigatoria: true, teses_vinculadas: [], instrucoes: "Listar cada anexo com o tipo do playbook (registro_interrupcao, boletim_meteorologico, toi, laudo_medidor, fatura_energia…).", exige_citacao_de_pagina: false }
+  estilo:
+    - "Português formal; frases curtas; sem adjetivação do autor ou do advogado adverso."
+    - "Nenhuma afirmação de fato sem página dos autos ou documento anexo identificado; 'chuva forte' só com boletim INMET/METAR anexo."
+    - "Referências legais e artigos da Res. ANEEL 1.000/2021 só os conferidos no playbook."
+    - "Tom respeitoso com consumidor de tarifa social, comunidades ribeirinhas e pessoas com dependência de equipamento elétrico."
+
+# -----------------------------------------------------------------------------
+# CRITÉRIOS DE REVISÃO (M7)
+# -----------------------------------------------------------------------------
+criterios_revisao:
+  tempo_minimo_segundos: 900
+  papel_minimo_revisor: lawyer
+  exige_segunda_revisao_se:
+    - { campo: valor_causa, operador: ">", valor: 50000.0, nota: "[A CONFERIR pelo advogado-dono]" }
+    - { campo: autor_falecido, operador: "==", valor: true }
+    - { campo: indicio_falha_real_distribuidora, operador: "==", valor: true }
+    - { campo: interrupcao_duracao_horas, operador: ">", valor: 24, nota: "[A CONFERIR pelo advogado-dono]" }
+  checklist:
+    - { id: R01, item: "Cada fato da peça tem citação de página dos autos ou documento anexo identificado", bloqueante: true }
+    - { id: R02, item: "Todas as referências legais e artigos da Res. ANEEL 1.000/2021 citados estão conferidos no playbook (nenhum placeholder sobrou)", bloqueante: true }
+    - { id: R03, item: "T06 (fortuito) só foi usada com registro do sistema + dado externo (INMET/METAR/ONS/Defesa Civil) anexos", bloqueante: true }
+    - { id: R04, item: "T10 (TOI) só foi usada com TOI + laudo do medidor com notificação do consumidor + memória de cálculo + histórico de consumo anexos", bloqueante: true }
+    - { id: R05, item: "T08 só foi usada com fatura que mostra a compensação DIC/FIC creditada", bloqueante: true }
+    - { id: R06, item: "Nenhuma expressão imputa fraude/má-fé ao autor ou ao advogado sem flag confirmado por human_decide", bloqueante: true }
+    - { id: R07, item: "Subtipo, UC, datas e valores batem com o dossiê; seções de mérito não aplicáveis foram omitidas", bloqueante: true }
+    - { id: R08, item: "Pedidos subsidiários presentes (limite do ressarcimento, repetição simples, compensação, quantum)", bloqueante: true }
+    - { id: R09, item: "Liminar deferida: cumprimento comprovado nos autos antes/junto da contestação", bloqueante: true }
+    - { id: R10, item: "Tom respeitoso; sem 'mero aborrecimento' em interrupção prolongada ou em UC com paciente dependente", bloqueante: false }
+    - { id: R11, item: "Sinal de acordo avaliado e registrado (defender × acordar) antes de protocolar", bloqueante: false }
+  motivos_recusa_padrao:
+    - "Fato sem prova citável"
+    - "Tese aplicada sem prova necessária (fortuito sem dado externo; TOI sem laudo)"
+    - "Referência legal ou artigo regulatório não conferido ou inexistente"
+    - "Subtipo/UC/valores/datas divergentes do dossiê"
+    - "Linguagem imputa fraude sem decisão humana"
+    - "Caso deveria ir para acordo/escalada, não para contestação padrão"
+    - "Liminar descumprida sem comprovação de cumprimento"
+
+# -----------------------------------------------------------------------------
+# MÉTRICAS (M10/M11)
+# -----------------------------------------------------------------------------
+metricas:
+  - { id: M01, nome: "Tempo médio de revisão por contestação", definicao: "média de reviews.review_seconds para drafts desta tipologia", meta: "< 30 min com qualidade [A CONFERIR]", fonte: reviews }
+  - { id: M02, nome: "Aprovação sem alteração substancial", definicao: "% de reviews aprovadas com substantial_change = false", meta: "> 60 % após 200 casos [A CONFERIR]", fonte: reviews }
+  - { id: M03, nome: "Subsídios faltantes detectados antes da defesa", definicao: "% de casos com exceção X01 aberta antes de gerar minuta", meta: "> 90 %", fonte: "dossiers + excecoes" }
+  - { id: M04, nome: "Taxa de êxito por tese × subtipo × comarca", definicao: "outcomes.result ∈ {improcedente, parcial} por thesis_version_id, subtipo e comarca vs. baseline", meta: "≥ baseline + 10 p.p. [A CONFERIR]", fonte: outcomes }
+  - { id: M05, nome: "Condenação média (dano moral + material) por subtipo e comarca", definicao: "média de outcomes.award_value; alimenta faixas_valor", meta: "queda de 20 % vs. baseline [A CONFERIR]", fonte: outcomes }
+  - { id: M06, nome: "Custo de tokens por processo", definicao: "soma de llm_calls.cost_usd por case_id", meta: "< US$ 2 por contestação [A CONFERIR]", fonte: llm_calls }
+  - { id: M07, nome: "Concordância modelo × revisor sênior", definicao: "gt_tasks.agreement_score médio (amostra semanal)", meta: "> 0,85", fonte: gt_tasks }
+  - { id: M08, nome: "Flags antifraude confirmados por humano", definicao: "% de fraud_checks com result = flag e human_decision = confirmed, por código", meta: "monitorar precisão; recalibrar se < 50 %", fonte: fraud_checks }
+  - { id: M09, nome: "Acordos sinalizados × realizados", definicao: "casos com sinal de acordo vs. outcomes.result = acordo e valor médio", meta: "calibrar faixas_valor trimestralmente", fonte: outcomes }
+  - { id: M10, nome: "Cobertura de dado externo em T06", definicao: "% de peças com T06 em que há boletim INMET/METAR/ONS anexo", meta: "100 %", fonte: "drafts + draft_citations" }
+  - { id: M11, nome: "Ações em série por evento detectadas", definicao: "nº de clusters (data × alimentador × comarca) com ≥ 10 ações identificados pelo M4 antes da primeira contestação", meta: "monitorar; alimentar T04/T13", fonte: fraud_checks }

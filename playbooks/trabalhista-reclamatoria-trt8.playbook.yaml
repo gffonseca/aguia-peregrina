@@ -1,0 +1,1140 @@
+# =============================================================================
+# Águia Peregrina — M0 Playbook — Reclamatória trabalhista típica (defesa do empregador) — TRT-8 (PA/AP)
+# =============================================================================
+# PRIMEIRO RASCUNHO. Nenhuma citação legal, número, prazo ou valor aqui foi
+# conferido por advogado. Todo item marcado "[A CONFERIR pelo advogado-dono]"
+# e `conferido: false` precisa ser validado (texto vigente da CLT pós-Reforma,
+# Súmulas/OJs do TST, IN 41/2018 do TST, ADI 5.766, ADC 58/59, Lei 14.905/2024,
+# jurisprudência atual do TRT-8 e das CCTs/ACTs vigentes) antes de o status virar
+# `aprovado`. O validador recusa `status: aprovado` enquanto houver pendência.
+#
+# Diferença estrutural desta tipologia: a defesa é POR PEDIDO (cada pedido da
+# inicial tem sua tese), há AUDIÊNCIA (briefing e scoring) e o ACORDO é
+# modelado financeiramente por pedido (pior cenário / provável / ideal).
+#
+# Fonte da verdade: este YAML. A versão em prosa
+# (trabalhista-reclamatoria-trt8.playbook.md) é derivada.
+# =============================================================================
+
+schema_version: "1.0"
+
+metadata:
+  id: trabalhista-reclamatoria-trt8
+  nome: "Reclamatória trabalhista típica — defesa do empregador (terceirizadas, mineração/serviços, call center, varejo) — TRT-8 (PA/AP)"
+  tipologia: trabalhista_reclamatoria_tipica
+  tribunal: TRT8
+  reu_tipo: empresa_empregadora
+  lado: defesa
+  tipo_peca_padrao: contestacao
+  versao: 1
+  supera_versao: null
+  autor_nome: "Gustavo Fonseca — OAB/PA 12.724 — revisão própria até nomear advogado-dono da tipologia (advogado trabalhista)"
+  autor_oab: "PA 12724"
+  criado_em: 2026-10-19T12:00:00-03:00
+  status: rascunho
+  aprovado_por_nome: null
+  aprovado_por_oab: null
+  aprovado_em: null
+  descricao: >-
+    Reclamatórias trabalhistas individuais típicas contra empregador (foco: empresas terceirizadas
+    de serviços, mineração e prestadoras da cadeia mineral, call centers, varejo no PA/AP — TRT-8)
+    com os pedidos recorrentes: horas extras e reflexos, intervalo intrajornada, adicional de
+    insalubridade/periculosidade, verbas rescisórias, equiparação salarial, dano moral (assédio),
+    reversão de justa causa, responsabilidade subsidiária do tomador, além de prescrição, limitação
+    aos valores da inicial, justiça gratuita/honorários e juros/correção. Defesa do empregador
+    (ou do tomador, quando o cliente for o tomador).
+  observacoes: >-
+    Rascunho gerado para validação por advogado trabalhista. Antes de aprovar: (1) conferir cada
+    súmula/OJ do TST, artigos da CLT pós-Lei 13.467/2017, IN 41/2018, ADI 5.766, ADC 58/59 e Lei
+    14.905/2024; (2) conferir orientação das Turmas do TRT-8 sobre limitação aos valores da inicial,
+    intervalo intrajornada pós-reforma, equiparação e critérios de dano moral; (3) calibrar
+    modelagem de acordo (pior/provável/ideal) com a carteira do cliente por pedido e por vara;
+    (4) confirmar com o RH/DP do cliente quais subsídios (ponto, holerites, TRCT, PGR/LTCAT, fichas
+    de EPI, CCT, organograma) ele entrega em até 5 dias úteis; (5) definir o valor X acima do qual
+    o sócio revisa.
+
+# -----------------------------------------------------------------------------
+# GATILHOS DE CLASSIFICAÇÃO (M1/M9)
+# -----------------------------------------------------------------------------
+gatilhos_classificacao:
+  assuntos_cnj:
+    - { codigo: "2086", nome: "Horas extras [A CONFERIR pelo advogado-dono — código TPU trabalhista]", conferido: false }
+    - { codigo: "2117", nome: "Intervalo intrajornada [A CONFERIR pelo advogado-dono]", conferido: false }
+    - { codigo: "1661", nome: "Adicional de insalubridade [A CONFERIR pelo advogado-dono]", conferido: false }
+    - { codigo: "1663", nome: "Adicional de periculosidade [A CONFERIR pelo advogado-dono]", conferido: false }
+    - { codigo: "2546", nome: "Verbas rescisórias [A CONFERIR pelo advogado-dono]", conferido: false }
+    - { codigo: "1783", nome: "Equiparação salarial [A CONFERIR pelo advogado-dono]", conferido: false }
+    - { codigo: "1855", nome: "Indenização por dano moral [A CONFERIR pelo advogado-dono]", conferido: false }
+    - { codigo: "2620", nome: "Reversão da justa causa [A CONFERIR pelo advogado-dono]", conferido: false }
+    - { codigo: "2140", nome: "Responsabilidade subsidiária / terceirização [A CONFERIR pelo advogado-dono]", conferido: false }
+  classes_cnj:
+    - { codigo: "985", nome: "Ação Trabalhista — Rito Ordinário [A CONFERIR pelo advogado-dono]", conferido: false }
+    - { codigo: "1125", nome: "Ação Trabalhista — Rito Sumaríssimo [A CONFERIR pelo advogado-dono]", conferido: false }
+  palavras_chave:
+    - "reclamação trabalhista"
+    - "reclamatória"
+    - "horas extras"
+    - "intervalo intrajornada"
+    - "adicional de insalubridade"
+    - "adicional de periculosidade"
+    - "verbas rescisórias"
+    - "equiparação salarial"
+    - "assédio moral"
+    - "justa causa"
+    - "responsabilidade subsidiária"
+    - "tomador de serviços"
+    - "terceirizada"
+    - "banco de horas"
+    - "cartão de ponto"
+    - "TRCT"
+    - "FGTS"
+    - "multa do art. 477"
+  palavras_que_excluem:
+    - "acidente de trabalho — indenização por morte"
+    - "doença ocupacional — incapacidade permanente"
+    - "ação civil pública"
+    - "dissídio coletivo"
+    - "ação de cumprimento sindical"
+    - "vínculo de emprego — pejotização de executivo"
+    - "sócio — grupo econômico — desconsideração"
+  confianca_minima: 0.85
+
+# -----------------------------------------------------------------------------
+# CAMPOS OBRIGATÓRIOS DO DOSSIÊ (M5) — "Claimant Profile"
+# -----------------------------------------------------------------------------
+campos_dossie_obrigatorios:
+  # --- identificação do caso (extração dos autos) ---
+  - { campo: vara, tipo: texto, origem: extracao, descricao: "Vara do Trabalho e município (TRT-8)", obrigatorio: true }
+  - { campo: rito, tipo: texto, origem: extracao, descricao: "ordinario | sumarissimo", obrigatorio: true }
+  - { campo: cliente_e_tomador, tipo: booleano, origem: subsidio, descricao: "Cliente figura como tomador de serviços (não empregador direto)", obrigatorio: true, bloqueia_minuta_se_ausente: true }
+  - { campo: valor_causa, tipo: valor_monetario, origem: extracao, descricao: "Valor da causa (soma dos pedidos liquidados)", obrigatorio: true }
+  - { campo: pedidos, tipo: lista, origem: extracao, descricao: "Lista de pedidos da inicial com valor indicado por pedido: horas_extras | intervalo | insalubridade | periculosidade | rescisorias | equiparacao | dano_moral | justa_causa | subsidiaria | outros", obrigatorio: true, bloqueia_minuta_se_ausente: true }
+  - { campo: pedidos_liquidados, tipo: booleano, origem: extracao, descricao: "Inicial indica valor por pedido (CLT, art. 840, § 1º)", obrigatorio: true }
+  - { campo: valor_dano_moral_pedido, tipo: valor_monetario, origem: extracao, descricao: "Valor pedido a título de dano moral", obrigatorio: false }
+  - { campo: dano_moral_fundamento, tipo: texto, origem: extracao, descricao: "assedio_moral | assedio_sexual | acidente | atraso_salarios | revista | nenhum", obrigatorio: false }
+  - { campo: data_ajuizamento, tipo: data, origem: extracao, descricao: "Data de distribuição", obrigatorio: true }
+  - { campo: data_audiencia, tipo: data, origem: publicacao, descricao: "Data da audiência (inicial/una)", obrigatorio: false }
+  - { campo: reclamante_pede_gratuidade, tipo: booleano, origem: extracao, descricao: "Pedido de justiça gratuita", obrigatorio: true }
+  - { campo: reclamante_ultimo_salario, tipo: valor_monetario, origem: subsidio, descricao: "Último salário contratual", obrigatorio: true }
+  - { campo: jornada_alegada, tipo: texto, origem: extracao, descricao: "Jornada narrada na inicial (texto estruturado: entrada/saída/intervalo/dias)", obrigatorio: true }
+  - { campo: paradigma_indicado, tipo: texto, origem: extracao, descricao: "Nome/função do paradigma na equiparação (null se não houver)", obrigatorio: false }
+  - { campo: testemunhas_reclamante, tipo: lista, origem: extracao, descricao: "Testemunhas arroladas/indicadas pelo reclamante", obrigatorio: false }
+  # --- subsídios do cliente (M3) — contrato e registro ---
+  - { campo: contrato_trabalho_localizado, tipo: booleano, origem: subsidio, descricao: "Contrato de trabalho e ficha de registro localizados", obrigatorio: true, bloqueia_minuta_se_ausente: true }
+  - { campo: data_admissao, tipo: data, origem: subsidio, descricao: "Data de admissão", obrigatorio: true }
+  - { campo: data_rescisao, tipo: data, origem: subsidio, descricao: "Data da rescisão (null se contrato ativo)", obrigatorio: false }
+  - { campo: funcao_registrada, tipo: texto, origem: subsidio, descricao: "Função/CBO registrada", obrigatorio: true }
+  - { campo: centro_custo, tipo: texto, origem: subsidio, descricao: "Centro de custo / unidade / contrato de prestação (para laudos e organograma)", obrigatorio: true }
+  - { campo: modalidade_rescisao, tipo: texto, origem: subsidio, descricao: "sem_justa_causa | justa_causa | pedido_demissao | acordo_484a | termino_contrato | ativo", obrigatorio: true }
+  - { campo: holerites_periodo_completo, tipo: booleano, origem: subsidio, descricao: "Holerites de todo o período imprescrito localizados", obrigatorio: true }
+  - { campo: cct_act_vigentes_localizadas, tipo: booleano, origem: subsidio, descricao: "CCT/ACT de todo o período localizadas (banco de horas, intervalo, adicionais, pisos)", obrigatorio: true }
+  # --- jornada ---
+  - { campo: controle_ponto_tipo, tipo: texto, origem: subsidio, descricao: "eletronico_rep | manual | britanico | inexistente | isento_art62", obrigatorio: true, bloqueia_minuta_se_ausente: true }
+  - { campo: cartoes_ponto_periodo_completo, tipo: booleano, origem: subsidio, descricao: "Cartões de ponto de todo o período imprescrito localizados", obrigatorio: true }
+  - { campo: ponto_com_variacao, tipo: booleano, origem: subsidio, descricao: "Registros com horários variáveis (não 'britânicos')", obrigatorio: false }
+  - { campo: horas_extras_pagas_holerite, tipo: booleano, origem: subsidio, descricao: "Holerites mostram pagamento de horas extras no período", obrigatorio: false }
+  - { campo: banco_horas_previsto_norma, tipo: booleano, origem: subsidio, descricao: "Banco de horas previsto em ACT/CCT ou acordo individual escrito (pós-reforma)", obrigatorio: false }
+  - { campo: banco_horas_extratos_localizados, tipo: booleano, origem: subsidio, descricao: "Extratos/saldo do banco de horas localizados", obrigatorio: false }
+  - { campo: empregados_estabelecimento_n, tipo: numero, origem: subsidio, descricao: "Nº de empregados no estabelecimento (obrigatoriedade de ponto: > 20 [A CONFERIR])", obrigatorio: true }
+  - { campo: cargo_confianca_art62, tipo: booleano, origem: subsidio, descricao: "Reclamante exercia cargo de gestão (art. 62, II) com gratificação ≥ 40 % e poderes", obrigatorio: false }
+  - { campo: trabalho_externo_art62_i, tipo: booleano, origem: subsidio, descricao: "Atividade externa incompatível com controle, anotada na CTPS/registro (art. 62, I)", obrigatorio: false }
+  - { campo: intervalo_pre_assinalado, tipo: booleano, origem: subsidio, descricao: "Intervalo intrajornada pré-assinalado ou registrado no ponto", obrigatorio: false }
+  - { campo: intervalo_reduzido_autorizado, tipo: booleano, origem: subsidio, descricao: "Redução do intervalo autorizada por ACT/CCT (pós-reforma) ou portaria", obrigatorio: false }
+  # --- ambiente ---
+  - { campo: pgr_ppra_localizado, tipo: booleano, origem: subsidio, descricao: "PGR/PPRA do período e do centro de custo localizados", obrigatorio: true }
+  - { campo: ltcat_localizado, tipo: booleano, origem: subsidio, descricao: "LTCAT/laudo de insalubridade e periculosidade do setor localizado", obrigatorio: true }
+  - { campo: pcmso_aso_localizados, tipo: booleano, origem: subsidio, descricao: "PCMSO e ASOs (admissional, periódicos, demissional) localizados", obrigatorio: true }
+  - { campo: ficha_epi_localizada, tipo: booleano, origem: subsidio, descricao: "Fichas de entrega de EPI assinadas, com CA, localizadas", obrigatorio: true }
+  - { campo: epi_com_ca_valido, tipo: booleano, origem: subsidio, descricao: "EPIs com CA válido no período e troca periódica registrada", obrigatorio: false }
+  - { campo: laudo_anterior_mesmo_setor, tipo: texto, origem: subsidio, descricao: "favoravel | desfavoravel | inexistente — laudo pericial judicial anterior no mesmo centro de custo/função", obrigatorio: true }
+  - { campo: adicional_pago_holerite, tipo: booleano, origem: subsidio, descricao: "Adicional de insalubridade/periculosidade já pago no período", obrigatorio: false }
+  # --- rescisão ---
+  - { campo: trct_homologado_ou_assinado, tipo: booleano, origem: subsidio, descricao: "TRCT assinado (e homologado quando exigível) localizado", obrigatorio: true }
+  - { campo: comprovante_pagamento_rescisao, tipo: booleano, origem: subsidio, descricao: "Comprovante de pagamento das verbas rescisórias no prazo do art. 477, § 6º", obrigatorio: true }
+  - { campo: rescisao_paga_no_prazo, tipo: booleano, origem: subsidio, descricao: "Pagamento dentro de 10 dias do término [A CONFERIR]", obrigatorio: false }
+  - { campo: fgts_extrato_localizado, tipo: booleano, origem: subsidio, descricao: "Extrato analítico do FGTS e guia rescisória localizados", obrigatorio: true }
+  - { campo: justa_causa_documentada, tipo: booleano, origem: subsidio, descricao: "Há advertências/suspensões anteriores, sindicância e comunicação da justa causa", obrigatorio: false }
+  - { campo: justa_causa_dias_entre_fato_e_dispensa, tipo: numero, origem: subsidio, descricao: "Dias entre o fato e a dispensa (imediatidade)", obrigatorio: false }
+  - { campo: justa_causa_tipo, tipo: texto, origem: subsidio, descricao: "Alínea do art. 482 (a–m) [A CONFERIR]", obrigatorio: false }
+  # --- equiparação ---
+  - { campo: paradigma_mesma_funcao, tipo: booleano, origem: subsidio, descricao: "Paradigma exerce idêntica função no mesmo estabelecimento", obrigatorio: false }
+  - { campo: paradigma_diferenca_tempo_funcao_anos, tipo: numero, origem: subsidio, descricao: "Diferença de tempo na função (anos) entre paradigma e reclamante", obrigatorio: false }
+  - { campo: paradigma_diferenca_tempo_empregador_anos, tipo: numero, origem: subsidio, descricao: "Diferença de tempo de serviço para o mesmo empregador (anos)", obrigatorio: false }
+  - { campo: quadro_carreira_homologado, tipo: booleano, origem: subsidio, descricao: "Quadro de carreira/plano de cargos com promoções por merecimento e antiguidade", obrigatorio: false }
+  # --- dano moral / assédio ---
+  - { campo: canal_denuncia_existente, tipo: booleano, origem: subsidio, descricao: "Empresa tem canal de denúncia/compliance e política contra assédio", obrigatorio: false }
+  - { campo: denuncia_interna_registrada, tipo: booleano, origem: subsidio, descricao: "Reclamante registrou denúncia interna do fato narrado", obrigatorio: false }
+  - { campo: apuracao_interna_realizada, tipo: booleano, origem: subsidio, descricao: "Houve apuração interna documentada", obrigatorio: false }
+  # --- terceirização ---
+  - { campo: contrato_prestacao_servicos_localizado, tipo: booleano, origem: subsidio, descricao: "Contrato entre tomador e prestadora localizado", obrigatorio: false }
+  - { campo: fiscalizacao_tomador_documentada, tipo: booleano, origem: subsidio, descricao: "Tomador tem registros de fiscalização (retenção de notas, comprovantes de FGTS/INSS, ponto, folha)", obrigatorio: false }
+  - { campo: tomador_ente_publico, tipo: booleano, origem: subsidio, descricao: "Tomador é ente público (Tema 246 STF / Súmula 331, V)", obrigatorio: false }
+  # --- audiência e acordo ---
+  - { campo: organograma_localizado, tipo: booleano, origem: subsidio, descricao: "Organograma do centro de custo com gestores/colegas do período (testemunhas potenciais)", obrigatorio: true }
+  - { campo: testemunhas_empresa_disponiveis, tipo: lista, origem: subsidio, descricao: "Testemunhas da empresa disponíveis (nome, função, vínculo atual)", obrigatorio: false }
+  - { campo: valor_pior_cenario, tipo: valor_monetario, origem: calculado, descricao: "Soma dos pedidos no pior cenário (procedência total, com reflexos, limitada à inicial)", obrigatorio: true }
+  - { campo: valor_provavel, tipo: valor_monetario, origem: calculado, descricao: "Valor esperado ponderado pela probabilidade de êxito por pedido (M11)", obrigatorio: true }
+  - { campo: valor_ideal_acordo, tipo: valor_monetario, origem: calculado, descricao: "Alvo de acordo (valor_provavel × fator de desconto por antecipação, custo de perícia e honorários)", obrigatorio: true }
+  - { campo: custo_pericia_estimado, tipo: valor_monetario, origem: calculado, descricao: "Custo estimado de perícia (insalubridade/periculosidade) se o cliente sucumbir no objeto", obrigatorio: false }
+  # --- cruzamentos (antifraude / publicações) ---
+  - { campo: litispendencia_cnj, tipo: lista, origem: antifraude, descricao: "Processos em curso com mesmas partes/causa/pedido", obrigatorio: true }
+  - { campo: coisa_julgada_cnj, tipo: lista, origem: antifraude, descricao: "Processos transitados com mesmas partes/causa/pedido (ou acordo com quitação geral)", obrigatorio: true }
+  - { campo: acoes_mesmo_reclamante_grupo_n, tipo: numero, origem: antifraude, descricao: "Nº de ações do reclamante contra empresas do mesmo grupo/tomador", obrigatorio: true }
+  - { campo: acoes_mesmo_advogado_mes_n, tipo: numero, origem: antifraude, descricao: "Nº de ações do mesmo escritório contra o cliente no mês", obrigatorio: true }
+  - { campo: testemunha_reciproca, tipo: booleano, origem: antifraude, descricao: "Testemunha do reclamante é reclamante em outra ação em que este é testemunha (troca de favores)", obrigatorio: true }
+  - { campo: pedidos_identicos_serie_n, tipo: numero, origem: antifraude, descricao: "Nº de ações do mesmo escritório contra o cliente com rol de pedidos e jornada idênticos", obrigatorio: false }
+  - { campo: atestados_repetidos, tipo: booleano, origem: antifraude, descricao: "Atestados médicos do reclamante repetidos/idênticos a de outros reclamantes (mesmo médico, mesmo texto)", obrigatorio: false }
+  - { campo: historico_laudos_centro_custo, tipo: lista, origem: antifraude, descricao: "Laudos periciais judiciais anteriores no mesmo centro de custo (resultado, perito, vara)", obrigatorio: true }
+  - { campo: indicio_passivo_real, tipo: booleano, origem: calculado, descricao: "Sinais de que o passivo é real (sem ponto, sem ficha de EPI, rescisão fora do prazo, laudo anterior desfavorável, denúncia interna não apurada)", obrigatorio: true }
+
+# -----------------------------------------------------------------------------
+# ÁRVORE DE TESES — uma tese por pedido típico
+# -----------------------------------------------------------------------------
+teses:
+  # ---------------------------------------------------------------- PRELIMINARES / PROCESSUAIS
+  - id: T01
+    nome: "Impugnação à justiça gratuita e honorários sucumbenciais do reclamante (ADI 5.766)"
+    categoria: preliminar
+    ordem: 1
+    pai: null
+    resumo: >-
+      O reclamante recebia salário acima de 40 % do teto do RGPS e não comprovou insuficiência
+      (CLT, art. 790, §§ 3º e 4º); requer-se indeferimento da gratuidade e, em qualquer caso,
+      condenação em honorários sucumbenciais (art. 791-A) sobre os pedidos improcedentes, observada
+      a modulação da ADI 5.766 quanto à exigibilidade.
+    condicoes_aplicacao:
+      - { campo: reclamante_pede_gratuidade, operador: "==", valor: true }
+      - { campo: reclamante_ultimo_salario, operador: ">", valor: 3262.0, nota: "40 % do teto do RGPS — atualizar anualmente [A CONFERIR pelo advogado-dono]" }
+    provas_necessarias:
+      - { tipo_documento: holerite, descricao: "Últimos holerites com salário acima do parâmetro", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: ctps_registro, descricao: "Novo emprego do reclamante (CTPS digital/CNIS), se disponível", origem: subsidio, obrigatoria: false, peso: 0.7 }
+    provas_que_afastam:
+      - { tipo_documento: declaracao_hipossuficiencia, descricao: "Desemprego atual comprovado e salário abaixo do parâmetro", origem: extracao, obrigatoria: false, peso: 0.9 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CLT, art. 790, §§ 3º e 4º", tipo: dispositivo, para_que_serve: "critério objetivo (40 % do teto) e ônus de comprovar", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CLT, art. 791-A, caput e § 4º", tipo: dispositivo, para_que_serve: "honorários sucumbenciais recíprocos", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STF, ADI 5.766 (honorários do beneficiário da gratuidade: inconstitucionalidade parcial do § 4º do art. 791-A — suspensão de exigibilidade)", tipo: precedente, para_que_serve: "delimitar: condenação possível, exigibilidade suspensa", conferido: false, nota: "[A CONFERIR pelo advogado-dono — tese exata e embargos]" }
+        - { ref: "TST — declaração de hipossuficiência × salário acima de 40 % do teto (Súmula 463, I e jurisprudência pós-reforma) [A CONFERIR]", tipo: sumula, para_que_serve: "saber se o TST aceita só a declaração", conferido: false, nota: "[A CONFERIR pelo advogado-dono — risco: SDI-1 tende a aceitar a declaração]" }
+      argumentos_chave:
+        - "Salário contratual superior ao parâmetro legal; declaração genérica não basta."
+        - "Honorários sucumbenciais sobre os pedidos improcedentes, ainda que com exigibilidade suspensa."
+    pedidos:
+      - "Indeferimento da gratuidade; condenação em honorários sucumbenciais (art. 791-A)."
+    pedidos_subsidiarios:
+      - "Se deferida a gratuidade, condenação em honorários com exigibilidade suspensa (ADI 5.766)."
+    risco_se_mal_aplicada: "Impugnar gratuidade de reclamante desempregado com salário mínimo irrita o juízo."
+    ativa: true
+
+  - id: T02
+    nome: "Litispendência / coisa julgada / quitação por acordo anterior"
+    categoria: preliminar
+    ordem: 2
+    pai: null
+    resumo: "Há ação em curso ou já julgada com as mesmas partes, causa de pedir e pedido, ou acordo homologado com quitação geral do contrato."
+    condicoes_aplicacao:
+      - { campo: litispendencia_cnj, operador: existe }
+    provas_necessarias:
+      - { tipo_documento: certidao_processo, descricao: "Cópia da inicial, sentença ou termo de acordo do processo anterior", origem: antifraude, obrigatoria: true, peso: 1.0 }
+    provas_que_afastam:
+      - { tipo_documento: peticao_inicial, descricao: "Períodos contratuais ou pedidos realmente distintos; acordo com quitação restrita aos pedidos", origem: extracao, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CPC, art. 337, VI e VII, e 485, V (aplicação subsidiária — CLT, art. 769)", tipo: dispositivo, para_que_serve: "litispendência e coisa julgada", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CLT, art. 831, parágrafo único", tipo: dispositivo, para_que_serve: "acordo homologado = decisão irrecorrível", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "TST, Súmula 259 e OJ 132 da SDI-2 — eficácia da quitação em acordo judicial [A CONFERIR]", tipo: sumula, para_que_serve: "quitação geral × restrita", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "Tríplice identidade ou quitação geral do extinto contrato demonstradas documentalmente."
+    pedidos:
+      - "Extinção sem resolução do mérito (CPC, art. 485, V)."
+    pedidos_subsidiarios:
+      - "Reunião dos feitos por conexão."
+    risco_se_mal_aplicada: "Invocar quitação de acordo com ressalva expressa de pedidos."
+    ativa: true
+
+  - id: T03
+    nome: "Limitação da condenação aos valores indicados na inicial (CLT, art. 840, § 1º; IN 41/2018 TST)"
+    categoria: processual
+    ordem: 3
+    pai: null
+    resumo: >-
+      Os pedidos foram liquidados na inicial; eventual condenação limita-se aos valores indicados
+      por pedido, sob pena de julgamento ultra petita. Tese controvertida (TST tem decidido que os
+      valores são estimativos); o advogado-dono define a posição e a redação.
+    condicoes_aplicacao:
+      - { campo: pedidos_liquidados, operador: "==", valor: true }
+    provas_necessarias:
+      - { tipo_documento: peticao_inicial, descricao: "Inicial com valores por pedido", origem: extracao, obrigatoria: true, peso: 1.0 }
+    provas_que_afastam:
+      - { tipo_documento: peticao_inicial, descricao: "Inicial com ressalva expressa de que os valores são estimativos (e orientação do TRT-8 acatando)", origem: extracao, obrigatoria: false, peso: 0.8 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CLT, art. 840, § 1º", tipo: dispositivo, para_que_serve: "pedido certo, determinado e com indicação de valor", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CPC, arts. 141 e 492", tipo: dispositivo, para_que_serve: "congruência / vedação ao ultra petita", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "IN 41/2018 do TST, art. 12, § 2º", tipo: norma_regulatoria, para_que_serve: "valor pode ser estimado — enfrentar", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "TST, SDI-1 — valores da inicial como mera estimativa (Emb-RR A CONFERIR) × Turmas do TRT-8 [A CONFERIR]", tipo: precedente, para_que_serve: "estado atual da controvérsia", conferido: false, nota: "[A CONFERIR pelo advogado-dono — risco alto: SDI-1 firmou que os valores são estimativos; avaliar manter como subsidiária]" }
+      argumentos_chave:
+        - "O reclamante liquidou os pedidos sem ressalva; a condenação não pode superar o pedido."
+    pedidos:
+      - "Limitação de eventual condenação aos valores indicados por pedido na inicial."
+    pedidos_subsidiarios:
+      - "Ao menos, limitação do valor da causa para fins de custas e honorários."
+    risco_se_mal_aplicada: "Apresentar como tese pacífica o que a SDI-1 já rejeitou; manter tom de subsidiariedade."
+    ativa: true
+
+  # ---------------------------------------------------------------- PREJUDICIAL
+  - id: T04
+    nome: "Prescrição bienal e quinquenal (CF, art. 7º, XXIX; Súmula 308 TST) e prescrição do FGTS (Súmula 362)"
+    categoria: prejudicial
+    ordem: 4
+    pai: null
+    resumo: >-
+      Ação ajuizada após 2 anos da extinção do contrato (prescrição total) ou, em todo caso,
+      pretensões anteriores a 5 anos do ajuizamento (prescrição parcial), inclusive reflexos;
+      FGTS com prazo próprio conforme modulação do STF (ARE 709.212).
+    condicoes_aplicacao:
+      - { campo: data_ajuizamento, operador: existe }
+      - { campo: data_admissao, operador: existe }
+    provas_necessarias:
+      - { tipo_documento: ficha_registro, descricao: "Ficha de registro/CTPS com admissão e rescisão", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: trct, descricao: "TRCT com data do término", origem: subsidio, obrigatoria: false, peso: 0.9 }
+    provas_que_afastam:
+      - { tipo_documento: certidao_processo, descricao: "Ação anterior arquivada que interrompa a prescrição (Súmula 268 TST) ou protesto", origem: antifraude, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CF, art. 7º, XXIX; CLT, art. 11", tipo: dispositivo, para_que_serve: "prazos bienal e quinquenal", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "TST, Súmula 308", tipo: sumula, para_que_serve: "marco da prescrição quinquenal", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "TST, Súmula 362 (FGTS) e STF, ARE 709.212 (modulação)", tipo: sumula, para_que_serve: "prazo do FGTS", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "TST, Súmula 268 (interrupção por ação arquivada — só pedidos idênticos)", tipo: sumula, para_que_serve: "limitar a interrupção", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "TST, Súmula 294 (prescrição total × parcial em alteração contratual)", tipo: sumula, para_que_serve: "pedidos de diferenças por alteração do pactuado", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "Contrato extinto em DD/MM/AAAA; ação ajuizada após o biênio — prescrição total."
+        - "Subsidiariamente, prescritas as parcelas anteriores a DD/MM/AAAA (quinquênio), inclusive reflexos."
+    pedidos:
+      - "Pronúncia da prescrição total (CPC, art. 487, II) ou, ao menos, parcial quinquenal."
+    pedidos_subsidiarios:
+      - "Prescrição do FGTS conforme modulação do STF."
+    risco_se_mal_aplicada: "Alegar prescrição bienal com contrato ainda ativo ou com protesto interruptivo nos autos."
+    ativa: true
+
+  # ---------------------------------------------------------------- MÉRITO — JORNADA
+  - id: T05
+    nome: "Horas extras — controle de ponto válido com horários variáveis (Súmula 338 TST) e pagamento/compensação comprovados"
+    categoria: merito
+    ordem: 5
+    pai: null
+    resumo: >-
+      A empresa mantém controle de jornada válido (REP/eletrônico ou manual com variação de
+      horários), cujos registros gozam de presunção de veracidade; as horas extras registradas
+      foram pagas (holerites) ou compensadas; a jornada da inicial é inverossímil frente aos
+      registros. Ônus de desconstituir os cartões é do reclamante.
+    condicoes_aplicacao:
+      - { campo: controle_ponto_tipo, operador: in, valor: [eletronico_rep, manual] }
+      - { campo: cartoes_ponto_periodo_completo, operador: "==", valor: true }
+      - { campo: ponto_com_variacao, operador: "==", valor: true }
+    provas_necessarias:
+      - { tipo_documento: cartao_ponto, descricao: "Cartões/espelhos de ponto de todo o período imprescrito, com variação de horários e assinatura/aceite eletrônico", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: holerite, descricao: "Holerites com rubrica de horas extras e adicional noturno pagos", origem: subsidio, obrigatoria: true, peso: 0.9 }
+      - { tipo_documento: demonstrativo_jornada, descricao: "Demonstrativo (planilha) confrontando ponto × pagamento por mês", origem: subsidio, obrigatoria: false, peso: 0.8 }
+      - { tipo_documento: escala_trabalho, descricao: "Escalas/turnos aplicados (12x36, 6x1, revezamento) e norma coletiva que os autoriza", origem: subsidio, obrigatoria: false, peso: 0.7 }
+    provas_que_afastam:
+      - { tipo_documento: cartao_ponto, descricao: "Registros 'britânicos' (horários invariáveis) — Súmula 338, III", origem: subsidio, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: cartao_ponto, descricao: "Períodos sem cartão em estabelecimento com mais de 20 empregados — Súmula 338, I", origem: subsidio, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: holerite, descricao: "Horas registradas no ponto sem pagamento correspondente nem compensação", origem: subsidio, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CLT, arts. 58, 59, 59-A, 59-B, 74, § 2º", tipo: dispositivo, para_que_serve: "jornada, horas extras, 12x36, compensação e dever de registro", conferido: false, nota: "[A CONFERIR pelo advogado-dono — limite de empregados para o registro (20) e redação vigente do § 2º]" }
+        - { ref: "CPC, art. 373, I; CLT, art. 818, I", tipo: dispositivo, para_que_serve: "ônus do reclamante quanto à jornada quando há controle válido", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "Portaria MTP 671/2021 (REP) [A CONFERIR]", tipo: norma_regulatoria, para_que_serve: "validade do registro eletrônico", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "TST, Súmula 338, I, II e III", tipo: sumula, para_que_serve: "presunção dos cartões; inversão se ausentes; britânicos inválidos", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "TST, Súmula 85 (compensação) e Súmula 444 (12x36)", tipo: sumula, para_que_serve: "validade da compensação e da escala", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "TST, Súmula 366 (minutos residuais) e CLT, art. 58, § 1º", tipo: sumula, para_que_serve: "tolerância de 5/10 minutos", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "TRT-8 — orientação das Turmas sobre validade de ponto eletrônico e ônus da prova [A CONFERIR]", tipo: precedente, para_que_serve: "jurisprudência regional", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "Os cartões de ponto anexos, com horários variáveis, provam a jornada real e gozam de presunção relativa de veracidade."
+        - "Toda hora extra registrada foi paga (holerites) ou compensada; o demonstrativo mês a mês comprova."
+        - "A jornada da inicial (X h/dia, sem folgas) é inverossímil e cabe ao reclamante desconstituir os registros."
+    pedidos:
+      - "Improcedência do pedido de horas extras e reflexos."
+    pedidos_subsidiarios:
+      - "Em caso de condenação: dedução dos valores pagos sob o mesmo título (OJ 415 SDI-1 [A CONFERIR]); observância dos dias efetivamente trabalhados, do divisor correto (Súmula 431 [A CONFERIR]), da base de cálculo (Súmula 264) e do adicional convencional; reflexos sem bis in idem (OJ 394 [A CONFERIR — alteração 2023])."
+    risco_se_mal_aplicada: "Afirmar ponto válido com registros britânicos anexos inverte o ônus contra a empresa e dá credibilidade à jornada da inicial."
+    ativa: true
+
+  - id: T05.1
+    nome: "Banco de horas / compensação prevista em norma coletiva ou acordo individual"
+    categoria: merito
+    ordem: 6
+    pai: T05
+    resumo: >-
+      As horas excedentes foram compensadas em banco de horas válido (ACT/CCT ou acordo individual
+      escrito pós-reforma), com extratos periódicos e quitação do saldo na rescisão.
+    condicoes_aplicacao:
+      - { campo: banco_horas_previsto_norma, operador: "==", valor: true }
+      - { campo: banco_horas_extratos_localizados, operador: "==", valor: true }
+    provas_necessarias:
+      - { tipo_documento: norma_coletiva, descricao: "ACT/CCT com cláusula de banco de horas vigente no período", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: extrato_banco_horas, descricao: "Extratos mensais de crédito/débito e quitação do saldo no TRCT", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: acordo_individual, descricao: "Acordo individual escrito de compensação (CLT, art. 59, §§ 5º e 6º)", origem: subsidio, obrigatoria: false, peso: 0.9 }
+    provas_que_afastam:
+      - { tipo_documento: extrato_banco_horas, descricao: "Saldo não compensado no prazo (6 meses/1 ano) nem pago na rescisão", origem: subsidio, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: cartao_ponto, descricao: "Habitualidade de horas extras incompatível com compensação (Súmula 85, IV/V)", origem: subsidio, obrigatoria: false, peso: 0.9 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CLT, art. 59, §§ 2º, 5º e 6º; art. 611-A, II", tipo: dispositivo, para_que_serve: "banco de horas e prevalência do negociado", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "TST, Súmula 85 (I a VI)", tipo: sumula, para_que_serve: "requisitos e consequências", conferido: false, nota: "[A CONFERIR pelo advogado-dono — item V: banco de horas exige norma coletiva, salvo pós-reforma]" }
+        - { ref: "STF, Tema 1.046 (ARE 1.121.633) — validade de normas coletivas que limitam direitos", tipo: tema, para_que_serve: "prevalência do negociado", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "Banco de horas previsto em norma coletiva válida (Tema 1.046) e operado com extratos transparentes."
+    pedidos:
+      - "Improcedência; reconhecimento da compensação."
+    pedidos_subsidiarios:
+      - "Se invalidado o banco, pagamento apenas do adicional sobre as horas compensadas (Súmula 85, III/IV)."
+    risco_se_mal_aplicada: "Invocar banco de horas sem extrato é confissão de horas não pagas."
+    ativa: true
+
+  - id: T05.2
+    nome: "Exceções ao controle de jornada — cargo de confiança (art. 62, II) e atividade externa (art. 62, I)"
+    categoria: merito
+    ordem: 7
+    pai: T05
+    resumo: >-
+      O reclamante exercia cargo de gestão com poderes (admitir, punir, representar) e gratificação
+      ≥ 40 %, ou atividade externa incompatível com fiscalização, anotada no registro; não faz jus a
+      horas extras.
+    condicoes_aplicacao:
+      - { campo: controle_ponto_tipo, operador: "==", valor: isento_art62 }
+    provas_necessarias:
+      - { tipo_documento: ficha_registro, descricao: "Registro com função/anotação de exceção do art. 62 e gratificação de função", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: organograma, descricao: "Organograma mostrando subordinados e alçadas do reclamante", origem: subsidio, obrigatoria: true, peso: 0.9 }
+      - { tipo_documento: procuracao_alcada, descricao: "Procurações, alçadas de aprovação, e-mails de gestão (admissão/punição)", origem: subsidio, obrigatoria: false, peso: 0.8 }
+      - { tipo_documento: relatorio_rota, descricao: "Para externos: ausência de rastreamento/roteiro imposto; autonomia de horário", origem: subsidio, obrigatoria: false, peso: 0.7 }
+    provas_que_afastam:
+      - { tipo_documento: holerite, descricao: "Gratificação inferior a 40 % ou inexistente", origem: subsidio, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: cartao_ponto, descricao: "Existência de controle de ponto do 'gestor' ou rastreamento/GPS/roteiro do externo", origem: subsidio, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CLT, art. 62, I, II e parágrafo único", tipo: dispositivo, para_que_serve: "exceções ao capítulo de jornada", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "TST — requisitos do cargo de confiança (fidúcia especial; não basta o nome 'supervisor') e do trabalho externo (incompatibilidade real) [A CONFERIR]", tipo: precedente, para_que_serve: "risco: interpretação restritiva", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "Poderes de gestão efetivos, subordinados e gratificação demonstrados documentalmente."
+    pedidos:
+      - "Improcedência das horas extras pela exceção do art. 62."
+    pedidos_subsidiarios:
+      - "Se afastada a exceção, horas extras só além da 8ª/44ª com dedução da gratificação (controvertido) [A CONFERIR]."
+    risco_se_mal_aplicada: "Alegar cargo de confiança de 'supervisor de call center' sem poderes reais é derrota certa e compromete a credibilidade da empresa em audiência."
+    ativa: true
+
+  - id: T06
+    nome: "Intervalo intrajornada — fruição regular (pré-assinalação / registro) e regime pós-reforma (art. 71, § 4º)"
+    categoria: merito
+    ordem: 8
+    pai: null
+    resumo: >-
+      O intervalo foi regularmente concedido, conforme pré-assinalação (art. 74, § 2º) ou registro;
+      eventual supressão parcial pós-11/11/2017 gera apenas o pagamento do período suprimido, de
+      natureza indenizatória, sem reflexos; redução autorizada por norma coletiva é válida
+      (art. 611-A, III; Tema 1.046).
+    condicoes_aplicacao:
+      - { campo: intervalo_pre_assinalado, operador: "==", valor: true }
+    provas_necessarias:
+      - { tipo_documento: cartao_ponto, descricao: "Cartões com pré-assinalação ou registro do intervalo", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: norma_coletiva, descricao: "Cláusula de redução do intervalo, se aplicável", origem: subsidio, obrigatoria: false, peso: 0.9 }
+      - { tipo_documento: escala_trabalho, descricao: "Escala de revezamento de refeição do setor (call center/varejo)", origem: subsidio, obrigatoria: false, peso: 0.6 }
+    provas_que_afastam:
+      - { tipo_documento: cartao_ponto, descricao: "Registros mostrando intervalos inferiores a 1h sem norma autorizativa, ou pré-assinalação em jornada com extras habituais", origem: subsidio, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CLT, art. 71, caput e § 4º (redação da Lei 13.467/2017); art. 74, § 2º; art. 611-A, III", tipo: dispositivo, para_que_serve: "intervalo, pré-assinalação, consequência da supressão e redução por norma coletiva", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "TST, Súmula 437 (I a IV) — aplicação só ao período anterior à reforma [A CONFERIR]", tipo: sumula, para_que_serve: "delimitação temporal dos reflexos", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "STF, Tema 1.046 — validade da redução do intervalo por norma coletiva", tipo: tema, para_que_serve: "prevalência do negociado", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "TRT-8 — orientação sobre pré-assinalação e ônus da prova do intervalo [A CONFERIR]", tipo: precedente, para_que_serve: "jurisprudência regional", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "Intervalo pré-assinalado nos cartões; cabe ao reclamante provar a supressão."
+        - "Período pós-reforma: só o tempo suprimido, indenizatório, sem reflexos."
+    pedidos:
+      - "Improcedência do pedido de intervalo intrajornada."
+    pedidos_subsidiarios:
+      - "Se reconhecida supressão parcial pós-reforma: pagamento apenas dos minutos suprimidos com adicional de 50 %, sem reflexos; pré-reforma: conforme Súmula 437 limitada ao período."
+    risco_se_mal_aplicada: "Pré-assinalação em jornada com extras habituais e testemunhas uníssonas tende a ser afastada; avaliar acordo no pedido."
+    ativa: true
+
+  # ---------------------------------------------------------------- MÉRITO — AMBIENTE
+  - id: T07
+    nome: "Adicional de insalubridade — ausência de agente/neutralização por EPI (PGR/PPRA, LTCAT, fichas de EPI com CA)"
+    categoria: merito
+    ordem: 9
+    pai: null
+    resumo: >-
+      Os programas de gestão de riscos e o laudo técnico do setor não apontam agente insalubre acima
+      dos limites da NR-15, ou o agente é neutralizado por EPI eficaz, fornecido e substituído com
+      registro em ficha assinada e CA válido; ASOs sem alterações. Laudos periciais judiciais
+      anteriores no mesmo centro de custo corroboram.
+    condicoes_aplicacao:
+      - { campo: ltcat_localizado, operador: "==", valor: true }
+      - { campo: ficha_epi_localizada, operador: "==", valor: true }
+    provas_necessarias:
+      - { tipo_documento: pgr_ppra, descricao: "PGR/PPRA do período, do estabelecimento e do GHE do reclamante", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: ltcat, descricao: "LTCAT / laudo de insalubridade com medições (ruído, calor, químicos, biológicos) por função", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: ficha_epi, descricao: "Fichas de entrega de EPI assinadas, com CA e periodicidade de troca", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: pcmso_aso, descricao: "PCMSO e ASOs (admissional, periódicos, demissional)", origem: subsidio, obrigatoria: false, peso: 0.7 }
+      - { tipo_documento: laudo_pericial, descricao: "Laudos periciais judiciais anteriores favoráveis no mesmo centro de custo/função", origem: antifraude, obrigatoria: false, peso: 0.9 }
+      - { tipo_documento: treinamento_epi, descricao: "Registros de treinamento de uso de EPI e de fiscalização", origem: subsidio, obrigatoria: false, peso: 0.6 }
+    provas_que_afastam:
+      - { tipo_documento: laudo_pericial, descricao: "Laudos anteriores desfavoráveis no mesmo setor/função", origem: antifraude, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: ficha_epi, descricao: "Fichas sem assinatura, sem CA, ou com lacunas de meses", origem: subsidio, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: ltcat, descricao: "Laudo próprio reconhece agente acima do limite sem neutralização (ex.: ruído > 85 dB; agente biológico em limpeza hospitalar — Anexo 14)", origem: subsidio, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: holerite, descricao: "Adicional já pago em grau inferior ao pedido (discussão só de grau)", origem: subsidio, obrigatoria: false, peso: 0.6 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CLT, arts. 189 a 192 e 195", tipo: dispositivo, para_que_serve: "insalubridade, graus, perícia obrigatória", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "NR-15 (anexos por agente), NR-6 (EPI/CA), NR-1 (PGR), NR-7 (PCMSO), NR-22 (mineração) [A CONFERIR]", tipo: norma_regulatoria, para_que_serve: "limites de tolerância e deveres do empregador", conferido: false, nota: "[A CONFERIR pelo advogado-dono — NR-22 para mineração; NR-17 Anexo II para call center]" }
+      precedentes:
+        - { ref: "TST, Súmula 80 (EPI que elimina a insalubridade exclui o adicional) e Súmula 289 (fornecimento não basta; exige uso/fiscalização)", tipo: sumula, para_que_serve: "neutralização por EPI e seus limites", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "TST, Súmula 448 (classificação oficial; limpeza de banheiros públicos/coletivos) e OJ 4 SDI-1", tipo: sumula, para_que_serve: "enquadramento — atenção em terceirizadas de limpeza", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "TST, Súmula 47 (intermitência) e Súmula 139 (integração)", tipo: sumula, para_que_serve: "subsidiárias", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "TST, Súmula 228 / Súmula Vinculante 4 STF — base de cálculo (salário mínimo)", tipo: sumula, para_que_serve: "base de cálculo subsidiária", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "O LTCAT do setor, com medições, não constata agente acima do limite; os EPIs (CA nº …) neutralizam e foram entregues/trocados conforme fichas assinadas."
+        - "Laudos periciais judiciais anteriores no mesmo centro de custo concluíram pela ausência de insalubridade."
+        - "Protesta-se pela perícia (art. 195) com quesitos e assistente técnico."
+    pedidos:
+      - "Improcedência do adicional de insalubridade."
+    pedidos_subsidiarios:
+      - "Se devido: grau conforme laudo, base de cálculo no salário mínimo (SV 4), limitação ao período sem EPI comprovado, dedução de valores pagos, honorários periciais pelo reclamante se sucumbente no objeto (art. 790-B)."
+    risco_se_mal_aplicada: "Contestar insalubridade em limpeza hospitalar/banheiros coletivos ou mineração sem fichas de EPI completas: perícia desfavorável e custo pericial; avaliar acordo no pedido (X05)."
+    ativa: true
+
+  - id: T07.1
+    nome: "Adicional de periculosidade — ausência de exposição (NR-16) ou exposição eventual/fortuita"
+    categoria: merito
+    ordem: 10
+    pai: T07
+    resumo: >-
+      O reclamante não trabalhava em área de risco (inflamáveis, explosivos, energia elétrica,
+      segurança patrimonial, motocicleta) ou o contato era eventual/fortuito (Súmula 364); laudo do
+      setor e descrição de atividades comprovam.
+    condicoes_aplicacao:
+      - { campo: ltcat_localizado, operador: "==", valor: true }
+    provas_necessarias:
+      - { tipo_documento: ltcat, descricao: "Laudo de periculosidade do setor com delimitação de áreas de risco (NR-16/NR-20)", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: descricao_cargo, descricao: "Descrição de atividades e local de trabalho do reclamante (layout/planta)", origem: subsidio, obrigatoria: true, peso: 0.9 }
+      - { tipo_documento: laudo_pericial, descricao: "Laudos anteriores no mesmo setor", origem: antifraude, obrigatoria: false, peso: 0.9 }
+    provas_que_afastam:
+      - { tipo_documento: ltcat, descricao: "Laudo próprio delimita área de risco que inclui o posto do reclamante", origem: subsidio, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: ficha_registro, descricao: "Função de vigilante/segurança patrimonial (Lei 12.740/2012) ou uso de motocicleta registrado", origem: subsidio, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CLT, art. 193 e §§; NR-16; NR-20", tipo: dispositivo, para_que_serve: "hipóteses e áreas de risco", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "TST, Súmula 364 (I e II) — exposição eventual/fortuita e tempo reduzido", tipo: sumula, para_que_serve: "afastar adicional por contato eventual", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "TST, Súmula 361 (eletricitários — intermitente gera adicional integral) e OJ 324/385 SDI-1 [A CONFERIR]", tipo: sumula, para_que_serve: "riscos a enfrentar", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "Posto de trabalho fora da área de risco delimitada no laudo; contato, se algum, eventual."
+    pedidos:
+      - "Improcedência do adicional de periculosidade."
+    pedidos_subsidiarios:
+      - "Se devido: 30 % sobre o salário básico (art. 193, § 1º), sem acréscimos; não cumulação com insalubridade (§ 2º) [A CONFERIR — controvérsia sobre cumulação]."
+    risco_se_mal_aplicada: "Negar periculosidade de abastecedor/eletricista/vigilante com laudo próprio reconhecendo área de risco."
+    ativa: true
+
+  # ---------------------------------------------------------------- MÉRITO — RESCISÃO
+  - id: T08
+    nome: "Verbas rescisórias — TRCT, comprovante de pagamento no prazo, FGTS e multa do art. 477 indevida"
+    categoria: merito
+    ordem: 11
+    pai: null
+    resumo: >-
+      As verbas rescisórias foram corretamente calculadas, pagas no prazo do art. 477, § 6º,
+      e o FGTS recolhido/liberado; TRCT assinado (e homologado quando exigível). Não há diferenças
+      nem multas dos arts. 467 e 477.
+    condicoes_aplicacao:
+      - { campo: trct_homologado_ou_assinado, operador: "==", valor: true }
+      - { campo: comprovante_pagamento_rescisao, operador: "==", valor: true }
+    provas_necessarias:
+      - { tipo_documento: trct, descricao: "TRCT com discriminação das verbas e assinatura", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: comprovante_pagamento, descricao: "Comprovante bancário do pagamento das rescisórias com data", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: extrato_fgts, descricao: "Extrato analítico do FGTS, GRRF e chave de conectividade", origem: subsidio, obrigatoria: true, peso: 0.9 }
+      - { tipo_documento: aviso_previo, descricao: "Aviso prévio (trabalhado/indenizado) e projeção", origem: subsidio, obrigatoria: false, peso: 0.7 }
+    provas_que_afastam:
+      - { tipo_documento: comprovante_pagamento, descricao: "Pagamento após o 10º dia (art. 477, § 6º) sem culpa do empregado", origem: subsidio, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: extrato_fgts, descricao: "Competências sem recolhimento de FGTS", origem: subsidio, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: trct, descricao: "Verbas calculadas sobre base inferior (sem média de extras/adicionais habituais)", origem: subsidio, obrigatoria: false, peso: 0.8 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CLT, arts. 477, §§ 6º, 8º e 10, e 467; art. 487 (aviso prévio); Lei 12.506/2011", tipo: dispositivo, para_que_serve: "prazo, multa, verbas incontroversas, aviso proporcional", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "Lei 8.036/1990, art. 18 (FGTS e multa de 40 %)", tipo: dispositivo, para_que_serve: "regularidade do FGTS", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "TST, Súmula 330 (eficácia liberatória da quitação no TRCT — parcelas discriminadas) [A CONFERIR vigência pós-reforma]", tipo: sumula, para_que_serve: "quitação das parcelas pagas", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "TST, Súmula 462 (multa do art. 477 devida mesmo com reconhecimento judicial do vínculo) — enfrentar", tipo: sumula, para_que_serve: "risco", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "Rescisórias pagas em DD/MM (comprovante), dentro do prazo legal; FGTS integralmente recolhido (extrato)."
+        - "Verbas incontroversas inexistentes; multa do art. 467 indevida porque há controvérsia fundada."
+    pedidos:
+      - "Improcedência das diferenças rescisórias e das multas dos arts. 467 e 477."
+    pedidos_subsidiarios:
+      - "Dedução dos valores pagos no TRCT; multa do art. 477 limitada a um salário; FGTS apenas das competências comprovadamente faltantes."
+    risco_se_mal_aplicada: "Negar multa do art. 477 com comprovante de pagamento fora do prazo anexo."
+    ativa: true
+
+  - id: T08.1
+    nome: "Justa causa — gradação de penalidades, imediatidade, proporcionalidade e prova do fato (art. 482)"
+    categoria: merito
+    ordem: 12
+    pai: T08
+    resumo: >-
+      A dispensa por justa causa observou tipicidade (alínea do art. 482), prova robusta do fato,
+      imediatidade entre a ciência e a punição, proporcionalidade/gradação (advertências e suspensões
+      anteriores, salvo falta grave única) e ausência de dupla punição.
+    condicoes_aplicacao:
+      - { campo: modalidade_rescisao, operador: "==", valor: justa_causa }
+      - { campo: justa_causa_documentada, operador: "==", valor: true }
+    provas_necessarias:
+      - { tipo_documento: advertencia_suspensao, descricao: "Advertências e suspensões anteriores assinadas (ou com recusa testemunhada)", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: sindicancia, descricao: "Apuração interna do fato (relatório, imagens, depoimentos, BO se aplicável)", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: comunicacao_dispensa, descricao: "Comunicação da justa causa com a alínea e data", origem: subsidio, obrigatoria: true, peso: 0.9 }
+      - { tipo_documento: regulamento_interno, descricao: "Regulamento/código de conduta com ciência do empregado", origem: subsidio, obrigatoria: false, peso: 0.7 }
+    provas_que_afastam:
+      - { tipo_documento: sindicancia, descricao: "Lapso superior a 30 dias [A CONFERIR] entre a ciência do fato e a dispensa sem justificativa (perdão tácito)", origem: subsidio, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: advertencia_suspensao, descricao: "Mesmo fato já punido com advertência/suspensão (dupla punição)", origem: subsidio, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: sindicancia, descricao: "Prova do fato exclusivamente por depoimento de preposto/gestor interessado", origem: subsidio, obrigatoria: false, peso: 0.8 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CLT, art. 482 (alíneas) e art. 818, II", tipo: dispositivo, para_que_serve: "tipicidade e ônus do empregador", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "TST — requisitos da justa causa (imediatidade, proporcionalidade, non bis in idem, gradação) — Súmula 32 (abandono) e jurisprudência [A CONFERIR]", tipo: precedente, para_que_serve: "requisitos", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "TRT-8 — orientação sobre prova da justa causa e perdão tácito [A CONFERIR]", tipo: precedente, para_que_serve: "jurisprudência regional", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "Fato grave provado por apuração documentada; punição imediata e proporcional, após gradação anterior."
+    pedidos:
+      - "Improcedência da reversão da justa causa e das verbas dela decorrentes."
+    pedidos_subsidiarios:
+      - "Se revertida: verbas da dispensa imotivada sem dano moral (a reversão em si não o gera [A CONFERIR]); dedução de valores pagos."
+    risco_se_mal_aplicada: "Sustentar justa causa sem sindicância nem gradação, ou com lapso longo, converte em dispensa imotivada com multa e pode gerar dano moral."
+    ativa: true
+
+  # ---------------------------------------------------------------- MÉRITO — EQUIPARAÇÃO
+  - id: T09
+    nome: "Equiparação salarial — fatos impeditivos do art. 461 (tempo na função > 4 anos, tempo no empregador > 2 anos, produtividade/perfeição, quadro de carreira)"
+    categoria: merito
+    ordem: 13
+    pai: null
+    resumo: >-
+      Não há identidade de funções com o paradigma no mesmo estabelecimento, ou presente fato
+      impeditivo: diferença de tempo na função superior a 4 anos, ou de tempo no empregador
+      superior a 2 anos, diferença de produtividade/perfeição técnica, ou quadro de carreira/plano
+      de cargos (pós-reforma, sem homologação).
+    condicoes_aplicacao:
+      - { campo: paradigma_indicado, operador: existe }
+    provas_necessarias:
+      - { tipo_documento: ficha_registro, descricao: "Fichas de registro do reclamante e do paradigma (admissão, função, promoções, estabelecimento)", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: descricao_cargo, descricao: "Descrição de cargos e atribuições efetivas de cada um", origem: subsidio, obrigatoria: true, peso: 0.9 }
+      - { tipo_documento: plano_cargos, descricao: "Plano de cargos e salários com promoções alternadas por merecimento e antiguidade", origem: subsidio, obrigatoria: false, peso: 0.9 }
+      - { tipo_documento: avaliacao_desempenho, descricao: "Avaliações de desempenho/produtividade que diferenciem o paradigma", origem: subsidio, obrigatoria: false, peso: 0.7 }
+    provas_que_afastam:
+      - { tipo_documento: ficha_registro, descricao: "Mesma função, mesmo estabelecimento, diferença de tempo inferior aos limites, sem plano de cargos", origem: subsidio, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CLT, art. 461, caput e §§ 1º a 6º (redação da Lei 13.467/2017)", tipo: dispositivo, para_que_serve: "requisitos e fatos impeditivos; mesmo estabelecimento; 4 anos na função / 2 no empregador", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CLT, art. 818, II", tipo: dispositivo, para_que_serve: "ônus do empregador quanto aos fatos impeditivos", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "TST, Súmula 6 (itens vigentes pós-reforma) [A CONFERIR quais itens subsistem]", tipo: sumula, para_que_serve: "ônus da prova, equiparação em cadeia, paradigma remoto", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "Paradigma com X anos a mais na função (> 4) / Y anos no empregador (> 2); funções diversas conforme descrições."
+    pedidos:
+      - "Improcedência da equiparação salarial e reflexos."
+    pedidos_subsidiarios:
+      - "Se deferida: diferenças só a partir da data em que presentes os requisitos; limitação ao período de contemporaneidade; dedução."
+    risco_se_mal_aplicada: "Alegar fato impeditivo sem ficha de registro do paradigma anexa (ônus do empregador — art. 818, II)."
+    ativa: true
+
+  # ---------------------------------------------------------------- MÉRITO — DANO MORAL
+  - id: T10
+    nome: "Dano moral (assédio moral/sexual, revista, cobrança de metas) — ausência de prova do fato e do nexo; canal de denúncia e apuração"
+    categoria: merito
+    ordem: 14
+    pai: null
+    resumo: >-
+      A narrativa de assédio é genérica, sem indicação de fatos, datas, agressor e testemunhas;
+      o reclamante nunca acionou o canal de denúncia; cobrança de metas e fiscalização são exercício
+      regular do poder diretivo. A prova do fato é ônus do reclamante (art. 818, I).
+    condicoes_aplicacao:
+      - { campo: valor_dano_moral_pedido, operador: ">", valor: 0 }
+    provas_necessarias:
+      - { tipo_documento: politica_compliance, descricao: "Política contra assédio, código de conduta e canal de denúncia com ciência do empregado", origem: subsidio, obrigatoria: true, peso: 0.9 }
+      - { tipo_documento: registro_canal_denuncia, descricao: "Ausência de denúncia do reclamante no canal / ou apuração realizada e resultado", origem: subsidio, obrigatoria: true, peso: 0.9 }
+      - { tipo_documento: organograma, descricao: "Organograma com gestores do período (para testemunhas e para verificar se o 'agressor' era superior)", origem: subsidio, obrigatoria: true, peso: 0.8 }
+      - { tipo_documento: avaliacao_desempenho, descricao: "Avaliações e feedbacks sem registro de conflito", origem: subsidio, obrigatoria: false, peso: 0.5 }
+    provas_que_afastam:
+      - { tipo_documento: registro_canal_denuncia, descricao: "Denúncia registrada e não apurada, ou apuração que confirmou o fato", origem: subsidio, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: mensagens, descricao: "Prints/áudios de mensagens ofensivas de gestor juntados pelo reclamante", origem: extracao, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: atestado_medico, descricao: "Afastamento por CID F (transtornos) contemporâneo com CAT ou nexo indicado", origem: extracao, obrigatoria: false, peso: 0.8 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CLT, arts. 223-A a 223-G (dano extrapatrimonial; tarifação — ADI 6.050) e 818, I", tipo: dispositivo, para_que_serve: "requisitos, parâmetros de fixação e ônus", conferido: false, nota: "[A CONFERIR pelo advogado-dono — ADI 6.050: tarifação como critério orientativo]" }
+        - { ref: "CC, arts. 186, 927 e 944; CLT, art. 2º (poder diretivo)", tipo: dispositivo, para_que_serve: "pressupostos e exercício regular", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "Lei 14.457/2022 (CIPA — prevenção e combate ao assédio) [A CONFERIR]", tipo: dispositivo, para_que_serve: "mostrar cumprimento das medidas preventivas", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "TST — assédio moral exige conduta reiterada, prova robusta; cobrança de metas razoável não configura [A CONFERIR]", tipo: precedente, para_que_serve: "regra geral", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "TST — revista de bolsas/pertences impessoal sem contato físico não gera dano (Súmula/OJ A CONFERIR); revista íntima gera", tipo: precedente, para_que_serve: "varejo/call center", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "TRT-8 — faixa de dano moral por assédio e por atraso de salários [A CONFERIR]", tipo: precedente, para_que_serve: "quantum subsidiário", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "Narrativa genérica, sem fato datado nem agressor identificado; nenhuma denúncia no canal disponível."
+        - "Cobrança de metas e fiscalização impessoal integram o poder diretivo."
+        - "Subsidiariamente, fixação pelos parâmetros do art. 223-G em grau leve."
+    pedidos:
+      - "Improcedência do pedido de dano moral."
+    pedidos_subsidiarios:
+      - "Fixação em grau leve (art. 223-G, § 1º, I — orientativo) proporcional; juros/correção conforme ADC 58 e Lei 14.905/2024 [A CONFERIR]."
+    risco_se_mal_aplicada: "Negar assédio com denúncia interna registrada e não apurada, ou com prints anexos, agrava o quantum e expõe a empresa; sempre segunda revisão por sócio (X06)."
+    ativa: true
+
+  # ---------------------------------------------------------------- MÉRITO — TERCEIRIZAÇÃO
+  - id: T11
+    nome: "Responsabilidade subsidiária do tomador — licitude da terceirização, fiscalização documentada, benefício de ordem e limites (Súmula 331; Temas 725 e 246 STF)"
+    categoria: merito
+    ordem: 15
+    pai: null
+    resumo: >-
+      Quando o cliente é o tomador: a terceirização é lícita (Tema 725), não há vínculo nem
+      responsabilidade solidária; eventual subsidiariedade pressupõe inadimplemento da prestadora
+      e, para ente público, culpa in vigilando comprovada pelo reclamante (Tema 246/1.118); o
+      tomador fiscalizou (documentos), tem benefício de ordem e não responde por multas
+      personalíssimas nem por período fora do contrato.
+    condicoes_aplicacao:
+      - { campo: cliente_e_tomador, operador: "==", valor: true }
+      - { campo: contrato_prestacao_servicos_localizado, operador: "==", valor: true }
+    provas_necessarias:
+      - { tipo_documento: contrato_prestacao_servicos, descricao: "Contrato tomador × prestadora com vigência e objeto", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: fiscalizacao_contrato, descricao: "Comprovantes de fiscalização: retenção de notas, certidões, guias FGTS/INSS, folha, ponto, visitas", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: ficha_registro, descricao: "Registro do reclamante pela prestadora (sem subordinação direta ao tomador)", origem: subsidio, obrigatoria: true, peso: 0.9 }
+    provas_que_afastam:
+      - { tipo_documento: fiscalizacao_contrato, descricao: "Nenhum registro de fiscalização; prestadora inadimplente conhecida", origem: subsidio, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: mensagens, descricao: "Ordens diretas de prepostos do tomador ao reclamante (subordinação direta → vínculo/solidariedade)", origem: extracao, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "Lei 6.019/1974, arts. 4º-A, 5º-A e 5º-D (redação das Leis 13.429 e 13.467/2017)", tipo: dispositivo, para_que_serve: "licitude e responsabilidade subsidiária legal", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "Lei 8.666/1993, art. 71, § 1º / Lei 14.133/2021, art. 121", tipo: dispositivo, para_que_serve: "ente público", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "TST, Súmula 331 (I a VI)", tipo: sumula, para_que_serve: "alcance da subsidiariedade e necessidade de participação no processo", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "STF, Tema 725 (ADPF 324 / RE 958.252) — licitude da terceirização de atividade-fim", tipo: tema, para_que_serve: "afastar vínculo/ilicitude", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "STF, Tema 246 (RE 760.931) e Tema 1.118 — ente público: ônus da prova da culpa in vigilando [A CONFERIR estado do julgamento]", tipo: tema, para_que_serve: "ente público tomador", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "TST — limites da subsidiariedade: multas personalíssimas (arts. 467/477), período contratual, benefício de ordem [A CONFERIR OJs]", tipo: precedente, para_que_serve: "limitar a extensão", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "Terceirização lícita; tomador fiscalizou (documentos anexos); sem subordinação direta."
+        - "Subsidiariedade, se houver, limitada ao período do contrato, excluídas obrigações personalíssimas, com benefício de ordem (sócios da prestadora primeiro)."
+    pedidos:
+      - "Exclusão do tomador da lide / improcedência da responsabilidade subsidiária."
+    pedidos_subsidiarios:
+      - "Limitação temporal e material da subsidiariedade; benefício de ordem; exclusão de multas e obrigações de fazer personalíssimas."
+    risco_se_mal_aplicada: "Negar subsidiariedade sem nenhum documento de fiscalização: Súmula 331, IV, é aplicada quase automaticamente."
+    ativa: true
+
+  # ---------------------------------------------------------------- SUBSIDIÁRIAS
+  - id: T12
+    nome: "Parâmetros de liquidação — dedução/compensação, juros e correção (ADC 58/59 e Lei 14.905/2024), descontos fiscais e previdenciários"
+    categoria: subsidiaria
+    ordem: 16
+    pai: null
+    resumo: >-
+      Em caso de condenação: dedução de valores pagos sob os mesmos títulos; correção pelo IPCA-E na
+      fase pré-judicial e, a partir da citação, taxa SELIC (ADC 58/59), com a alteração da Lei
+      14.905/2024 a partir de sua vigência [A CONFERIR]; retenção de IR e INSS (Súmula 368;
+      OJ 400); honorários periciais pelo sucumbente no objeto (art. 790-B).
+    condicoes_aplicacao:
+      - { campo: valor_causa, operador: ">", valor: 0 }
+    provas_necessarias:
+      - { tipo_documento: holerite, descricao: "Holerites para dedução dos valores pagos", origem: subsidio, obrigatoria: true, peso: 0.9 }
+    provas_que_afastam: []
+    fundamentacao:
+      dispositivos:
+        - { ref: "CLT, arts. 879, § 7º, 883 e 790-B; Lei 8.177/1991, art. 39", tipo: dispositivo, para_que_serve: "correção, juros e honorários periciais", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "Lei 14.905/2024 (CC, arts. 389 e 406 — IPCA + SELIC deduzido IPCA)", tipo: dispositivo, para_que_serve: "índices após 30/08/2024 [A CONFERIR]", conferido: false, nota: "[A CONFERIR pelo advogado-dono — aplicação na Justiça do Trabalho (decisões do TST em 2024/2025)]" }
+      precedentes:
+        - { ref: "STF, ADC 58 e ADC 59 (IPCA-E pré-judicial + SELIC da citação)", tipo: precedente, para_que_serve: "índices", conferido: false, nota: "[A CONFERIR pelo advogado-dono — modulação e interação com a Lei 14.905]" }
+        - { ref: "TST, Súmula 368 e OJ 400 SDI-1 (IR/INSS; juros não integram base do IR)", tipo: sumula, para_que_serve: "descontos", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "TST, OJ 415 SDI-1 (dedução global de horas extras pagas)", tipo: precedente, para_que_serve: "dedução", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "Dedução integral dos valores pagos sob os mesmos títulos (critério global)."
+        - "Correção e juros conforme ADC 58/59 e Lei 14.905/2024; retenções fiscais e previdenciárias."
+    pedidos:
+      - "Observância dos parâmetros de liquidação acima em caso de condenação."
+    pedidos_subsidiarios: []
+    risco_se_mal_aplicada: "Pedir índice superado (TR) ou omitir a Lei 14.905 gera embargos e perda de credibilidade técnica."
+    ativa: true
+
+  # ---------------------------------------------------------------- SINAL (não é argumento autônomo)
+  - id: T13
+    nome: "Sinais de litigância em série / troca de favores — providências processuais e preparação de audiência"
+    categoria: sinal
+    ordem: 17
+    pai: null
+    resumo: >-
+      Providências (contradita de testemunha por troca de favores — com prova; depoimento pessoal;
+      exibição de documentos; comunicação ao Centro de Inteligência/Corregedoria do TRT-8) que só
+      entram na peça ou no briefing se o advogado-revisor confirmar os flags do M4: reclamante com
+      múltiplas ações contra o grupo, testemunhas recíprocas, pedidos idênticos em série do mesmo
+      escritório, atestados repetidos. Jamais rotular reclamante, testemunha ou advogado.
+    condicoes_aplicacao:
+      - { campo: testemunha_reciproca, operador: "==", valor: true }
+    provas_necessarias:
+      - { tipo_documento: relatorio_antifraude, descricao: "Flags do M4 com evidência (CNJs cruzados, atas de audiência) e decisão humana registrada (human_decide)", origem: antifraude, obrigatoria: true, peso: 1.0 }
+    provas_que_afastam:
+      - { tipo_documento: relatorio_antifraude, descricao: "Flags não confirmados por advogado com OAB", origem: antifraude, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CLT, arts. 793-A a 793-D (litigância de má-fé, inclusive testemunha) e 829; CPC, arts. 447, § 3º, e 457", tipo: dispositivo, para_que_serve: "contradita e má-fé — usar com prova", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "TST, Súmula 357 (não torna suspeita a testemunha só por litigar contra o mesmo empregador) — limite da contradita", tipo: sumula, para_que_serve: "risco: só a reciprocidade com o mesmo objeto justifica a contradita [A CONFERIR jurisprudência SDI-1]", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CNJ — Recomendação sobre litigância predatória; TRT-8 — Centro de Inteligência / Corregedoria [A CONFERIR]", tipo: norma_regulatoria, para_que_serve: "canal institucional", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "Contradita fundamentada em reciprocidade comprovada (atas das duas ações), não na mera condição de litigante."
+        - "Depoimento pessoal e exibição de documentos; comunicação institucional do padrão sem imputar conduta a pessoa."
+    pedidos:
+      - "Contradita (em audiência) com a prova; depoimento pessoal; exibição de documentos; demais providências."
+    pedidos_subsidiarios: []
+    risco_se_mal_aplicada: "Contradita com base só na Súmula 357 invertida ou acusação de má-fé sem prova gera multa ao réu e antipatia do juízo; só após decisão humana registrada."
+    ativa: true
+
+# -----------------------------------------------------------------------------
+# EXCEÇÕES — a esteira para e devolve ao humano
+# -----------------------------------------------------------------------------
+excecoes:
+  - id: X01
+    descricao: "Contrato/ficha de registro, cartões de ponto ou holerites não entregues pelo cliente"
+    condicoes:
+      - { campo: contrato_trabalho_localizado, operador: "==", valor: false }
+    acao: pedir_subsidio
+    nota: "Volta ao M3 com prazo; sem registro e ponto a defesa de jornada é inviável (Súmula 338, I)."
+  - id: X02
+    descricao: "Sem controle de ponto em estabelecimento com mais de 20 empregados"
+    condicoes:
+      - { campo: controle_ponto_tipo, operador: "==", valor: inexistente }
+      - { campo: empregados_estabelecimento_n, operador: ">", valor: 20, nota: "[A CONFERIR pelo advogado-dono] limite legal vigente" }
+    acao: sinalizar_acordo
+    nota: "Presunção da jornada da inicial (Súmula 338, I); modelar acordo no pedido de horas extras."
+  - id: X03
+    descricao: "Indício de passivo real (sem ficha de EPI, rescisão fora do prazo, laudo anterior desfavorável, denúncia não apurada)"
+    condicoes:
+      - { campo: indicio_passivo_real, operador: "==", valor: true }
+    acao: sinalizar_acordo
+    nota: "Defender integralmente é temerário; priorizar acordo nos pedidos expostos e defender os demais."
+  - id: X04
+    descricao: "Pedido de dano moral por assédio moral/sexual"
+    condicoes:
+      - { campo: dano_moral_fundamento, operador: in, valor: [assedio_moral, assedio_sexual] }
+    acao: escalar_socio
+    nota: "Segunda revisão obrigatória por sócio; verificar canal de denúncia/apuração; avaliar exposição reputacional."
+  - id: X05
+    descricao: "Insalubridade/periculosidade com laudo anterior desfavorável no mesmo centro de custo"
+    condicoes:
+      - { campo: laudo_anterior_mesmo_setor, operador: "==", valor: desfavoravel }
+    acao: sinalizar_acordo
+    nota: "Perícia tende a repetir o resultado; custo pericial + adicional; modelar acordo no pedido."
+  - id: X06
+    descricao: "Valor da causa acima da alçada X do cliente"
+    condicoes:
+      - { campo: valor_causa, operador: ">", valor: 100000.0, nota: "[A CONFERIR pelo advogado-dono] valor X do cliente" }
+    acao: alertar_revisor
+    nota: "Exige segunda revisão por sócio."
+  - id: X07
+    descricao: "Fora da tipologia: acidente grave/morte, doença ocupacional com incapacidade, ACP, dissídio, pejotização de executivo"
+    condicoes:
+      - { campo: dano_moral_fundamento, operador: "==", valor: acidente }
+    acao: nao_gerar_minuta
+    nota: "Reclassificar para playbook de acidente/doença ocupacional (peça específica)."
+  - id: X08
+    descricao: "Justa causa sem documentação (sem advertências/sindicância)"
+    condicoes:
+      - { campo: modalidade_rescisao, operador: "==", valor: justa_causa }
+      - { campo: justa_causa_documentada, operador: "==", valor: false }
+    acao: sinalizar_acordo
+    nota: "Reversão provável; propor conversão em dispensa imotivada com pagamento das verbas em acordo."
+  - id: X09
+    descricao: "Audiência em menos de 5 dias úteis sem organograma/testemunhas definidas"
+    condicoes:
+      - { campo: data_audiencia, operador: existe }
+      - { campo: organograma_localizado, operador: "==", valor: false }
+    acao: alertar_revisor
+    nota: "Briefing de audiência incompleto; priorizar definição de preposto e testemunhas."
+  - id: X10
+    descricao: "Tomador ente público (Tema 246/1.118)"
+    condicoes:
+      - { campo: cliente_e_tomador, operador: "==", valor: true }
+      - { campo: tomador_ente_publico, operador: "==", valor: true }
+    acao: alertar_revisor
+    nota: "Regime próprio de ônus da prova; revisor confere estado do Tema 1.118 [A CONFERIR]."
+
+# -----------------------------------------------------------------------------
+# SINAIS DE ACORDO — modelagem financeira por pedido
+# -----------------------------------------------------------------------------
+sinais_acordo:
+  politica: >-
+    O acordo trabalhista é modelado POR PEDIDO: para cada pedido, M5/M11 calculam (a) pior cenário
+    (procedência total com reflexos, limitada à inicial), (b) valor provável (pior cenário ×
+    probabilidade de êxito do reclamante, estimada pela taxa histórica da tese × vara × laudos do
+    centro de custo) e (c) ideal de acordo (provável × fator de antecipação, descontados custo de
+    perícia, honorários e tempo). Defender os pedidos com prova documental forte (ponto válido,
+    EPI completo, TRCT no prazo) e acordar cedo (na audiência inicial, quando o cliente autorizar)
+    os pedidos expostos. A plataforma apresenta a tabela; a decisão é do advogado/cliente.
+    Fatores e faixas abaixo são ilustrativos [A CONFERIR pelo advogado-dono].
+  quando_acordar:
+    - condicoes:
+        - { campo: indicio_passivo_real, operador: "==", valor: true }
+      racional: "Passivo documentalmente provável; acordo antes da instrução evita juros, honorários e perícia."
+    - condicoes:
+        - { campo: controle_ponto_tipo, operador: in, valor: [inexistente, britanico] }
+      racional: "Jornada da inicial presumida (Súmula 338); horas extras são o pedido de maior valor."
+    - condicoes:
+        - { campo: laudo_anterior_mesmo_setor, operador: "==", valor: desfavoravel }
+      racional: "Perícia tende a repetir; acordo no pedido evita adicional + honorários periciais."
+    - condicoes:
+        - { campo: rescisao_paga_no_prazo, operador: "==", valor: false }
+      racional: "Multa do art. 477 e diferenças incontroversas (art. 467) — pagar o incontroverso em audiência."
+    - condicoes:
+        - { campo: valor_ideal_acordo, operador: ">", valor: 0 }
+        - { campo: rito, operador: "==", valor: sumarissimo }
+      racional: "Rito sumaríssimo: instrução em audiência una; custo de defesa alto frente ao valor; acordar no ideal."
+  quando_nao_acordar:
+    - condicoes:
+        - { campo: controle_ponto_tipo, operador: "==", valor: eletronico_rep }
+        - { campo: ponto_com_variacao, operador: "==", valor: true }
+        - { campo: horas_extras_pagas_holerite, operador: "==", valor: true }
+      racional: "Jornada documentalmente provada e paga; acordo alimenta ações em série no mesmo centro de custo."
+    - condicoes:
+        - { campo: laudo_anterior_mesmo_setor, operador: "==", valor: favoravel }
+        - { campo: ficha_epi_localizada, operador: "==", valor: true }
+      racional: "Perícia tende a repetir resultado favorável; honorários periciais do reclamante (art. 790-B)."
+    - condicoes:
+        - { campo: acoes_mesmo_reclamante_grupo_n, operador: ">=", valor: 2 }
+      racional: "Reclamante serial contra o grupo; política de não acordar salvo decisão do cliente."
+    - condicoes:
+        - { campo: testemunha_reciproca, operador: "==", valor: true }
+      racional: "Troca de favores detectada: instruir e contraditar antes de negociar."
+  faixas_valor:
+    - grupo_comarcas: "Belém e Região Metropolitana (Varas do Trabalho de Belém, Ananindeua, Castanhal)"
+      comarcas: ["Belém", "Ananindeua", "Castanhal"]
+      valor_min: 3000.0
+      valor_max: 25000.0
+      moeda: BRL
+      base: "ILUSTRATIVO [A CONFERIR pelo advogado-dono] — substituir por valor_ideal_acordo calculado por pedido; faixa serve só de sanity check (acordos típicos de reclamatória de terceirizada/call center/varejo)"
+      calibrar: true
+    - grupo_comarcas: "Sudeste do Pará — mineração e cadeia (Marabá, Parauapebas, Canaã dos Carajás, Tucuruí)"
+      comarcas: ["Marabá", "Parauapebas", "Canaã dos Carajás", "Tucuruí"]
+      valor_min: 8000.0
+      valor_max: 60000.0
+      moeda: BRL
+      base: "ILUSTRATIVO [A CONFERIR pelo advogado-dono] — salários e adicionais maiores (mineração/serviços industriais); condenações mais altas em insalubridade/periculosidade"
+      calibrar: true
+    - grupo_comarcas: "Oeste do Pará e Amapá (Santarém, Altamira, Itaituba, Macapá, Santana)"
+      comarcas: ["Santarém", "Altamira", "Itaituba", "Macapá", "Santana"]
+      valor_min: 4000.0
+      valor_max: 35000.0
+      moeda: BRL
+      base: "ILUSTRATIVO [A CONFERIR pelo advogado-dono]"
+      calibrar: true
+    - grupo_comarcas: "Demais Varas do TRT-8"
+      comarcas: ["*"]
+      valor_min: 3000.0
+      valor_max: 30000.0
+      moeda: BRL
+      base: "ILUSTRATIVO [A CONFERIR pelo advogado-dono]"
+      calibrar: true
+  alcadas:
+    - { ate_valor: 10000.0, aprovador: "advogado trabalhista responsável pela carteira [A CONFERIR]" }
+    - { ate_valor: 50000.0, aprovador: "sócio FBS + RH/jurídico do cliente [A CONFERIR]" }
+    - { ate_valor: 9999999.0, aprovador: "comitê do cliente [A CONFERIR]" }
+  decisao_final: "A decisão de acordar, e o valor por pedido, é do advogado/cliente; a plataforma apresenta pior/provável/ideal e registra a decisão."
+
+# -----------------------------------------------------------------------------
+# ANTIFRAUDE ESPECÍFICO (M4)
+# -----------------------------------------------------------------------------
+antifraude:
+  regra_inviolavel: "Nenhuma checagem produz rótulo de 'fraudador'; só flags com evidência. Apenas decisão humana registrada com OAB (human_decide) confirma um flag."
+  checagens:
+    - codigo: procuracao_presente
+      descricao: "Procuração juntada aos autos"
+      parametros: {}
+      severidade: high
+      evidencia_esperada: "page_type 'procuracao' ausente"
+      implementada_em_m4: true
+      calibrar: false
+    - codigo: reclamante_multiplas_acoes_grupo
+      descricao: "Reclamante com N+ ações contra empresas do mesmo grupo econômico/tomador ou contra prestadoras sucessivas no mesmo contrato"
+      parametros: { n_min: 2, janela_dias: 1095 }
+      severidade: medium
+      evidencia_esperada: "lista de CNJs, rés e objetos"
+      implementada_em_m4: false
+      calibrar: true
+    - codigo: testemunha_reciproca
+      descricao: "Testemunha do reclamante é autora de ação em que o reclamante é/foi testemunha, com o mesmo objeto (troca de favores)"
+      parametros: { fontes: ["atas_audiencia", "rol_testemunhas", "publicacoes"] }
+      severidade: high
+      evidencia_esperada: "par de CNJs, atas/róis com os nomes cruzados e objetos"
+      implementada_em_m4: false
+      calibrar: false
+    - codigo: pedidos_identicos_serie
+      descricao: "Mesmo escritório com N+ iniciais contra o cliente com rol de pedidos, jornada narrada e valores idênticos (embedding + campos estruturados)"
+      parametros: { n_min: 5, similaridade_min: 0.95, janela_dias: 180, nota: "[A CONFERIR pelo advogado-dono]" }
+      severidade: medium
+      evidencia_esperada: "score de similaridade, CNJs e campos idênticos (jornada, pedidos)"
+      implementada_em_m4: false
+      calibrar: true
+    - codigo: atestados_repetidos
+      descricao: "Atestados médicos do reclamante idênticos (médico, CRM, texto, CID) aos de outros reclamantes contra o cliente"
+      parametros: {}
+      severidade: medium
+      evidencia_esperada: "hash/texto dos atestados e CNJs em que aparecem"
+      implementada_em_m4: false
+      calibrar: false
+    - codigo: jornada_inverossimil
+      descricao: "Jornada narrada na inicial fisicamente inverossímil (ex.: > 16h/dia sem folga por anos) ou idêntica à de outras iniciais do mesmo escritório"
+      parametros: { horas_dia_max: 16 }
+      severidade: low
+      evidencia_esperada: "jornada estruturada extraída e comparação"
+      implementada_em_m4: false
+      calibrar: true
+    - codigo: concentracao_advogado_mes
+      descricao: "Mesmo escritório com mais de N ações contra o cliente no mês"
+      parametros: { n_min: 20, janela_dias: 30, nota: "[A CONFERIR pelo advogado-dono] calibrar N com a carteira" }
+      severidade: low
+      evidencia_esperada: "lista de CNJs do mesmo escritório na janela"
+      implementada_em_m4: false
+      calibrar: true
+    - codigo: concentracao_autor
+      descricao: "Mesmo reclamante com 3+ ações na carteira do cliente"
+      parametros: { n_min: 3 }
+      severidade: medium
+      evidencia_esperada: "lista de CNJs do mesmo reclamante"
+      implementada_em_m4: true
+      calibrar: true
+    - codigo: litispendencia
+      descricao: "Processo duplicado (mesmas partes/pedidos/período) em curso ou acordo anterior com quitação"
+      parametros: {}
+      severidade: high
+      evidencia_esperada: "CNJs duplicados ou termo de acordo"
+      implementada_em_m4: true
+      calibrar: false
+    - codigo: gratuidade_x_salario
+      descricao: "Pedido de gratuidade com último salário acima de 40 % do teto do RGPS ou novo emprego registrado"
+      parametros: { fracao_teto_rgps: 0.4, nota: "[A CONFERIR pelo advogado-dono] atualizar teto anualmente" }
+      severidade: medium
+      evidencia_esperada: "último salário (holerite) e CNIS/CTPS digital, se disponível"
+      implementada_em_m4: false
+      calibrar: true
+    - codigo: paradigma_em_serie
+      descricao: "Mesmo paradigma indicado em várias ações de equiparação do mesmo escritório"
+      parametros: { n_min: 3 }
+      severidade: low
+      evidencia_esperada: "nome do paradigma × CNJs"
+      implementada_em_m4: false
+      calibrar: true
+    - codigo: laudo_centro_custo_historico
+      descricao: "Cruzamento (a favor e contra): resultado dos laudos periciais anteriores no mesmo centro de custo/função — alimenta T07 e X05"
+      parametros: { fontes: ["carteira", "publicacoes"] }
+      severidade: info
+      evidencia_esperada: "lista de laudos (CNJ, perito, vara, resultado, agente)"
+      implementada_em_m4: false
+      calibrar: false
+    - codigo: indicio_passivo_real
+      descricao: "Checagem a favor do reclamante: sem ponto/EPI/TRCT no prazo, laudo anterior desfavorável, denúncia interna não apurada — sinaliza que defender integralmente é temerário"
+      parametros: {}
+      severidade: high
+      evidencia_esperada: "registros do próprio cliente (ponto, fichas, comprovantes, canal de denúncia)"
+      implementada_em_m4: false
+      calibrar: false
+
+# -----------------------------------------------------------------------------
+# MODELO DE PEÇA (M6) — contestação + anexos de audiência e acordo
+# -----------------------------------------------------------------------------
+modelo_peca:
+  tipo: contestacao
+  formato_saida: markdown
+  regra_citacao: "Toda afirmação de fato cita document_page_id (draft_citations). Sem página, sem afirmação. Jornada, pagamento e EPI só com cartão/holerite/ficha anexos e identificados por mês."
+  secoes:
+    - { ordem: 1, id: enderecamento, titulo: "Endereçamento, qualificação e tempestividade", obrigatoria: true, teses_vinculadas: [], instrucoes: "Vara do Trabalho, número CNJ, partes, preposto; protocolo até a audiência (CLT, art. 847) ou prazo do PJe.", exige_citacao_de_pagina: false }
+    - { ordem: 2, id: sintese, titulo: "Síntese da reclamatória", obrigatoria: true, teses_vinculadas: [], instrucoes: "Resumir em até 10 linhas: contrato (admissão, função, salário, rescisão), pedidos e valores por pedido.", exige_citacao_de_pagina: true }
+    - { ordem: 3, id: preliminares, titulo: "Preliminares e questões processuais", obrigatoria: false, teses_vinculadas: [T01, T02, T03], instrucoes: "Gratuidade/honorários; litispendência/coisa julgada/quitação; limitação aos valores da inicial. Omitir as não aplicáveis.", exige_citacao_de_pagina: true }
+    - { ordem: 4, id: prejudicial, titulo: "Prejudicial de mérito — prescrição", obrigatoria: false, teses_vinculadas: [T04], instrucoes: "Bienal total se cabível; quinquenal com a data exata; FGTS.", exige_citacao_de_pagina: true }
+    - { ordem: 5, id: fatos, titulo: "Do contrato de trabalho — fatos", obrigatoria: true, teses_vinculadas: [], instrucoes: "Linha do tempo: admissão, função/setor/centro de custo, jornada e escala, salário e adicionais pagos, EPIs, afastamentos, punições, rescisão (modalidade, TRCT, pagamento, FGTS). Cada evento com página.", exige_citacao_de_pagina: true }
+    - { ordem: 6, id: merito_jornada, titulo: "Do mérito — jornada (horas extras, banco de horas, art. 62, intervalo)", obrigatoria: false, teses_vinculadas: [T05, T05.1, T05.2, T06], instrucoes: "Só se houver pedido de jornada. Descrever o controle de ponto com meses de exemplo (variação), confrontar com holerites (demonstrativo), impugnar especificamente a jornada da inicial. Subsidiárias de liquidação ao final.", exige_citacao_de_pagina: true }
+    - { ordem: 7, id: merito_ambiente, titulo: "Do mérito — adicionais de insalubridade e periculosidade", obrigatoria: false, teses_vinculadas: [T07, T07.1], instrucoes: "Só se houver pedido. PGR/LTCAT com medições, EPIs (CA, fichas), ASOs, laudos anteriores do setor; protesto por perícia com quesitos e assistente técnico.", exige_citacao_de_pagina: true }
+    - { ordem: 8, id: merito_rescisao, titulo: "Do mérito — rescisão (verbas, multas, justa causa)", obrigatoria: false, teses_vinculadas: [T08, T08.1], instrucoes: "TRCT, comprovante com data, FGTS; justa causa: fato, prova, gradação, imediatidade.", exige_citacao_de_pagina: true }
+    - { ordem: 9, id: merito_equiparacao, titulo: "Do mérito — equiparação salarial", obrigatoria: false, teses_vinculadas: [T09], instrucoes: "Só se houver paradigma. Fatos impeditivos com fichas de registro de ambos.", exige_citacao_de_pagina: true }
+    - { ordem: 10, id: merito_dano_moral, titulo: "Do mérito — dano moral", obrigatoria: false, teses_vinculadas: [T10], instrucoes: "Só se houver pedido. Impugnar fato a fato; canal de denúncia; poder diretivo; tom respeitoso; subsidiária pelo art. 223-G.", exige_citacao_de_pagina: true }
+    - { ordem: 11, id: merito_terceirizacao, titulo: "Do mérito — responsabilidade do tomador", obrigatoria: false, teses_vinculadas: [T11], instrucoes: "Só se cliente_e_tomador. Licitude, fiscalização documentada, limites e benefício de ordem.", exige_citacao_de_pagina: true }
+    - { ordem: 12, id: liquidacao, titulo: "Parâmetros de liquidação — dedução, juros, correção, descontos", obrigatoria: true, teses_vinculadas: [T12], instrucoes: "ADC 58/59 + Lei 14.905/2024 [A CONFERIR]; OJ 415; Súmula 368; art. 790-B.", exige_citacao_de_pagina: true }
+    - { ordem: 13, id: providencias, titulo: "Providências processuais", obrigatoria: false, teses_vinculadas: [T13], instrucoes: "Só com flags confirmados por human_decide. Contradita fica para a audiência (não antecipar na peça); aqui só depoimento pessoal e exibição. Linguagem neutra.", exige_citacao_de_pagina: true }
+    - { ordem: 14, id: provas, titulo: "Das provas", obrigatoria: true, teses_vinculadas: [], instrucoes: "Depoimento pessoal do reclamante, testemunhal (até 3 no ordinário / 2 no sumaríssimo), perícia técnica com quesitos e assistente, documental suplementar, ofícios (CNIS/CTPS digital).", exige_citacao_de_pagina: false }
+    - { ordem: 15, id: pedidos, titulo: "Dos pedidos", obrigatoria: true, teses_vinculadas: [], instrucoes: "Consolidar por pedido da inicial na mesma ordem: preliminares → prescrição → improcedência pedido a pedido → subsidiárias de liquidação → honorários → provas.", exige_citacao_de_pagina: false }
+    - { ordem: 16, id: anexos, titulo: "Rol de documentos", obrigatoria: true, teses_vinculadas: [], instrucoes: "Listar cada anexo com o tipo do playbook (ficha_registro, cartao_ponto, holerite, trct, pgr_ppra, ltcat, ficha_epi, norma_coletiva, organograma…).", exige_citacao_de_pagina: false }
+    - { ordem: 17, id: briefing_audiencia, titulo: "ANEXO INTERNO — Briefing de audiência (não protocolar)", obrigatoria: true, teses_vinculadas: [T05, T06, T07, T08.1, T09, T10, T13], instrucoes: "Documento interno para preposto e advogado: (1) perguntas ao reclamante por pedido (jornada real, intervalo, EPI, fato do assédio com data/pessoa, paradigma); (2) perguntas às testemunhas do reclamante e pontos de contradita (só com flag confirmado); (3) testemunhas da empresa sugeridas a partir do organograma (gestor direto, colega do mesmo turno, técnico de segurança) com o que cada uma prova; (4) preposto: fatos que deve conhecer (CLT, art. 843, § 1º); (5) tabela de acordo por pedido: pior / provável / ideal e alçada; (6) campos de scoring pós-audiência: qualidade do depoimento do reclamante (1–5), das testemunhas (1–5), postura do juízo, probabilidade revisada por pedido, nova faixa de acordo.", exige_citacao_de_pagina: true }
+    - { ordem: 18, id: modelagem_acordo, titulo: "ANEXO INTERNO — Modelagem financeira do acordo por pedido (não protocolar)", obrigatoria: true, teses_vinculadas: [T12], instrucoes: "Tabela: pedido × valor da inicial × pior cenário (com reflexos, INSS/IR, honorários 5–15 %, perícia) × probabilidade (taxa histórica tese × vara × laudo do setor) × provável × ideal (fator de antecipação [A CONFERIR], ex.: 0,6–0,8 do provável). Total e recomendação (defender × acordar) por pedido. Natureza das parcelas no acordo (indenizatória × salarial) para INSS/IR.", exige_citacao_de_pagina: true }
+  estilo:
+    - "Português formal; frases curtas; sem adjetivação do reclamante, das testemunhas ou do advogado adverso."
+    - "Impugnação específica pedido a pedido (CLT, art. 841; CPC, art. 341): nunca negativa geral."
+    - "Nenhuma afirmação de fato sem página dos autos ou documento anexo identificado por mês/competência."
+    - "Referências legais, súmulas e OJs só as conferidas no playbook; indicar redação pós-Reforma quando houver diferença temporal."
+    - "Anexos internos (briefing e modelagem) nunca são protocolados; M6 os gera em arquivo separado."
+
+# -----------------------------------------------------------------------------
+# CRITÉRIOS DE REVISÃO (M7)
+# -----------------------------------------------------------------------------
+criterios_revisao:
+  tempo_minimo_segundos: 1500
+  papel_minimo_revisor: lawyer
+  exige_segunda_revisao_se:
+    - { campo: valor_causa, operador: ">", valor: 100000.0, nota: "[A CONFERIR pelo advogado-dono] valor X do cliente" }
+    - { campo: dano_moral_fundamento, operador: in, valor: [assedio_moral, assedio_sexual] }
+    - { campo: indicio_passivo_real, operador: "==", valor: true }
+    - { campo: modalidade_rescisao, operador: "==", valor: justa_causa }
+    - { campo: tomador_ente_publico, operador: "==", valor: true }
+  checklist:
+    - { id: R01, item: "Cada fato da peça tem citação de página dos autos ou documento anexo identificado (mês/competência)", bloqueante: true }
+    - { id: R02, item: "Todas as súmulas, OJs, artigos e temas citados estão conferidos no playbook; redação pós-Reforma indicada quando relevante (nenhum placeholder sobrou)", bloqueante: true }
+    - { id: R03, item: "Impugnação específica de cada pedido da inicial; nenhum pedido ficou sem resposta (revelia parcial/confissão ficta)", bloqueante: true }
+    - { id: R04, item: "T05 só foi usada com cartões de ponto do período completo, com variação, e holerites/demonstrativo anexos", bloqueante: true }
+    - { id: R05, item: "T07/T07.1 só com PGR/LTCAT + fichas de EPI com CA anexos; laudos anteriores do setor verificados", bloqueante: true }
+    - { id: R06, item: "T08 só com TRCT + comprovante de pagamento datado + extrato FGTS; T08.1 só com advertências/sindicância anexas", bloqueante: true }
+    - { id: R07, item: "T11 só com contrato de prestação + documentos de fiscalização; limites da subsidiariedade pedidos", bloqueante: true }
+    - { id: R08, item: "Nenhuma expressão imputa fraude/má-fé ao reclamante, testemunha ou advogado sem flag confirmado por human_decide; contradita não antecipada na peça", bloqueante: true }
+    - { id: R09, item: "Parâmetros de liquidação presentes e atualizados (ADC 58/59, Lei 14.905/2024, OJ 415, Súmula 368, art. 790-B)", bloqueante: true }
+    - { id: R10, item: "Briefing de audiência preenchido: preposto definido, testemunhas do organograma, perguntas por pedido, tabela de acordo com alçada", bloqueante: true }
+    - { id: R11, item: "Modelagem de acordo (pior/provável/ideal por pedido) revisada e decisão defender × acordar registrada por pedido", bloqueante: true }
+    - { id: R12, item: "Dano moral por assédio: sócio revisou tom, exposição reputacional e canal de denúncia", bloqueante: true }
+    - { id: R13, item: "Anexos internos separados da peça a protocolar", bloqueante: true }
+    - { id: R14, item: "Tom respeitoso; sem minimizar relato de assédio ou condições de trabalho em mineração/limpeza", bloqueante: false }
+  motivos_recusa_padrao:
+    - "Fato sem prova citável"
+    - "Pedido da inicial sem impugnação específica"
+    - "Tese aplicada sem prova necessária (jornada sem ponto; insalubridade sem EPI/laudo; justa causa sem gradação)"
+    - "Referência legal/súmula/OJ não conferida, superada ou com redação pré-Reforma aplicada a período posterior"
+    - "Parâmetros de liquidação ausentes ou desatualizados"
+    - "Linguagem imputa fraude/má-fé sem decisão humana"
+    - "Briefing de audiência ou modelagem de acordo ausentes/incompletos"
+    - "Caso deveria ir para acordo/escalada em pedidos específicos, não para defesa integral"
+
+# -----------------------------------------------------------------------------
+# MÉTRICAS (M10/M11)
+# -----------------------------------------------------------------------------
+metricas:
+  - { id: M01, nome: "Tempo médio de revisão por contestação", definicao: "média de reviews.review_seconds para drafts desta tipologia", meta: "< 45 min com qualidade [A CONFERIR]", fonte: reviews }
+  - { id: M02, nome: "Aprovação sem alteração substancial", definicao: "% de reviews aprovadas com substantial_change = false", meta: "> 50 % após 200 casos [A CONFERIR]", fonte: reviews }
+  - { id: M03, nome: "Subsídios faltantes detectados antes da defesa", definicao: "% de casos com exceção X01/X02 aberta antes de gerar minuta", meta: "> 90 %", fonte: "dossiers + excecoes" }
+  - { id: M04, nome: "Taxa de êxito por pedido × tese × vara", definicao: "outcomes.result por pedido (improcedente/parcial/procedente) por thesis_version_id e vara vs. baseline; alimenta a probabilidade da modelagem", meta: "≥ baseline + 10 p.p. [A CONFERIR]", fonte: outcomes }
+  - { id: M05, nome: "Condenação média por pedido e vara", definicao: "média de outcomes.award_value por pedido × vara; alimenta pior cenário e faixas", meta: "queda de 20 % vs. baseline [A CONFERIR]", fonte: outcomes }
+  - { id: M06, nome: "Custo de tokens por processo", definicao: "soma de llm_calls.cost_usd por case_id (contestação + briefing + modelagem)", meta: "< US$ 4 por processo [A CONFERIR]", fonte: llm_calls }
+  - { id: M07, nome: "Concordância modelo × revisor sênior", definicao: "gt_tasks.agreement_score médio (amostra semanal)", meta: "> 0,85", fonte: gt_tasks }
+  - { id: M08, nome: "Flags antifraude confirmados por humano", definicao: "% de fraud_checks com result = flag e human_decision = confirmed, por código", meta: "monitorar precisão; recalibrar se < 50 %", fonte: fraud_checks }
+  - { id: M09, nome: "Acordos: valor realizado × ideal modelado", definicao: "razão entre outcomes.award_value em acordos e valor_ideal_acordo; e % de acordos fechados na audiência inicial", meta: "razão entre 0,8 e 1,2; > 40 % na inicial [A CONFERIR]", fonte: outcomes }
+  - { id: M10, nome: "Calibração da probabilidade por pedido", definicao: "Brier score entre probabilidade modelada por pedido e resultado real", meta: "< 0,20 após 300 pedidos [A CONFERIR]", fonte: outcomes }
+  - { id: M11, nome: "Scoring pós-audiência × resultado", definicao: "correlação entre probabilidade revisada no scoring pós-audiência e outcomes.result", meta: "monitorar; ajustar perguntas do briefing", fonte: "reviews + outcomes" }
+  - { id: M12, nome: "Perícias: resultado × laudo histórico do centro de custo", definicao: "% de perícias cujo resultado coincide com o histórico do setor (laudo_centro_custo_historico)", meta: "> 75 %; alimenta X05 e modelagem", fonte: outcomes }
