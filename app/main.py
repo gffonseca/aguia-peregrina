@@ -12,11 +12,13 @@ from app import __version__
 from app.api import api_router
 from app.core.config import get_settings
 from app.core.db import SessionLocal
+from app.core.observabilidade import iniciar_sentry
 from app.core.tenancy import TenantMiddleware, install_tenant_guard
 from app.schemas.common import Health
 
 settings = get_settings()
 logging.basicConfig(level=settings.log_level)
+iniciar_sentry("web")
 
 install_tenant_guard(SessionLocal)
 

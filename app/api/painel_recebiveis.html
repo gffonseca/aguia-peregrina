@@ -34,12 +34,7 @@ a{color:var(--ac)}
   <p>Uma linha por competência e UF. Lance as datas conforme acontecem; o vencimento segue a cl. 18ª (10º dia útil do mês seguinte). Minutas são rascunhos: nada é enviado daqui.</p>
 </header>
 <main>
-  <form id="login" hidden>
-    <label>Chave de operação<input id="k" type="password" autocomplete="off" required></label>
-    <label>Seu nome (fica na trilha de alterações)<input id="u" required></label>
-    <button class="pri">Entrar</button>
-    <span class="mut" id="erro"></span>
-  </form>
+  <form id="login" hidden></form>
   <section id="app" hidden>
     <div class="kpis" id="kpis"></div>
     <div class="wrap"><table>
@@ -50,16 +45,15 @@ a{color:var(--ac)}
   </section>
 </main>
 <dialog id="dlg"><h3 id="dlgt">Minuta</h3><pre id="dlgm"></pre><button id="copiar" class="pri" type="button">Copiar</button> <button type="button" onclick="dlg.close()">Fechar</button></dialog>
+<script src="/painel/sessao.js"></script>
 <script>
 const API="/faturamento/basa";
-const ss={get(k){try{return sessionStorage.getItem(k)}catch(e){return null}},set(k,v){try{sessionStorage.setItem(k,v)}catch(e){}},del(k){try{sessionStorage.removeItem(k)}catch(e){}}};
-const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
-let cred={k:ss.get("k"),t:ss.get("t"),u:ls.get("u")||""};
+let cred={};
 const brl=v=>v==null?"—":v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const MES=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
 const comp=c=>{const[a,m]=c.split("-");return MES[+m-1]+"/"+a};
 const ETAPA={A_ENVIAR:"a enviar",ENVIADA:"enviada",CONFERIDA:"conferida",NF_EMITIDA:"NF emitida",PAGA:"paga"};
-async function api(path,opt={}){const r=await fetch(API+path,{...opt,headers:{"X-Ops-Key":cred.k,"X-Tenant-ID":cred.t||"","X-Usuario":cred.u,"Content-Type":"application/json",...(opt.headers||{})}});if(!r.ok)throw new Error(r.status+" "+(await r.text()));return r.json()}
+const api=(p,o={})=>Sessao.api((typeof API!=="undefined"?API:"")+p,o);
 function campo(it,c,tipo){const v=it[c]??"";const cls=tipo==="valor"?"v":"";const t=tipo==="data"?"date":tipo==="valor"?"number":"text";return `<input class="${cls}" type="${t}" ${t==="number"?'step="0.01"':""} data-id="${it.id}" data-c="${c}" value="${v}">`}
 let dados=null;
 function render(d){dados=d;
@@ -84,15 +78,8 @@ document.getElementById("tb").addEventListener("change",async e=>{const i=e.targ
 document.getElementById("tb").addEventListener("click",e=>{const id=e.target.dataset.min;if(!id)return;const it=dados.itens.find(x=>x.id===id);
   document.getElementById("dlgt").textContent=`Minuta — ${comp(it.competencia)} ${it.uf==="OU"?"outras UFs":it.uf}`;document.getElementById("dlgm").textContent=it.minuta;dlg.showModal()});
 document.getElementById("copiar").onclick=()=>{try{navigator.clipboard.writeText(document.getElementById("dlgm").textContent)}catch(e){}};
-document.getElementById("login").addEventListener("submit",async e=>{e.preventDefault();
-  cred.k=document.getElementById("k").value.trim();cred.u=document.getElementById("u").value.trim();
-  try{const r=await fetch(API+"/setup",{method:"POST",headers:{"X-Ops-Key":cred.k}});if(!r.ok)throw new Error("chave inválida");
-    cred.t=(await r.json()).tenant_id;ss.set("k",cred.k);ss.set("t",cred.t);ls.set("u",cred.u);iniciar()}
-  catch(err){document.getElementById("erro").textContent=err.message}});
-document.getElementById("sair").onclick=()=>{ss.del("k");ss.del("t");location.reload()};
-async function iniciar(){document.getElementById("login").hidden=true;document.getElementById("app").hidden=false;
-  try{await carregar()}catch(e){ss.del("k");document.getElementById("app").hidden=true;document.getElementById("login").hidden=false;document.getElementById("erro").textContent="Sessão expirada: entre de novo."}}
-if(cred.k&&cred.t&&cred.u)iniciar();else{document.getElementById("u").value=cred.u;document.getElementById("login").hidden=false}
+document.getElementById("sair").onclick=()=>Sessao.sair();
+Sessao.iniciar(carregar);
 </script>
 </body>
 </html>

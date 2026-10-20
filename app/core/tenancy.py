@@ -84,6 +84,11 @@ class TenantMiddleware(BaseHTTPMiddleware):
         "/redoc",
         "/auth/login",
         "/auth/mfa",
+        "/auth/tenant",
+        "/auth/convite/senha",
+        "/auth/convite/confirmar",
+        "/painel/entrar",
+        "/painel/sessao.js",
         "/integrations/legalone/probe",  # ops, sem tenant (protegido por X-Ops-Key)
         "/ops/bootstrap",  # ops, cria o tenant (protegido por X-Ops-Key)
         "/ops/tenants",

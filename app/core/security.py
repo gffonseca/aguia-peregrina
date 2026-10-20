@@ -27,6 +27,7 @@ class Principal:
     role: str
     oab: str | None
     mfa_verified: bool
+    email: str | None = None
 
 
 def hash_password(password: str, salt: str | None = None) -> str:
@@ -47,21 +48,31 @@ def _sign(payload: bytes, secret: str) -> str:
     return hmac.new(secret.encode(), payload, hashlib.sha256).hexdigest()
 
 
-def issue_token(principal: Principal, settings: Settings, ttl_seconds: int = 8 * 3600) -> str:
+def issue_token(
+    principal: Principal,
+    settings: Settings,
+    ttl_seconds: int = 8 * 3600,
+    finalidade: str | None = None,
+) -> str:
+    """`finalidade` marca tokens que não são de sessão (ex.: 'convite'); decode_token recusa
+    usá-los como sessão."""
     body = {
         "sub": str(principal.user_id),
         "tenant_id": str(principal.tenant_id),
         "role": principal.role,
         "oab": principal.oab,
         "mfa": principal.mfa_verified,
+        "email": principal.email,
         "exp": int(time.time()) + ttl_seconds,
     }
+    if finalidade:
+        body["fin"] = finalidade
     raw = json.dumps(body, separators=(",", ":")).encode()
     b64 = base64.urlsafe_b64encode(raw).decode().rstrip("=")
     return f"{b64}.{_sign(raw, settings.secret_key)}"
 
 
-def decode_token(token: str, settings: Settings) -> Principal:
+def decode_token(token: str, settings: Settings, finalidade: str | None = None) -> Principal:
     try:
         b64, sig = token.split(".")
         raw = base64.urlsafe_b64decode(b64 + "=" * (-len(b64) % 4))
@@ -72,12 +83,15 @@ def decode_token(token: str, settings: Settings) -> Principal:
     body: dict[str, Any] = json.loads(raw)
     if body.get("exp", 0) < time.time():
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "token expirado")
+    if body.get("fin") != finalidade:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "token de outra finalidade")
     return Principal(
         user_id=uuid.UUID(body["sub"]),
         tenant_id=uuid.UUID(body["tenant_id"]),
         role=body["role"],
         oab=body.get("oab"),
         mfa_verified=bool(body.get("mfa")),
+        email=body.get("email"),
     )
 
 
@@ -105,8 +119,8 @@ def require_lawyer(principal: Principal = Depends(require_mfa)) -> Principal:
 
 
 class MFAPlaceholder:
-    """Placeholder de MFA TOTP. Substituir por pyotp + segredo cifrado por usuário."""
+    """Código fixo só para dev/test e só para usuário sem TOTP cadastrado (ver /auth/mfa)."""
 
     @staticmethod
     def verify(code: str) -> bool:
-        return code == "000000"  # DEV ONLY
+        return code == "000000"  # DEV ONLY — recusado quando APP_ENV é staging/prod

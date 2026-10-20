@@ -12,15 +12,15 @@ from __future__ import annotations
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, Body, Depends, Header, HTTPException, Query
+from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from app.api.deps import DB, require_ops_key, tenant_id_dep
+from app.api.deps import DB, Operador, require_operador, tenant_id_dep
 from app.core.config import get_settings
 from app.integrations.msgraph.client import GraphMailClient, para_email
 from app.modules.m13_triagem import servico
 
-router = APIRouter(prefix="/triagem", tags=["triagem"], dependencies=[Depends(require_ops_key)])
+router = APIRouter(prefix="/triagem", tags=["triagem"], dependencies=[Depends(require_operador)])
 
 
 @router.get("")
@@ -39,11 +39,11 @@ def resumo(
 def marcar(
     tid: uuid.UUID,
     corpo: dict[str, Any] = Body(...),
-    x_usuario: str = Header(default="painel", alias="X-Usuario"),
+    op: Operador = Depends(require_operador),
     db: Session = DB,
 ) -> dict[str, Any]:
     try:
-        return servico.marcar(db, tid, str(corpo.get("status")), x_usuario)
+        return servico.marcar(db, tid, str(corpo.get("status")), op.email)
     except KeyError:
         raise HTTPException(404, "e-mail não encontrado") from None
     except ValueError as e:

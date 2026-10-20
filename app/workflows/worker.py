@@ -51,8 +51,10 @@ def _ja_rodou_hoje(tenant_id: str, hoje: str) -> bool:
         current_tenant_id.reset(token)
 
 
-def _pegar_pedido(tenant_id: str) -> dict[str, object] | None:
-    """Pedido manual (POST /faturamento/basa/motor/rodar) ainda não atendido."""
+def _pegar_pedido(tenant_id: str) -> tuple[str, dict[str, object]] | None:
+    """Pedido manual (POST /faturamento/basa/motor/rodar) ainda não atendido. Fica como
+    'executando' até terminar: se o worker reiniciar no meio, `retomar_interrompidas` o devolve
+    à fila."""
     import uuid
 
     token = current_tenant_id.set(uuid.UUID(tenant_id))
@@ -65,9 +67,46 @@ def _pegar_pedido(tenant_id: str) -> dict[str, object] | None:
             )
             if p is None:
                 return None
-            p.status = "atendido"
+            p.status = "executando"
             db.commit()
-            return dict(p.estatisticas or {})
+            return str(p.id), dict(p.estatisticas or {})
+    finally:
+        current_tenant_id.reset(token)
+
+
+def _encerrar_pedido(tenant_id: str, pedido_id: str) -> None:
+    import uuid
+
+    token = current_tenant_id.set(uuid.UUID(tenant_id))
+    try:
+        with SessionLocal() as db:
+            p = db.get(MotorExecucao, uuid.UUID(pedido_id))
+            if p is not None:
+                p.status = "atendido"
+                db.commit()
+    finally:
+        current_tenant_id.reset(token)
+
+
+def retomar_interrompidas(tenant_id: str) -> dict[str, int]:
+    """Na subida do worker (deploy/reinício): pedido que estava executando volta para a fila;
+    rodada que ficou 'rodando' vira 'interrompida' — e não conta como 'já rodou hoje', então a
+    rodada diária acontece de novo."""
+    import uuid
+
+    token = current_tenant_id.set(uuid.UUID(tenant_id))
+    try:
+        with SessionLocal() as db:
+            n_p = n_r = 0
+            for e in db.scalars(
+                select(MotorExecucao).where(MotorExecucao.status.in_(("executando", "rodando")))
+            ):
+                if e.status == "executando":
+                    e.status, n_p = "pedido", n_p + 1
+                else:
+                    e.status, e.erro, n_r = "interrompida", "worker reiniciado no meio", n_r + 1
+            db.commit()
+            return {"pedidos_retomados": n_p, "rodadas_interrompidas": n_r}
     finally:
         current_tenant_id.reset(token)
 
@@ -81,7 +120,8 @@ def ciclo(agora: datetime) -> bool:
     if not tid:
         return False
     hoje = agora.date().isoformat()
-    pedido = _pegar_pedido(tid)
+    pegou = _pegar_pedido(tid)
+    pedido = pegou[1] if pegou else None
     if pedido is None:
         hh, mm = (int(x) for x in s.motor_basa_hora.split(":"))
         if (agora.hour, agora.minute) < (hh, mm) or _ja_rodou_hoje(tid, hoje):
@@ -93,6 +133,9 @@ def ciclo(agora: datetime) -> bool:
         log.info("motor_basa: concluído %s", r)
     except Exception:  # não derruba o worker; a execução fica gravada com status=erro
         log.exception("motor_basa: falhou")
+    finally:
+        if pegou:
+            _encerrar_pedido(tid, pegou[0])
     return True
 
 
@@ -133,6 +176,15 @@ def ciclo_triagem(agora: datetime) -> bool:
 
 def main() -> None:
     logging.basicConfig(level=get_settings().log_level)
+    from app.core.observabilidade import iniciar_sentry
+
+    iniciar_sentry("worker")
+    try:
+        tid = _tenant_id()
+        if tid:
+            log.info("worker: retomada %s", retomar_interrompidas(tid))
+    except Exception:
+        log.exception("worker: falha ao retomar rodadas interrompidas")
     engine = get_engine()
     if isinstance(engine, HatchetEngine):  # pragma: no cover
         log.info("iniciando worker Hatchet")

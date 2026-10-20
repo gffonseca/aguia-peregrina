@@ -6,7 +6,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from fastapi import APIRouter
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, Response
 
 router = APIRouter(tags=["painel"])
 _DIR = Path(__file__).parent
@@ -31,3 +31,17 @@ def painel_oportunidades() -> HTMLResponse:
 @router.get("/painel/correcoes", response_class=HTMLResponse, include_in_schema=False)
 def painel_correcoes() -> HTMLResponse:
     return HTMLResponse((_DIR / "painel_correcoes.html").read_text("utf-8"), headers=_HEADERS)
+
+
+@router.get("/painel/entrar", response_class=HTMLResponse, include_in_schema=False)
+def painel_entrar() -> HTMLResponse:
+    return HTMLResponse((_DIR / "painel_entrar.html").read_text("utf-8"), headers=_HEADERS)
+
+
+@router.get("/painel/sessao.js", include_in_schema=False)
+def painel_sessao() -> Response:
+    return Response(
+        (_DIR / "painel_sessao.js").read_text("utf-8"),
+        media_type="application/javascript",
+        headers={"Cache-Control": "no-cache"},
+    )

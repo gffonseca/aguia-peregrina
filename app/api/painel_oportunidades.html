@@ -30,11 +30,7 @@ a{color:var(--ac)}
   <p>O que o motor achou nos processos e ainda não foi cobrado. Marque "Feito" quando protocolar ou "Não cabe" com o motivo: o motor para de alertar nas próximas rodadas.</p>
 </header>
 <main>
-  <form id="login" hidden>
-    <label>Chave de operação<input id="k" type="password" autocomplete="off" required></label>
-    <label>Seu e-mail no escritório<input id="u" type="email" required></label>
-    <button class="pri">Entrar</button><span class="mut" id="erro"></span>
-  </form>
+  <form id="login" hidden></form>
   <section id="app" hidden>
     <div class="kpis" id="kpis"></div>
     <div class="barra tabs" id="tabs">
@@ -49,19 +45,18 @@ a{color:var(--ac)}
     <div id="lista"></div>
   </section>
 </main>
+<script src="/painel/sessao.js"></script>
 <script>
-const ss={get(k){try{return sessionStorage.getItem(k)}catch(e){return null}},set(k,v){try{sessionStorage.setItem(k,v)}catch(e){}},del(k){try{sessionStorage.removeItem(k)}catch(e){}}};
-const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
-let cred={k:ss.get("k"),t:ss.get("t"),u:ls.get("u")||""},tipo="gatilhos",dados=null;
+let cred={},tipo="gatilhos",dados=null;
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const brl=v=>v==null?"—":v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const dt=s=>s?new Date(s+"T12:00").toLocaleDateString("pt-BR"):"—";
 const fmtCnj=d=>d.length===20?`${d.slice(0,7)}-${d.slice(7,9)}.${d.slice(9,13)}.${d[13]}.${d.slice(14,16)}.${d.slice(16)}`:d;
 const NOTA={gatilhos:"Eventos que pedem um ato da tabela. Se o prazo provável já passou, confira se o ato foi feito e não cobrado (aí entra na próxima prestação) ou se não cabe mais.",alertas:"Acontecimentos que costumam virar ato: recurso adverso (contrarrazões), acórdão, alvará (levantar e repassar no mesmo dia), audiência designada.",parados:"Processos sem movimento há 90+ dias, do mais antigo para o mais novo, 30 por vez. A petição precisa pedir algo novo (pesquisa de bens, constrição, citação por outro meio): reiteração de pedido anterior não é remunerada."};
 const DEC={feito:"feito",nao_cabe:"não cabe",em_andamento:"em andamento"};
-async function api(p,o={}){const r=await fetch(p,{...o,headers:{"X-Ops-Key":cred.k,"X-Tenant-ID":cred.t||"","X-Usuario":cred.u,"Content-Type":"application/json",...(o.headers||{})}});if(!r.ok)throw new Error(r.status+" "+await r.text());return r.json()}
+const api=(p,o={})=>Sessao.api(p,o);
 async function carregar(){
-  const q=new URLSearchParams({tipo,limite:tipo==="parados"?"30":"200"});if(document.getElementById("ver").value==="eu")q.set("pessoa",cred.u);if(document.getElementById("dec").checked)q.set("incluir_decididas","true");
+  const q=new URLSearchParams({tipo,limite:tipo==="parados"?"30":"200"});if(document.getElementById("ver").value==="eu")q.set("pessoa",Sessao.email);if(document.getElementById("dec").checked)q.set("incluir_decididas","true");
   dados=await api("/faturamento/basa/fila?"+q);
   const k=tipo==="gatilhos"?[["No prazo (alta confiança)",`${dados.no_prazo} (${dados.no_prazo_alta})`],["Valor no prazo",brl(dados.valor_no_prazo)],["Prazo provável já passou",dados.prazo_passou]]:[["Na fila",dados.total],["Valor pela tabela",tipo==="alertas"?"—":brl(dados.valor_total)]];
   document.getElementById("kpis").innerHTML=[...k,["UF",dados.ufs?(dados.ufs.join(", ")||"nenhuma — confira seu papel na triagem"):"todas"]].map(([a,b])=>`<div class="kpi"><span>${a}</span><b>${b}</b></div>`).join("");
@@ -81,11 +76,8 @@ document.getElementById("lista").addEventListener("click",async e=>{const b=e.ta
   b.disabled=true;try{await api("/faturamento/basa/fila/decisao",{method:"POST",body:JSON.stringify({processo:i.processo,evento:i.evento,data_evento:i.data_evento,decisao:b.dataset.d||null,observacao:obs||null})});await carregar()}catch(err){alert("Não salvou: "+err.message);b.disabled=false}});
 document.getElementById("tabs").addEventListener("click",e=>{const t=e.target.dataset.t;if(!t)return;tipo=t;document.querySelectorAll("#tabs button").forEach(x=>x.setAttribute("aria-pressed",x.dataset.t===t));carregar()});
 document.getElementById("ver").onchange=carregar;document.getElementById("dec").onchange=carregar;
-document.getElementById("login").addEventListener("submit",async e=>{e.preventDefault();cred.k=document.getElementById("k").value.trim();cred.u=document.getElementById("u").value.trim().toLowerCase();
-  try{const r=await fetch("/faturamento/basa/setup",{method:"POST",headers:{"X-Ops-Key":cred.k}});if(!r.ok)throw new Error("chave inválida");cred.t=(await r.json()).tenant_id;ss.set("k",cred.k);ss.set("t",cred.t);ls.set("u",cred.u);iniciar()}catch(err){document.getElementById("erro").textContent=err.message}});
-document.getElementById("sair").onclick=()=>{ss.del("k");ss.del("t");location.reload()};
-async function iniciar(){document.getElementById("login").hidden=true;document.getElementById("app").hidden=false;try{await carregar()}catch(e){ss.del("k");document.getElementById("app").hidden=true;document.getElementById("login").hidden=false;document.getElementById("erro").textContent="Sessão expirada: entre de novo."}}
-if(cred.k&&cred.t&&cred.u)iniciar();else{document.getElementById("u").value=cred.u;document.getElementById("login").hidden=false}
+document.getElementById("sair").onclick=()=>Sessao.sair();
+Sessao.iniciar(carregar);
 </script>
 </body>
 </html>

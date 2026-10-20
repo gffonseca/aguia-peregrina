@@ -33,11 +33,7 @@ textarea{width:100%;min-height:60px;font:13px ui-monospace,monospace;background:
   <p>Cada pessoa vê só o que é dela. Nada é enviado, movido ou apagado no Outlook; o link abre o e-mail original.</p>
 </header>
 <main>
-  <form id="login" hidden>
-    <label>Chave de operação<input id="k" type="password" autocomplete="off" required></label>
-    <label>Seu e-mail no escritório<input id="u" type="email" required></label>
-    <button class="pri">Entrar</button><span class="mut" id="erro"></span>
-  </form>
+  <form id="login" hidden></form>
   <section id="app" hidden>
     <div class="kpis" id="kpis"></div>
     <div class="barra">
@@ -50,18 +46,17 @@ textarea{width:100%;min-height:60px;font:13px ui-monospace,monospace;background:
     <div id="lista"></div>
   </section>
 </main>
+<script src="/painel/sessao.js"></script>
 <script>
 const API="";
-const ss={get(k){try{return sessionStorage.getItem(k)}catch(e){return null}},set(k,v){try{sessionStorage.setItem(k,v)}catch(e){}},del(k){try{sessionStorage.removeItem(k)}catch(e){}}};
-const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
-let cred={k:ss.get("k"),t:ss.get("t"),u:ls.get("u")||""};
+let cred={};
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const CAT={INTIMACAO:"intimação",PRESTACAO_CONTAS:"prestação/pagamento",PROCESSO:"processo",SISTEMA_BENNER:"Benner/acesso",REUNIAO:"reunião",OUTROS:"outros",IGNORAR:"ignorado"};
 const fmtCnj=d=>d.length===20?`${d.slice(0,7)}-${d.slice(7,9)}.${d.slice(9,13)}.${d[13]}.${d.slice(14,16)}.${d.slice(16)}`:d;
-async function api(p,o={}){const r=await fetch(API+p,{...o,headers:{"X-Ops-Key":cred.k,"X-Tenant-ID":cred.t||"","X-Usuario":cred.u,"Content-Type":"application/json",...(o.headers||{})}});if(!r.ok)throw new Error(r.status+" "+await r.text());return r.json()}
+const api=(p,o={})=>Sessao.api(p,o);
 async function carregar(){
   const ver=document.getElementById("ver").value,st=document.getElementById("st").value;
-  const q=new URLSearchParams({status:st});if(ver==="eu")q.set("pessoa",cred.u);
+  const q=new URLSearchParams({status:st});if(ver==="eu")q.set("pessoa",Sessao.email);
   const d=await api("/triagem?"+q);const m=d.metricas;
   document.getElementById("kpis").innerHTML=[["Pendentes",m.pendentes],["Urgentes pendentes",m.urgentes_pendentes],["Cópias internas nos e-mails",m.copias_internas],["Cópias que eram necessárias",m.copias_necessarias]].map(([a,b])=>`<div class="kpi"><span>${a}</span><b>${b}</b></div>`).join("");
   const L=document.getElementById("lista");
@@ -82,11 +77,8 @@ document.getElementById("btpap").onclick=async()=>{const P=document.getElementBy
 document.getElementById("pap").addEventListener("click",async e=>{const p=e.target.dataset.salvar;if(!p)return;
   const t=document.querySelector(`textarea[data-p="${p}"]`).value.split("\n").map(l=>l.trim()).filter(Boolean).map(l=>{const[a,b]=l.split(";").map(x=>(x||"").trim());return b?{nome:a,email:b}:{nome:"",email:a}});
   try{await api("/triagem/papeis/"+encodeURIComponent(p),{method:"PUT",body:JSON.stringify(t)});e.target.textContent="Salvo";setTimeout(()=>e.target.textContent="Salvar",1200);carregar()}catch(err){alert(err.message)}});
-document.getElementById("login").addEventListener("submit",async e=>{e.preventDefault();cred.k=document.getElementById("k").value.trim();cred.u=document.getElementById("u").value.trim().toLowerCase();
-  try{const r=await fetch("/faturamento/basa/setup",{method:"POST",headers:{"X-Ops-Key":cred.k}});if(!r.ok)throw new Error("chave inválida");cred.t=(await r.json()).tenant_id;ss.set("k",cred.k);ss.set("t",cred.t);ls.set("u",cred.u);iniciar()}catch(err){document.getElementById("erro").textContent=err.message}});
-document.getElementById("sair").onclick=()=>{ss.del("k");ss.del("t");location.reload()};
-async function iniciar(){document.getElementById("login").hidden=true;document.getElementById("app").hidden=false;try{await carregar()}catch(e){ss.del("k");document.getElementById("app").hidden=true;document.getElementById("login").hidden=false;document.getElementById("erro").textContent="Sessão expirada: entre de novo."}}
-if(cred.k&&cred.t&&cred.u)iniciar();else{document.getElementById("u").value=cred.u;document.getElementById("login").hidden=false}
+document.getElementById("sair").onclick=()=>Sessao.sair();
+Sessao.iniciar(carregar);
 </script>
 </body>
 </html>

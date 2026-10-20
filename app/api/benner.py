@@ -11,14 +11,14 @@ from __future__ import annotations
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, Body, Depends, Header, HTTPException, Query
+from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
-from app.api.deps import DB, require_ops_key, tenant_id_dep
+from app.api.deps import DB, Operador, require_operador, tenant_id_dep
 from app.modules.m14_benner import correcoes
 
-router = APIRouter(prefix="/benner", tags=["benner"], dependencies=[Depends(require_ops_key)])
+router = APIRouter(prefix="/benner", tags=["benner"], dependencies=[Depends(require_operador)])
 XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
 
@@ -54,12 +54,12 @@ def planilha(status: str = "pendente", db: Session = DB) -> Response:
 def marcar(
     cid: uuid.UUID,
     corpo: dict[str, Any] = Body(...),
-    x_usuario: str = Header(default="painel", alias="X-Usuario"),
+    op: Operador = Depends(require_operador),
     db: Session = DB,
 ) -> dict[str, Any]:
     try:
         return correcoes.marcar(
-            db, cid, str(corpo.get("status")), x_usuario, corpo.get("observacao")
+            db, cid, str(corpo.get("status")), op.email, corpo.get("observacao")
         )
     except KeyError:
         raise HTTPException(404, "item não encontrado") from None

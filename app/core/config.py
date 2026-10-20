@@ -51,6 +51,10 @@ class Settings(BaseSettings):
     motor_basa_fuso: str = "America/Belem"
     motor_basa_tenant_nome: str = "FBS — Fonseca Brasil Serrão Advogados"
 
+    # Observabilidade
+    sentry_dsn: str | None = None
+    sentry_traces_rate: float = 0.0
+
     # Triagem da caixa basa@ (M13): Graph só leitura, app restrito à caixa por access policy.
     triagem_caixa: str | None = None  # ex.: basa@fonsecabrasilserrao.com
     triagem_intervalo_min: int = 30

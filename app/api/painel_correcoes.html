@@ -30,11 +30,7 @@ a{color:var(--ac)}
   <p>Cada item traz a evidência. Copie a ficha, abra o Benner, corrija e marque "Feito". O próximo export do Benner confirma sozinho. Se o seu perfil não puder editar, baixe a planilha e envie à CCONS.</p>
 </header>
 <main>
-  <form id="login" hidden>
-    <label>Chave de operação<input id="k" type="password" autocomplete="off" required></label>
-    <label>Seu e-mail no escritório<input id="u" type="email" required></label>
-    <button class="pri">Entrar</button><span class="mut" id="erro"></span>
-  </form>
+  <form id="login" hidden></form>
   <section id="app" hidden>
     <div class="kpis" id="kpis"></div>
     <div class="barra tabs" id="tabs"></div>
@@ -48,13 +44,12 @@ a{color:var(--ac)}
     <div id="lista"></div>
   </section>
 </main>
+<script src="/painel/sessao.js"></script>
 <script>
-const ss={get(k){try{return sessionStorage.getItem(k)}catch(e){return null}},set(k,v){try{sessionStorage.setItem(k,v)}catch(e){}},del(k){try{sessionStorage.removeItem(k)}catch(e){}}};
-const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
-let cred={k:ss.get("k"),t:ss.get("t"),u:ls.get("u")||""},tipo="SITUACAO",dados=null;
+let cred={},tipo="SITUACAO",dados=null;
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const T={SITUACAO:"Situação (encerrar)",NUMERO_PROCESSO:"Nº do processo",FICHA_INEXISTENTE:"Ficha inexistente",SUBIR_PECA:"Subir peça"};
-async function api(p,o={}){const r=await fetch(p,{...o,headers:{"X-Ops-Key":cred.k,"X-Tenant-ID":cred.t||"","X-Usuario":cred.u,"Content-Type":"application/json",...(o.headers||{})}});if(!r.ok)throw new Error(r.status+" "+await r.text());return r.headers.get("content-type")?.includes("json")?r.json():r.blob()}
+const api=(p,o={})=>Sessao.api(p,o);
 async function carregar(){
   const st=document.getElementById("st").value;
   dados=await api(`/benner/correcoes?status=${st}&tipo=${tipo}&limite=300`);
@@ -78,11 +73,8 @@ document.getElementById("tabs").addEventListener("click",e=>{const t=e.target.da
 document.getElementById("st").onchange=carregar;
 document.getElementById("gerar").onclick=async e=>{e.target.disabled=true;e.target.textContent="Recalculando…";try{await api("/benner/correcoes/gerar",{method:"POST"});await carregar()}finally{e.target.disabled=false;e.target.textContent="Recalcular agora"}};
 document.getElementById("baixar").onclick=async()=>{const b=await api("/benner/correcoes.xlsx?status="+document.getElementById("st").value);const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="correcoes-benner.xlsx";a.click()};
-document.getElementById("login").addEventListener("submit",async e=>{e.preventDefault();cred.k=document.getElementById("k").value.trim();cred.u=document.getElementById("u").value.trim().toLowerCase();
-  try{const r=await fetch("/faturamento/basa/setup",{method:"POST",headers:{"X-Ops-Key":cred.k}});if(!r.ok)throw new Error("chave inválida");cred.t=(await r.json()).tenant_id;ss.set("k",cred.k);ss.set("t",cred.t);ls.set("u",cred.u);iniciar()}catch(err){document.getElementById("erro").textContent=err.message}});
-document.getElementById("sair").onclick=()=>{ss.del("k");ss.del("t");location.reload()};
-async function iniciar(){document.getElementById("login").hidden=true;document.getElementById("app").hidden=false;try{await carregar()}catch(e){ss.del("k");document.getElementById("app").hidden=true;document.getElementById("login").hidden=false;document.getElementById("erro").textContent="Sessão expirada: entre de novo."}}
-if(cred.k&&cred.t&&cred.u)iniciar();else{document.getElementById("u").value=cred.u;document.getElementById("login").hidden=false}
+document.getElementById("sair").onclick=()=>Sessao.sair();
+Sessao.iniciar(carregar);
 </script>
 </body>
 </html>

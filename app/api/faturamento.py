@@ -24,13 +24,13 @@ from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, Body, Depends, File, Header, HTTPException, Query, UploadFile
+from fastapi import APIRouter, Body, Depends, File, HTTPException, Query, UploadFile
 from fastapi.responses import Response
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.api.deps import DB, require_ops_key, tenant_id_dep
+from app.api.deps import DB, Operador, require_operador, tenant_id_dep
 from app.core.config import get_settings
 from app.models.faturamento import BasaAtoCobrado, BasaFicha, MotorExecucao, MotorOportunidade
 from app.models.tenant import Tenant
@@ -46,7 +46,7 @@ from app.modules.m12_faturamento.servico import (
 )
 
 router = APIRouter(
-    prefix="/faturamento/basa", tags=["faturamento"], dependencies=[Depends(require_ops_key)]
+    prefix="/faturamento/basa", tags=["faturamento"], dependencies=[Depends(require_operador)]
 )
 XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
@@ -160,11 +160,11 @@ def recebiveis(db: Session = DB) -> dict[str, Any]:
 def recebiveis_atualizar(
     rid: uuid.UUID,
     campos: dict[str, Any] = Body(...),
-    x_usuario: str = Header(default="painel", alias="X-Usuario"),
+    op: Operador = Depends(require_operador),
     db: Session = DB,
 ) -> dict[str, Any]:
     try:
-        return atualizar_recebivel(db, rid, campos, x_usuario)
+        return atualizar_recebivel(db, rid, campos, op.email)
     except KeyError:
         raise HTTPException(404, "recebível não encontrado") from None
     except ValueError as e:
@@ -260,7 +260,7 @@ class DecisaoIn(BaseModel):
 @router.post("/fila/decisao")
 def fila_decisao(
     d: DecisaoIn,
-    x_usuario: str = Header(default="painel", alias="X-Usuario"),
+    op: Operador = Depends(require_operador),
     db: Session = DB,
     tenant_id: uuid.UUID = Depends(tenant_id_dep),
 ) -> dict[str, Any]:
@@ -269,7 +269,7 @@ def fila_decisao(
     cnj = "".join(c for c in d.processo if c.isdigit())
     try:
         return decidir(
-            db, tenant_id, cnj, d.evento, d.data_evento, d.decisao, x_usuario, d.observacao
+            db, tenant_id, cnj, d.evento, d.data_evento, d.decisao, op.email, d.observacao
         )
     except ValueError as e:
         raise HTTPException(422, str(e)) from None

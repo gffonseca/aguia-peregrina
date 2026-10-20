@@ -79,7 +79,9 @@ class MotorExecucao(TenantModel):
 
     iniciado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     terminado_em: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    status: Mapped[str] = mapped_column(String(20), default="rodando")  # rodando|ok|erro
+    status: Mapped[str] = mapped_column(
+        String(20), default="rodando"
+    )  # rodando|ok|erro|interrompida|pedido|executando|atendido
     referencia: Mapped[date] = mapped_column(Date)  # "hoje" da rodada
     estatisticas: Mapped[dict] = mapped_column(JSONType, default=dict)
     relatorio_xlsx: Mapped[bytes | None] = mapped_column(LargeBinary)
