@@ -85,6 +85,8 @@ class TenantMiddleware(BaseHTTPMiddleware):
         "/auth/login",
         "/auth/mfa",
         "/integrations/legalone/probe",  # ops, sem tenant (protegido por X-Ops-Key)
+        "/ops/bootstrap",  # ops, cria o tenant (protegido por X-Ops-Key)
+        "/ops/tenants",
     )
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
