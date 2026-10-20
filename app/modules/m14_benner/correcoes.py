@@ -169,8 +169,8 @@ def gerar(db: Session, tenant_id: uuid.UUID) -> dict[str, int]:
                     )
                 ] += 1
 
-    # fichas citadas nas prestações que não existem no Benner
-    for a in db.scalars(select(BasaAtoCobrado)):
+    # fichas citadas nas prestações que não existem no Benner (só com a carteira importada)
+    for a in db.scalars(select(BasaAtoCobrado)) if fichas else []:
         if not a.ficha or a.ficha in por_ficha:
             continue
         if a.cnj in por_cnj:
