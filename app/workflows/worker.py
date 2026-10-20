@@ -96,6 +96,41 @@ def ciclo(agora: datetime) -> bool:
     return True
 
 
+_ULTIMA_TRIAGEM: dict[str, datetime] = {}
+
+
+def ciclo_triagem(agora: datetime) -> bool:
+    """Lê a caixa basa@ a cada TRIAGEM_INTERVALO_MIN; desligado sem a configuração do Graph."""
+    import uuid
+
+    from app.integrations.msgraph.client import GraphMailClient
+    from app.modules.m13_triagem.servico import sincronizar_caixa
+
+    s = get_settings()
+    if not (
+        s.triagem_caixa and s.msgraph_tenant_id and s.msgraph_client_id and s.msgraph_client_secret
+    ):
+        return False
+    ult = _ULTIMA_TRIAGEM.get("caixa")
+    if ult and (agora - ult).total_seconds() < s.triagem_intervalo_min * 60:
+        return False
+    tid = _tenant_id()
+    if not tid:
+        return False
+    _ULTIMA_TRIAGEM["caixa"] = agora
+    cli = GraphMailClient(s.msgraph_tenant_id, s.msgraph_client_id, s.msgraph_client_secret)
+    token = current_tenant_id.set(uuid.UUID(tid))
+    try:
+        with SessionLocal() as db:
+            r = sincronizar_caixa(db, uuid.UUID(tid), cli, s.triagem_caixa)
+        log.info("triagem: %s", r)
+    except Exception:
+        log.exception("triagem: falhou")
+    finally:
+        current_tenant_id.reset(token)
+    return True
+
+
 def main() -> None:
     logging.basicConfig(level=get_settings().log_level)
     engine = get_engine()
@@ -114,6 +149,10 @@ def main() -> None:
             ciclo(datetime.now(fuso))
         except Exception:
             log.exception("agendador: erro na verificação")
+        try:
+            ciclo_triagem(datetime.now(fuso))
+        except Exception:
+            log.exception("triagem: erro na verificação")
         time.sleep(60)
 
 

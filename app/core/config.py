@@ -51,6 +51,13 @@ class Settings(BaseSettings):
     motor_basa_fuso: str = "America/Belem"
     motor_basa_tenant_nome: str = "FBS — Fonseca Brasil Serrão Advogados"
 
+    # Triagem da caixa basa@ (M13): Graph só leitura, app restrito à caixa por access policy.
+    triagem_caixa: str | None = None  # ex.: basa@fonsecabrasilserrao.com
+    triagem_intervalo_min: int = 30
+    msgraph_tenant_id: str | None = None
+    msgraph_client_id: str | None = None
+    msgraph_client_secret: str | None = None
+
     # Legal One (Thomson Reuters) — OData somente leitura; credenciais client_credentials
     legalone_client_id: str | None = None
     legalone_client_secret: str | None = None

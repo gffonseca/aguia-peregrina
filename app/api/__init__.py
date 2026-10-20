@@ -17,6 +17,7 @@ from app.api import (
     reviews,
     subsidies,
     theses,
+    triagem,
 )
 
 api_router = APIRouter()
@@ -36,3 +37,4 @@ api_router.include_router(ops.router)
 api_router.include_router(jobs.router)
 api_router.include_router(faturamento.router)
 api_router.include_router(painel.router)
+api_router.include_router(triagem.router)

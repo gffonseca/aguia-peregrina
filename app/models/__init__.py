@@ -42,6 +42,7 @@ from app.models.litigation import (
     ThesisVersion,
 )
 from app.models.tenant import Tenant, User
+from app.models.triagem import TriagemEmail, TriagemPapel
 
 __all__ = [
     "AuditLog",
@@ -49,6 +50,8 @@ __all__ = [
     "BasaAtoCobrado",
     "BasaFicha",
     "BasaRecebivel",
+    "TriagemEmail",
+    "TriagemPapel",
     "DataJudProcesso",
     "MotorExecucao",
     "MotorOportunidade",

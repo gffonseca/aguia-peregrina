@@ -1,0 +1,225 @@
+"""Triagem em produção: ingestão da caixa basa@, papéis → pessoas e o resumo por pessoa.
+
+Nada aqui envia, move ou altera e-mails: o resultado é o painel /painel/triagem, onde cada
+pessoa vê só o que é dela e marca como visto/resolvido.
+"""
+
+from __future__ import annotations
+
+import re
+import uuid
+from collections import Counter
+from collections.abc import Iterable
+from datetime import UTC, datetime, timedelta
+from typing import Any
+
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session
+
+from app.models.faturamento import BasaFicha
+from app.models.triagem import TriagemEmail, TriagemPapel
+from app.modules.m13_triagem.classificar import Email, classificar
+
+PAPEIS_PADRAO: dict[str, str] = {
+    "coordenacao": "Coordenação do contrato BASA (relação com CCONS/GEJUR, Benner, reuniões)",
+    "financeiro": "Prestação de contas, NF e recebimento",
+    "equipe_pa": "Advogados das fichas do Pará",
+    "equipe_am": "Advogados das fichas do Amazonas",
+    "prazos_pa": "Controle de prazos / intimações do Pará",
+    "prazos_am": "Controle de prazos / intimações do Amazonas",
+}
+_URG = {"alta": 0, "media": 1, "baixa": 2}
+
+
+def _texto_limpo(t: str, n: int = 600) -> str:
+    t = re.sub(r"<[^>]+>", " ", t or "")
+    t = re.sub(r"\s+", " ", t).strip()
+    return t[:n]
+
+
+def garantir_papeis(db: Session, tenant_id: uuid.UUID) -> None:
+    existentes = set(db.scalars(select(TriagemPapel.papel)))
+    for p, d in PAPEIS_PADRAO.items():
+        if p not in existentes:
+            db.add(TriagemPapel(tenant_id=tenant_id, papel=p, descricao=d, pessoas=[]))
+    db.commit()
+
+
+def ingerir(
+    db: Session, tenant_id: uuid.UUID, emails: Iterable[Email], caixa: str
+) -> dict[str, int]:
+    """Classifica e grava os e-mails novos; reprocessar o mesmo id não duplica."""
+    garantir_papeis(db, tenant_id)
+    ja = set(db.scalars(select(TriagemEmail.mensagem_id).where(TriagemEmail.caixa == caixa)))
+    fichas: dict[str, list[str]] = {}
+    for f in db.scalars(select(BasaFicha)):
+        fichas.setdefault(f.cnj, []).append(f.ficha)
+    c: Counter[str] = Counter()
+    for e in emails:
+        if e.id in ja:
+            c["repetidos"] += 1
+            continue
+        tr = classificar(e)
+        rec = None
+        if e.recebido_em:
+            try:
+                rec = datetime.fromisoformat(e.recebido_em.replace("Z", "+00:00"))
+            except ValueError:
+                rec = None
+        db.add(
+            TriagemEmail(
+                tenant_id=tenant_id,
+                mensagem_id=e.id[:400],
+                caixa=caixa[:200],
+                recebido_em=rec,
+                remetente=e.remetente[:200],
+                assunto=(e.assunto or "")[:500],
+                trecho=_texto_limpo(e.corpo),
+                link=e.link,
+                conversa=(e.conversa or None) and e.conversa[:400],
+                categoria=tr.categoria,
+                urgencia=tr.urgencia,
+                papeis=tr.papeis,
+                cnjs=tr.cnjs,
+                fichas=[x for d in tr.cnjs for x in fichas.get(d, [])],
+                uf=tr.uf,
+                motivo=tr.motivo,
+                acao=tr.acao,
+                internos_copiados=tr.internos_copiados,
+                internos_necessarios=tr.internos_necessarios,
+                status="resolvido" if tr.categoria == "IGNORAR" else "pendente",
+            )
+        )
+        ja.add(e.id)
+        c["novos"] += 1
+        c[tr.categoria] += 1
+    db.commit()
+    return dict(c)
+
+
+def ultimo_recebido(db: Session, caixa: str) -> datetime | None:
+    return db.scalar(select(func.max(TriagemEmail.recebido_em)).where(TriagemEmail.caixa == caixa))
+
+
+def sincronizar_caixa(
+    db: Session, tenant_id: uuid.UUID, client: Any, caixa: str, dias_iniciais: int = 30
+) -> dict[str, int]:
+    desde = ultimo_recebido(db, caixa)
+    if desde is None:
+        desde = datetime.now(UTC) - timedelta(days=dias_iniciais)
+    else:
+        if desde.tzinfo is None:
+            desde = desde.replace(tzinfo=UTC)
+        desde -= timedelta(minutes=5)
+    return ingerir(db, tenant_id, client.mensagens(caixa, desde), caixa)
+
+
+def papeis(db: Session) -> list[dict[str, Any]]:
+    return [
+        {"papel": p.papel, "descricao": p.descricao, "pessoas": p.pessoas or []}
+        for p in db.scalars(select(TriagemPapel).order_by(TriagemPapel.papel))
+    ]
+
+
+def definir_papel(
+    db: Session, tenant_id: uuid.UUID, papel: str, pessoas: list[dict[str, str]]
+) -> dict[str, Any]:
+    p = db.scalar(select(TriagemPapel).where(TriagemPapel.papel == papel))
+    if p is None:
+        p = TriagemPapel(tenant_id=tenant_id, papel=papel[:40], pessoas=[])
+        db.add(p)
+    p.pessoas = [
+        {"nome": str(x.get("nome", ""))[:80], "email": str(x.get("email", "")).lower()[:120]}
+        for x in pessoas
+        if x.get("email") or x.get("nome")
+    ]
+    db.commit()
+    return {"papel": p.papel, "descricao": p.descricao, "pessoas": p.pessoas}
+
+
+def _item(t: TriagemEmail) -> dict[str, Any]:
+    return {
+        "id": str(t.id),
+        "recebido_em": t.recebido_em.isoformat() if t.recebido_em else None,
+        "remetente": t.remetente,
+        "assunto": t.assunto,
+        "trecho": t.trecho,
+        "link": t.link,
+        "categoria": t.categoria,
+        "urgencia": t.urgencia,
+        "papeis": t.papeis,
+        "processos": t.cnjs,
+        "fichas": t.fichas,
+        "uf": t.uf,
+        "acao": t.acao,
+        "copiados": t.internos_copiados,
+        "necessarios": t.internos_necessarios,
+        "status": t.status,
+        "tratado_por": t.tratado_por,
+    }
+
+
+def resumo(
+    db: Session, pessoa: str | None = None, status: str | None = "pendente", dias: int = 30
+) -> dict[str, Any]:
+    """Itens por papel; com `pessoa` (e-mail), só os papéis dela."""
+    corte = datetime.now(UTC) - timedelta(days=dias)
+    q = select(TriagemEmail).where(
+        (TriagemEmail.recebido_em >= corte) | (TriagemEmail.recebido_em.is_(None))
+    )
+    if status:
+        q = q.where(TriagemEmail.status == status)
+    itens = [t for t in db.scalars(q) if t.categoria != "IGNORAR" or status == "resolvido"]
+    tabela = {p["papel"]: p for p in papeis(db)}
+    meus: set[str] | None = None
+    if pessoa:
+        pe = pessoa.lower()
+        meus = {k for k, p in tabela.items() if any(x.get("email") == pe for x in p["pessoas"])}
+    por_papel: dict[str, list[dict[str, Any]]] = {}
+    for t in itens:
+        for papel in t.papeis or ["coordenacao"]:
+            if meus is not None and papel not in meus:
+                continue
+            por_papel.setdefault(papel, []).append(_item(t))
+    for v in por_papel.values():
+        v.sort(key=lambda x: (_URG.get(x["urgencia"], 9), x["recebido_em"] or ""))
+    todos = list(db.scalars(select(TriagemEmail).where(TriagemEmail.recebido_em >= corte)))
+    uteis = [t for t in todos if t.categoria != "IGNORAR"]
+    return {
+        "periodo_dias": dias,
+        "papeis": [
+            {
+                "papel": k,
+                "descricao": tabela.get(k, {}).get("descricao"),
+                "pessoas": tabela.get(k, {}).get("pessoas", []),
+                "itens": v,
+            }
+            for k, v in sorted(por_papel.items())
+        ],
+        "metricas": {
+            "emails": len(todos),
+            "ignorados": len(todos) - len(uteis),
+            "pendentes": sum(1 for t in uteis if t.status == "pendente"),
+            "urgentes_pendentes": sum(
+                1 for t in uteis if t.status == "pendente" and t.urgencia == "alta"
+            ),
+            "copias_internas": sum(t.internos_copiados for t in uteis),
+            "copias_necessarias": sum(
+                min(t.internos_necessarios, t.internos_copiados) for t in uteis
+            ),
+            "por_categoria": dict(Counter(t.categoria for t in todos)),
+        },
+    }
+
+
+def marcar(db: Session, tid: uuid.UUID, status: str, por: str) -> dict[str, Any]:
+    if status not in ("pendente", "visto", "resolvido"):
+        raise ValueError("status inválido")
+    t = db.get(TriagemEmail, tid)
+    if t is None:
+        raise KeyError(tid)
+    t.status = status
+    t.tratado_por = por[:80]
+    t.tratado_em = datetime.now(UTC)
+    db.commit()
+    return _item(t)
