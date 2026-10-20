@@ -1,0 +1,72 @@
+# Anexo I do contrato BASA FB1798 (tabela de remuneração por ato).
+# Colunas: trabalhista (Especialidade I), e da Especialidade II: jec (JEC/JEF),
+# rec_cred (Recuperação de Crédito), demais (Demais Feitos), adm (Administrativo).
+# null = N/A na tabela (ato não previsto para aquela natureza).
+contrato: FB1798
+fonte: "Anexo I — Tabela de Remuneração (minuta assinada, extraída em 20/10/2026)"
+nao_remunerados:
+  # Preâmbulo do Anexo I
+  - {id: habilitacao_contratado, termos: ["habilitacao do contratado", "pedido de habilitacao nos autos", "juntada de procuracao", "juntada de substabelecimento", "substabelecimento"]}
+  - {id: renuncia, termos: ["renuncia"]}
+  - {id: cobranca_honorarios, termos: ["cobranca de honorarios"]}
+  - {id: arquivamento_precatoria, termos: ["arquivamento de carta precatoria", "arquivamento da precatoria"]}
+  - {id: ciencia_intimacao, termos: ["ciencia de intimacao", "ciencia da intimacao", "peticao de ciencia"]}
+  - {id: reiteracao, termos: ["reiteracao", "reitera pedido", "reiterar"]}
+atos:
+  - {id: ajuizamento, nome: "Ajuizamento", trabalhista: 200, jec: null, rec_cred: 200, demais: 200, adm: null}
+  - {id: arresto_penhora, nome: "Arresto ou penhora a favor do Banco", resultado: true, trabalhista: 209, jec: null, rec_cred: 200, demais: 200, adm: null}
+  - {id: audiencia_conciliacao, nome: "Audiência de conciliação ou inaugural sem instrução", trabalhista: 160, jec: null, rec_cred: 160, demais: 160, adm: null}
+  - {id: audiencia_instrucao, nome: "Audiência de instrução ou inaugural com instrução", trabalhista: 240, jec: null, rec_cred: 240, demais: 240, adm: null}
+  - {id: audiencia_jec, nome: "Audiência em Juizado Especial Cível", trabalhista: null, jec: 160, rec_cred: null, demais: null, adm: null}
+  - {id: audiencia_extrajudicial, nome: "Audiência em procedimento extrajudicial", trabalhista: null, jec: null, rec_cred: null, demais: null, adm: 104}
+  - {id: busca_apreensao, nome: "Busca e apreensão do bem efetivada", resultado: true, trabalhista: null, jec: null, rec_cred: 250, demais: null, adm: null}
+  - {id: carta_precatoria, nome: "Carta Precatória (distribuição)", trabalhista: 52, jec: 52, rec_cred: 52, demais: 52, adm: null}
+  - {id: citacao_efetivada, nome: "Citação efetivada por devedor / executado", resultado: true, trabalhista: null, jec: null, rec_cred: 50, demais: null, adm: null}
+  - {id: contestacao, nome: "Contestação ou defesa", trabalhista: 250, jec: 104, rec_cred: null, demais: 250, adm: null}
+  - {id: contrarrazoes, nome: "Contrarrazões em recursos: apelação, adesivo, ordinário, inominado.", trabalhista: 200, jec: 200, rec_cred: 200, demais: 200, adm: null}
+  - {id: defesa_extrajudicial, nome: "Defesa ou recurso em procedimento extrajudicial", trabalhista: null, jec: null, rec_cred: null, demais: null, adm: 104}
+  - {id: diligencia_cartorio, nome: "Diligência em ato extrajudicial / pesquisa em Cartório", trabalhista: 120, jec: 120, rec_cred: 120, demais: 120, adm: 120}
+  - {id: diligencia_analise_nao_terceirizado, nome: "Diligência: análise de processo não terceirizado com elaboração de relatório", trabalhista: null, jec: 10, rec_cred: 10, demais: 10, adm: null}
+  - {id: diligencia_carga, nome: "Diligência: carga de autos / extração de cópias com remessa / devolução", trabalhista: 100, jec: 100, rec_cred: 100, demais: 100, adm: 100}
+  - {id: diligencia_protocolo_peca_banco, nome: "Diligência: protocolo de peça(s) encaminhada(s) pelo Banco", trabalhista: 60, jec: 60, rec_cred: 60, demais: 60, adm: 60}
+  - {id: diligencia_comprovacao_agravo, nome: "Diligência: protocolo de petição de comprovação de interposição de Agravo de Instrumento", trabalhista: 120, jec: null, rec_cred: null, demais: null, adm: null}
+  - {id: embargos_declaracao, nome: "Embargos de declaração (oposição) de sentença ou acórdão", trabalhista: 120, jec: 120, rec_cred: 120, demais: 120, adm: null}
+  - {id: embargos_arrematacao, nome: "Embargos: à arrematação ou à adjudicação", trabalhista: 104, jec: null, rec_cred: 104, demais: 104, adm: null}
+  - {id: embargos_execucao, nome: "Embargos: à execução, à monitória ou de terceiros", trabalhista: 220, jec: null, rec_cred: null, demais: 220, adm: null}
+  - {id: embargos_divergencia, nome: "Embargos: de divergência, infringentes.", trabalhista: 170, jec: null, rec_cred: 170, demais: 170, adm: null}
+  - {id: excecao_pre_executividade, nome: "Exceção (oposição) de pré-executividade (interposição / impugnação)", trabalhista: 150, jec: 150, rec_cred: 150, demais: 150, adm: null}
+  - {id: excecao_impedimento, nome: "Exceção: de impedimento, de incompetência ou de suspeição", trabalhista: null, jec: 120, rec_cred: 120, demais: 120, adm: null}
+  - {id: quesitos, nome: "Formulação de quesitos", trabalhista: 73, jec: null, rec_cred: 120, demais: 120, adm: null}
+  - {id: habilitacao_credito, nome: "Habilitação de crédito em: falência, recuperação judicial, insolvência civil, execução de terceiros, inventário, herança, recuperação extrajudicial ou RAET", trabalhista: null, jec: null, rec_cred: 200, demais: null, adm: null}
+  - {id: imissao_posse, nome: "Imissão ou reintegração de posse efetivada", resultado: true, trabalhista: null, jec: null, rec_cred: 400, demais: 400, adm: null}
+  - {id: impugnacao_gratuidade, nome: "Impugnação à assistência judiciária gratuita", trabalhista: null, jec: null, rec_cred: 220, demais: 220, adm: null}
+  - {id: impugnacao_embargos_arrematacao, nome: "Impugnação a embargos: à arrematação ou à adjudicação", trabalhista: 120, jec: null, rec_cred: 220, demais: 220, adm: null}
+  - {id: impugnacao_embargos_execucao, nome: "Impugnação a embargos: à execução, à monitória ou de terceiros", trabalhista: 220, jec: null, rec_cred: 220, demais: 220, adm: null}
+  - {id: impugnacao_cumprimento, nome: "Impugnação ao cumprimento de sentença", trabalhista: 220, jec: null, rec_cred: 220, demais: 220, adm: null}
+  - {id: impugnacao_valor_causa, nome: "Impugnação ao valor da causa (apresentação / resposta) ou incidente de falsidade", trabalhista: 120, jec: null, rec_cred: 120, demais: 120, adm: null}
+  - {id: impugnacao_valor_credito, nome: "Impugnação ao valor do crédito em falência, recuperação judicial ou extrajudicial, insolvência civil, execução de terceiros, inventário ou herança", trabalhista: null, jec: null, rec_cred: 220, demais: null, adm: null}
+  - {id: impugnacao_calculos, nome: "Impugnação de cálculos em execução", trabalhista: 220, jec: 220, rec_cred: null, demais: null, adm: null}
+  - {id: impugnacao_laudo, nome: "Impugnação de laudo pericial", trabalhista: 200, jec: null, rec_cred: 200, demais: 200, adm: null}
+  - {id: indisponibilidade_bens, nome: "Indisponibilidade de bens efetivada por devedor / executado (averbação)", resultado: true, trabalhista: null, jec: null, rec_cred: 210, demais: null, adm: null}
+  - {id: informacoes_ms, nome: "Informações em Mandado de Segurança", trabalhista: null, jec: null, rec_cred: null, demais: 250, adm: null}
+  - {id: pericia_acompanhamento, nome: "Inspeção ou perícia judicial (acompanhamento)", trabalhista: 150, jec: null, rec_cred: 150, demais: 150, adm: null}
+  - {id: interpelacao, nome: "Interpelação judicial, notificação judicial ou protesto judicial", trabalhista: 120, jec: null, rec_cred: 120, demais: 120, adm: null}
+  - {id: mandado_seguranca, nome: "Mandado de segurança", trabalhista: 250, jec: 250, rec_cred: 250, demais: 250, adm: null}
+  - {id: memoriais, nome: "Memoriais ou razões finais", trabalhista: 150, jec: 150, rec_cred: 150, demais: 150, adm: null}
+  - {id: restituicao_falencia, nome: "Pedido de restituição em falência", trabalhista: null, jec: null, rec_cred: 104, demais: null, adm: null}
+  - {id: praca_com_arrematacao, nome: "Praça com arrematação ou adjudicação efetivada", resultado: true, trabalhista: null, jec: null, rec_cred: 250, demais: null, adm: null}
+  - {id: praca_sem_arrematacao, nome: "Praça sem arrematação ou adjudicação", resultado: true, trabalhista: null, jec: null, rec_cred: 150, demais: null, adm: null}
+  - {id: reconvencao, nome: "Reconvenção", trabalhista: 150, jec: null, rec_cred: 150, demais: 150, adm: null}
+  - {id: agravo_instrumento, nome: "Recurso de Agravo de Instrumento ou de petição", trabalhista: 200, jec: null, rec_cred: 200, demais: 200, adm: null}
+  - {id: agravo_retido, nome: "Recurso de Agravo Retido", trabalhista: null, jec: null, rec_cred: 52, demais: 52, adm: null}
+  - {id: agravo_interno, nome: "Recursos agravos: inominado ou regimental", trabalhista: 200, jec: 200, rec_cred: 200, demais: 200, adm: null}
+  - {id: apelacao, nome: "Recursos apelação, adesivo, ordinário, inominado.", trabalhista: 250, jec: 250, rec_cred: 250, demais: 250, adm: null}
+  - {id: replica, nome: "Réplicas", trabalhista: null, jec: null, rec_cred: 150, demais: 150, adm: null}
+  - {id: resposta_agravo_instrumento, nome: "Resposta a Agravo de Instrumento ou de Petição", trabalhista: 150, jec: null, rec_cred: 150, demais: 150, adm: null}
+  - {id: resposta_impugnacao_valor_causa, nome: "Resposta à Impugnação ao valor da causa", trabalhista: null, jec: null, rec_cred: 120, demais: 120, adm: null}
+  - {id: resposta_agravo_interno, nome: "Respostas a agravos: inominado ou regimental", trabalhista: 150, jec: 150, rec_cred: 150, demais: 150, adm: null}
+  - {id: procon, nome: "Resposta a Reclamações oriundas do PROCON", trabalhista: null, jec: null, rec_cred: null, demais: null, adm: 120}
+  - {id: sustentacao_oral, nome: "Sustentação Oral em Tribunal ou Turma Recursal", trabalhista: 250, jec: 250, rec_cred: 250, demais: 250, adm: null}
+  - {id: peticao_interlocutoria, nome: "Petições interlocutórias", trabalhista: 120, jec: 120, rec_cred: 120, demais: 120, adm: null}
+  - {id: juntada_planilha_custas, nome: "Petições de juntada de planilha atualizada de débito; de comprovante de custas pagas e depósitos judiciais", trabalhista: 60, jec: 60, rec_cred: 60, demais: 60, adm: null}
+  - {id: extincao_1grau, nome: "Remuneração para extinção de feitos no 1º grau, exceto do JEF", resultado: true, trabalhista: 110, jec: null, rec_cred: 110, demais: 110, adm: null}
