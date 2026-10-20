@@ -66,17 +66,19 @@ class DataJudClient:
         api_key: str | None,
         client: httpx.Client | None = None,
         pausa_erro_s: float = 5.0,
+        pausa_lote_s: float = 0.5,
     ) -> None:
         self.api_key = api_key
         self.client = client or httpx.Client(timeout=90)
         self.pausa_erro_s = pausa_erro_s
+        self.pausa_lote_s = pausa_lote_s
 
     def search(self, tribunal: str, query: dict[str, Any], size: int = 100) -> dict[str, Any]:
         if not self.api_key:
             raise RuntimeError("DATAJUD_API_KEY ausente")
         url = f"{BASE}/api_publica_{tribunal.lower()}/_search"
         ultimo: Exception | None = None
-        for tentativa in range(5):
+        for tentativa in range(8):
             try:
                 resp = self.client.post(
                     url,
@@ -87,8 +89,12 @@ class DataJudClient:
                 return dict(resp.json())
             except (httpx.HTTPError, ValueError) as e:  # 429/5xx/timeouts: tenta de novo
                 ultimo = e
-                log.warning("datajud %s tentativa %s: %s", tribunal, tentativa + 1, e)
-                time.sleep(self.pausa_erro_s * (tentativa + 1))
+                limite = isinstance(e, httpx.HTTPStatusError) and e.response.status_code == 429
+                espera = self.pausa_erro_s * (tentativa + 1) * (6 if limite else 1)
+                log.warning(
+                    "datajud %s tentativa %s (espera %.0fs): %s", tribunal, tentativa + 1, espera, e
+                )
+                time.sleep(espera)
         raise RuntimeError(f"DataJud {tribunal}: {ultimo}")
 
     def buscar_por_numeros(
@@ -113,7 +119,10 @@ class DataJudClient:
                     }
                 )
             r = self.search(tribunal, {"bool": {"filter": filtros}}, size=lote * 5)
+            if (i // lote) % 10 == 9:
+                log.info("datajud %s: %s de %s números", tribunal, i + lote, len(nums))
             yield from r.get("hits", {}).get("hits", [])
+            time.sleep(self.pausa_lote_s)
 
     @staticmethod
     def by_cnj(cnj_number: str) -> dict[str, Any]:
