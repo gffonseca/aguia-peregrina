@@ -79,10 +79,9 @@ def test_consignado_content_matches_spec() -> None:
 
 
 def test_consignado_encodes_review_session_1_decisions() -> None:
-    """Decisões da sessão de revisão de 2026-10-19 (status segue em_revisao, nada aprovado)."""
+    """Decisões da sessão de revisão de 2026-10-19 (conteúdo preservado após a aprovação v1)."""
     pb = validate_playbook(CONSIGNADO)
-    assert pb.metadata.status == "em_revisao"
-    assert pb.metadata.aprovado_em is None
+    assert pb.metadata.status == "aprovado"
     assert pb.metadata.versao == 1
     assert [r.data.isoformat() for r in pb.metadata.revisoes][0] == "2026-10-19"
     assert "12.724" in pb.metadata.revisoes[0].por
