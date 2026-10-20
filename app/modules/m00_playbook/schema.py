@@ -131,12 +131,25 @@ class Revisao(_Strict):
     resumo: str
 
 
+class PendenciaExterna(_Strict):
+    """Pendência que depende de alguém fora da esteira (cliente, tribunal, fornecedor)."""
+
+    descricao: str
+    dono: str = Field(description="quem cobra/resolve (ex.: 'Gustavo')")
+    status: Literal["aberta", "em_andamento", "resolvida"] = "aberta"
+    aberta_em: date | None = None
+
+
 class Piloto(_Strict):
     """Estado do piloto da tipologia (cliente-piloto, plano interno, prospecção)."""
 
     cliente_piloto: str | None = Field(default=None, description="null enquanto não houver")
     plano: str
+    amostra: str | None = Field(
+        default=None, description="critério de seleção da amostra do piloto (quando decidido)"
+    )
     prospeccao: list[str] = Field(default_factory=list)
+    pendencias_externas: list[PendenciaExterna] = Field(default_factory=list)
 
 
 class Metadata(_Strict):

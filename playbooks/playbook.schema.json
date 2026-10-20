@@ -933,6 +933,50 @@
       "title": "OrigemCampo",
       "type": "string"
     },
+    "PendenciaExterna": {
+      "additionalProperties": false,
+      "description": "Pendência que depende de alguém fora da esteira (cliente, tribunal, fornecedor).",
+      "properties": {
+        "descricao": {
+          "title": "Descricao",
+          "type": "string"
+        },
+        "dono": {
+          "description": "quem cobra/resolve (ex.: 'Gustavo')",
+          "title": "Dono",
+          "type": "string"
+        },
+        "status": {
+          "default": "aberta",
+          "enum": [
+            "aberta",
+            "em_andamento",
+            "resolvida"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "aberta_em": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Aberta Em"
+        }
+      },
+      "required": [
+        "descricao",
+        "dono"
+      ],
+      "title": "PendenciaExterna",
+      "type": "object"
+    },
     "Piloto": {
       "additionalProperties": false,
       "description": "Estado do piloto da tipologia (cliente-piloto, plano interno, prospecção).",
@@ -954,11 +998,31 @@
           "title": "Plano",
           "type": "string"
         },
+        "amostra": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "critério de seleção da amostra do piloto (quando decidido)",
+          "title": "Amostra"
+        },
         "prospeccao": {
           "items": {
             "type": "string"
           },
           "title": "Prospeccao",
+          "type": "array"
+        },
+        "pendencias_externas": {
+          "items": {
+            "$ref": "#/$defs/PendenciaExterna"
+          },
+          "title": "Pendencias Externas",
           "type": "array"
         }
       },

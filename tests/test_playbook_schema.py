@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import copy
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -254,7 +255,8 @@ def test_execucao_basa_is_polo_ativo_draft() -> None:
     pb = validate_playbook(EXECUCAO_BASA)
     assert pb.metadata.polo == "ativo"
     assert pb.metadata.lado == "autor"
-    assert pb.metadata.status == "rascunho"
+    assert pb.metadata.status == "em_revisao"
+    assert pb.metadata.aprovado_em is None
     assert pb.metadata.tribunal == "TJPA"
     assert pb.metadata.autor_oab == "PA 12724"
     assert pb.metadata.piloto is not None and "BASA" in (pb.metadata.piloto.cliente_piloto or "")
@@ -274,6 +276,137 @@ def test_execucao_basa_is_polo_ativo_draft() -> None:
     assert pb.sinais_acordo.fluxo_aprovacao is not None
     # Peça de impulso é curta: tempo mínimo menor que o da contestação (900 s).
     assert 60 <= pb.criterios_revisao.tempo_minimo_segundos < 900
+
+
+def test_execucao_basa_encodes_review_session_1_decisions() -> None:
+    """Decisões da sessão 1 (2026-10-20) do playbook de execução BASA: triagem, impulso
+    cumulado, embargos, acordo proativo, monitoramento 90 d, intercorrente, amostra top-200.
+    Referências legais seguem todas `conferido: false` (não validadas ainda)."""
+    pb = validate_playbook(EXECUCAO_BASA)
+    assert pb.metadata.status == "em_revisao"
+    assert [r.data.isoformat() for r in pb.metadata.revisoes] == ["2026-10-20"]
+    assert "12.724" in pb.metadata.revisoes[0].por and "Sessão 1" in pb.metadata.revisoes[0].resumo
+    assert pb.referencias_nao_conferidas()
+    assert all(not a.conferido for a in pb.gatilhos_classificacao.assuntos_cnj)
+    campos = {c.campo: c for c in pb.campos_dossie_obrigatorios}
+    texto = EXECUCAO_BASA.read_text(encoding="utf-8")
+
+    # 1 e 3: carteira morta = três critérios; intercorrente fora; decisão de sócio caso a caso
+    t011 = pb.tese("T01.1")
+    assert t011.pai == "T01"
+    for termo in ("Sisbajud + Renajud + Infojud", "3 anos", "falecido", "custo"):
+        assert termo in t011.resumo, termo
+    assert "sem_bens_e_3_anos_parado" in campos["carteira_morta_criterios"].descricao
+    assert "falecido_sem_herdeiros" in campos["carteira_morta_criterios"].descricao
+    assert "valor_abaixo_custo" in campos["carteira_morta_criterios"].descricao
+    assert "NÃO" in campos["carteira_morta_criterios"].descricao  # intercorrente não entra
+    assert "morta_cessao" not in texto and "morta_baixa" not in texto
+    assert "socio_decisao_carteira_morta" in campos
+    x = {e.id: e for e in pb.excecoes}
+    assert x["X03"].acao == "escalar_socio"
+    assert "lote" in (x["X03"].nota or "")
+    seg = {c.campo: c for c in pb.criterios_revisao.exige_segunda_revisao_se}
+    assert seg["recomendacao_triagem"].valor == "morta"
+    assert "SÓCIO" in (seg["recomendacao_triagem"].nota or "")
+    assert any(
+        "lote" in s and "sócio" in s for s in pb.criterios_revisao.exige_segunda_revisao_tambem
+    )
+
+    # 2: piso de R$ 10.000 provisório, a definir com o BASA
+    piso = next(c for c in pb.antifraude.checagens if c.codigo == "valor_abaixo_piso_diligencia")
+    assert piso.parametros["piso_brl"] == 10000 and piso.parametros["provisorio"] is True
+    assert "definir com o BASA" in piso.parametros["nota"]
+
+    # 4: cessão fora do playbook — só a nota neutra em observacoes
+    assert (
+        "cessão de crédito não é objeto deste playbook" in (pb.metadata.observacoes or "").lower()
+    )
+    for t in pb.teses:
+        corpo = " ".join([t.nome, t.resumo, *t.pedidos, *t.fundamentacao.argumentos_chave])
+        assert not re.search(r"\bcess[ãa]o\b", corpo.lower()), t.id  # 'sucessão' não conta
+    assert "spinoff" not in texto.lower() and "altavista" not in texto.lower()
+
+    # 5: pisos de revisão 300 / 600 / 1200 e lote diário
+    assert pb.criterios_revisao.tempo_minimo_segundos == 300
+    assert "lote" in (pb.criterios_revisao.observacoes or "").lower()
+    assert "1.200 s" in (pb.criterios_revisao.observacoes or "")
+
+    # 6: pedido cumulado + fallback sequencial aprendido por juízo
+    t022 = pb.tese("T02.2")
+    assert "CUMULADO" in t022.nome and "sequencial" in t022.nome
+    assert "preferencia_juizo_cumulado" in campos
+    assert any(c.campo == "preferencia_juizo_cumulado" for c in t022.condicoes_aplicacao)
+    assert (
+        "requerimento_cumulado_sisbajud_renajud_infojud" in campos["tipo_peca_prevista"].descricao
+    )
+    assert "CNIB" in pb.tese("T02.3").nome
+
+    # 7: excesso de execução — planilha sempre; rejeição liminar; recálculo pelo portal BASA
+    t061 = pb.tese("T06.1")
+    assert "SEMPRE" in t061.nome and "917" in t061.nome
+    assert "rejeição liminar" in t061.pedidos[0].lower()
+    assert "portal BASA" in t061.resumo
+
+    # 8: acordo proativo em score médio com bens parciais; fluxo FBS → BASA → registro
+    t091 = pb.tese("T09.1")
+    assert t091.pai == "T09" and t091.categoria == "sinal"
+    assert {c.campo for c in t091.condicoes_aplicacao} >= {
+        "recomendacao_triagem",
+        "bens_cobertura_pct",
+    }
+    assert pb.sinais_acordo.fluxo_aprovacao is not None
+    assert "fbs_proativa" in campos["acordo_iniciativa"].descricao
+
+    # 9: 90 dias sem movimentação útil → alerta + impulso automático (provisório, SLA BASA)
+    parado = next(c for c in pb.antifraude.checagens if c.codigo == "processo_parado_90_dias")
+    assert parado.parametros["dias"] == 90 and parado.parametros["provisorio"] is True
+    assert "SLA do contrato BASA" in parado.parametros["nota"]
+    assert x["X12"].acao == "alertar_revisor"
+    assert any(
+        c.campo == "dias_sem_andamento" and c.valor == 90 and "provisorio" in (c.nota or "")
+        for c in x["X12"].condicoes
+    )
+
+    # 10: prescrição intercorrente por processo; < 12 meses; diligência útil obrigatória
+    t081 = pb.tese("T08.1")
+    assert t081.pai == "T08"
+    assert any(
+        c.campo == "prescricao_intercorrente_meses_restantes" and c.valor == 12
+        for c in t081.condicoes_aplicacao
+    )
+    assert "prescricao_intercorrente_data_limite" in campos
+    assert any(
+        i.id == "R11" and i.bloqueante and "12 meses" in i.item
+        for i in pb.criterios_revisao.checklist
+    )
+    assert any(m.id == "M13" and "< 12" in m.nome for m in pb.metricas)
+    inter = next(
+        c for c in pb.antifraude.checagens if c.codigo == "prescricao_intercorrente_proxima"
+    )
+    assert inter.parametros["alerta_meses_antes"] == 12
+
+    # 11: amostra do piloto = top-200 por valor atualizado com bens localizados
+    piloto = pb.metadata.piloto
+    assert piloto is not None and piloto.amostra is not None
+    for termo in (
+        "200",
+        "MAIOR valor atualizado",
+        "bens localizados",
+        "moeda antiga",
+        "CNJ válido",
+        "fallback",
+    ):
+        assert termo in piloto.amostra, termo
+
+    # 12: portal BASA — pendência externa (dono Gustavo) e disponibilidade a confirmar
+    assert any(
+        p.dono == "Gustavo" and "portal" in p.descricao.lower() for p in piloto.pendencias_externas
+    )
+    assert "portal BASA — a mapear" not in texto
+    for campo in ("titulo_tipo", "valor_divida_atualizado", "memoria_calculo_disponivel"):
+        assert (
+            campos[campo].disponibilidade == "a confirmar — portal BASA (documentação solicitada)"
+        )
 
 
 def test_dual_authorization_block_is_required_when_a_level_demands_it() -> None:

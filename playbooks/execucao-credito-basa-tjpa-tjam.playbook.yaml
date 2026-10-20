@@ -2,12 +2,41 @@
 # Águia Peregrina — M0 Playbook — Execução / recuperação de crédito bancário em
 # massa — POLO ATIVO (credor = Banco da Amazônia) — TJPA + TJAM
 # =============================================================================
-# RASCUNHO (2026-10-20). Primeira tipologia de polo ativo da esteira: o cliente é o
-# exequente, não o réu. Nenhuma citação legal, código CNJ, número, prazo, faixa ou
-# valor aqui foi conferido por advogado — tudo marcado "[A CONFERIR pelo advogado-dono]"
-# e `conferido: false`; os números (dias, valores, pesos do score) são ILUSTRATIVOS e
-# serão calibrados com a carteira. O validador recusa `status: aprovado` enquanto
-# houver pendência.
+# EM REVISÃO (sessão 1 de revisão em 2026-10-20 — Gustavo Fonseca, OAB/PA 12.724).
+# Primeira tipologia de polo ativo da esteira: o cliente é o exequente, não o réu.
+# Nenhuma citação legal, código CNJ, número de tema ou súmula foi conferido ainda —
+# tudo segue "[A CONFERIR pelo advogado-dono]" e `conferido: false`. A sessão 1 fixou
+# DECISÕES DE PROCESSO (triagem, impulso, embargos, acordo, monitoramento, amostra);
+# os números marcados `provisorio`/ILUSTRATIVO continuam a calibrar com a carteira e
+# com o BASA. O validador recusa `status: aprovado` enquanto houver pendência.
+#
+# Decisões da sessão 1 (20/10/2026) — ver metadata.revisoes e a seção homônima do .md:
+#   1. carteira morta (T01.1) = 3 critérios: (a) sem bens após Sisbajud+Renajud+Infojud
+#      negativos E > 3 anos sem movimentação útil; (b) executado falecido sem
+#      herdeiros/inventário localizável; (c) valor atualizado < custo esperado de
+#      diligências + custas. Prescrição intercorrente NÃO é critério de carteira morta
+#      (é gatilho de prioridade — T08.1).
+#   2. piso de valor para não diligenciar: R$ 10.000 (valor atualizado), provisório,
+#      a definir com o BASA (política do banco).
+#   3. baixa/suspensão (art. 921) de processo de carteira morta: decisão de SÓCIO, caso a
+#      caso (não em lote, não pelo advogado da carteira).
+#   4. cessão de crédito não é objeto deste playbook.
+#   5. peças de impulso padrão: 300 s, revisor = advogado da carteira, lote diário;
+#      intermediárias 600 s; impugnação a embargos 1.200 s.
+#   6. após citação sem pagamento: pedido CUMULADO Sisbajud+Renajud+Infojud em uma peça;
+#      fallback sequencial se o juízo indeferir (preferência registrada por juízo);
+#      depois CNIB/SREI → avaliação/leilão.
+#   7. excesso de execução: SEMPRE exigir planilha (CPC 917 §§3º/4º) e pedir rejeição
+#      liminar sem ela; recalcular com saldo/memória do portal BASA.
+#   8. acordo: a FBS propõe ATIVAMENTE em score médio (bens parciais), dentro da
+#      política/programa do BASA; FBS recomenda → BASA aprova → registro.
+#   9. processo parado: alerta + impulso automático para revisão aos 90 dias sem
+#      movimentação útil (provisório — alinhar ao SLA do contrato BASA).
+#  10. prescrição intercorrente (CPC 921 §4º): calcular por processo; priorizar
+#      vencimentos < 12 meses; diligência útil OBRIGATÓRIA antes do vencimento.
+#  11. amostra do piloto: 200 processos de MAIOR valor atualizado COM bens localizados,
+#      excluindo outliers de moeda antiga e processos sem CNJ válido.
+#  12. portal BASA: pedir documentação/API ao banco (pendência externa — Gustavo).
 #
 # Base empírica: radiografia da carteira BASA no Legal One/DataJud (19–20/10/2026,
 # /reports "Legal One base FBS"): 16.656 processos ativos; 71% Execução de Título
@@ -19,7 +48,7 @@
 #   (2) peças repetitivas em massa (impulsos, Sisbajud/Renajud/Infojud,
 #       cumprimento de sentença, habilitação, suspensão art. 921)   → T02, T03, T04, T05, T08, T12
 #   (3) resposta a embargos / exceção de pré-executividade          → T06, T07
-#   (4) monitoramento de prazos/andamentos e priorização do parado  → T08 + métricas M03/M04
+#   (4) monitoramento de prazos/andamentos e priorização do parado  → T08/T08.1 + métricas M03/M04/M11/M13
 #
 # Fonte da verdade: este YAML. A versão em prosa
 # (execucao-credito-basa-tjpa-tjam.playbook.md) é derivada.
@@ -41,7 +70,7 @@ metadata:
   autor_nome: "Gustavo Fonseca"
   autor_oab: "PA 12724"
   criado_em: 2026-10-20T09:00:00-03:00
-  status: rascunho
+  status: em_revisao
   aprovado_por_nome: null
   aprovado_por_oab: null
   aprovado_em: null
@@ -53,26 +82,49 @@ metadata:
     esteira não é "vencer a ação", é recuperar valor no menor prazo e com o menor custo de
     diligência, separando carteira viva de carteira morta.
   observacoes: >-
-    Rascunho. O campo `tribunal` do schema aceita um único tribunal; TJPA é o principal (63,5% da
-    carteira) e o TJAM (34,8%) é coberto por este mesmo playbook — as diferenças (Itacoatiara,
-    cartas precatórias, correspondentes) estão em T10 e nas faixas por grupo de comarcas. Os
-    códigos CNJ de classe/assunto vieram da tabela TPU de memória e estão todos `conferido:
-    false`. O portal do BASA (contratos/cédulas, garantias, extratos, saldo devedor e cálculo
-    atualizado) é o subsídio central e ainda precisa ser mapeado (M3). Os pesos do score de
+    Em revisão (sessão 1 em 20/10/2026). O campo `tribunal` do schema aceita um único tribunal;
+    TJPA é o principal (63,5% da carteira) e o TJAM (34,8%) é coberto por este mesmo playbook —
+    as diferenças (Itacoatiara, cartas precatórias, correspondentes) estão em T10 e nas faixas
+    por grupo de comarcas. Os códigos CNJ de classe/assunto vieram da tabela TPU de memória e
+    estão todos `conferido: false`. O portal do BASA (contratos/cédulas, garantias, extratos,
+    saldo devedor e cálculo atualizado) é o subsídio central; a documentação/API foi solicitada
+    ao banco (pendência externa em `piloto.pendencias_externas`). Os pesos do score de
     recuperabilidade (T01) são ilustrativos e devem ser calibrados por replay sobre processos
-    encerrados (Brier — métrica M10).
-  revisoes: []
+    encerrados (Brier — métrica M10). Cessão de crédito não é objeto deste playbook.
+  revisoes:
+    - data: 2026-10-20
+      por: "Gustavo Fonseca OAB/PA 12.724"
+      resumo: "Sessão 1 (execução): triagem, impulso, embargos, acordo, monitoramento, amostra"
   piloto:
     cliente_piloto: "Banco da Amazônia S.A. (BASA) — carteira já patrocinada pela FBS (16.656 processos ativos)"
     plano: >-
-      Amostra de 200 processos: 100 TJPA interior (Tucuruí, Marabá, Rurópolis, Novo Progresso,
-      Parauapebas, Altamira, Alenquer), 60 TJAM (Itacoatiara e Manaus), 40 Belém. Fase 1: rodar
-      T01 (triagem) em replay sobre a amostra + 200 processos encerrados para calibrar o score.
-      Fase 2: peças de impulso (T02/T08) com revisão do advogado da carteira. Fase 3:
-      impugnações a embargos (T06). Pré-requisito: mapear o portal do BASA em M3 (quais campos
-      saem estruturados; quem tem acesso; frequência de atualização do saldo). KPIs do cliente:
-      valor recuperado, prazo, SLA de impulso / processos sem andamento.
+      Amostra de 200 processos selecionada por valor e bens (ver `amostra`). Fase 1: rodar T01
+      (triagem) em replay sobre a amostra + 200 processos encerrados para calibrar o score.
+      Fase 2: peças de impulso (T02/T08) em lote diário com revisão do advogado da carteira.
+      Fase 3: impugnações a embargos (T06). Pré-requisito: documentação/API do portal do BASA
+      (pendência externa abaixo). KPIs do cliente: valor recuperado, prazo, SLA de impulso /
+      processos sem andamento.
+    amostra: >-
+      Os 200 processos de MAIOR valor atualizado COM bens localizados. "Bens localizados" =
+      indício de bens nos andamentos (legalone_andamentos / DataJud): penhora ou arresto
+      formalizados, Sisbajud positivo, Renajud com veículo, ou garantia real registrada no
+      título (hipoteca / alienação fiduciária / penhor registrado). EXCLUIR: outliers de moeda
+      antiga (valor > R$ 5 mi em execuções de 1992–94 — checagem valor_moeda_antiga_outlier) e
+      processos sem CNJ válido (checagem cnj_invalido_ou_duplicado). Se, na data da seleção, os
+      andamentos forem insuficientes para detectar bens (backfill parcial do Legal One / DataJud
+      51,9 % consultado), usar como fallback a garantia real registrada no título (portal BASA).
+      A distribuição por tribunal/comarca deixa de ser critério (era 100 TJPA interior / 60 TJAM
+      / 40 Belém no rascunho) e passa a ser reportada, não imposta.
     prospeccao: []
+    pendencias_externas:
+      - descricao: "Pedir ao BASA a documentação/API do portal: contratos/cédulas, garantias, extratos, saldo devedor e cálculo atualizado (memória de cálculo); campos estruturados, quem acessa, frequência de atualização"
+        dono: "Gustavo"
+        status: aberta
+        aberta_em: 2026-10-20
+      - descricao: "Obter do BASA a política de acordo/renegociação (alçadas, descontos por faixa e programa) e a régua de baixa; definir o piso de valor para não diligenciar (hipótese R$ 10.000) e o SLA contratual de impulso (hipótese 90 dias)"
+        dono: "Gustavo"
+        status: aberta
+        aberta_em: 2026-10-20
 
 # -----------------------------------------------------------------------------
 # GATILHOS DE CLASSIFICAÇÃO (M1/M9)
@@ -147,24 +199,25 @@ campos_dossie_obrigatorios:
   - { campo: data_ultima_movimentacao_util, tipo: data, origem: publicacao, descricao: "Última movimentação que impulsionou a execução (não conta juntada de procuração, vista, carga)", obrigatorio: true }
   - { campo: dias_sem_andamento, tipo: numero, origem: calculado, descricao: "Hoje − data_ultima_movimentacao_util", obrigatorio: true }
   - { campo: prazo_fatal, tipo: data, origem: publicacao, descricao: "Prazo em curso (intimação para manifestação, resposta a embargos, art. 921 §1º etc.)", obrigatorio: false }
-  - { campo: tipo_peca_prevista, tipo: texto, origem: calculado, descricao: "Peça que a esteira pretende gerar: peticao_impulso | requerimento_sisbajud | requerimento_renajud_infojud | citacao_edital | manifestacao_penhora_negativa | impugnacao_embargos | resposta_excecao_pre_executividade | cumprimento_sentenca | pedido_suspensao_921 | habilitacao_herdeiros | idpj | acordo", obrigatorio: true }
+  - { campo: tipo_peca_prevista, tipo: texto, origem: calculado, descricao: "Peça que a esteira pretende gerar: peticao_impulso | requerimento_cumulado_sisbajud_renajud_infojud | requerimento_sisbajud | requerimento_renajud_infojud | requerimento_cnib_srei | citacao_edital | manifestacao_penhora_negativa | impugnacao_embargos | resposta_excecao_pre_executividade | cumprimento_sentenca | pedido_suspensao_921 | habilitacao_herdeiros | idpj | acordo", obrigatorio: true }
+  - { campo: impulso_automatico_90d_gerado, tipo: booleano, origem: calculado, descricao: "A esteira já gerou alerta + minuta de impulso para a fila de revisão por 90 dias sem movimentação útil (decisão 9 — provisório, alinhar ao SLA do contrato BASA)", obrigatorio: false }
   # --- título e valores (portal BASA) ---
-  - { campo: titulo_tipo, tipo: texto, origem: subsidio, descricao: "ccb | cedula_rural_pignoraticia | cedula_rural_hipotecaria | nota_credito_rural | cpr | cedula_industrial | contrato_bancario | confissao_divida | cheque | sentenca | outro", obrigatorio: true, bloqueia_minuta_se_ausente: true, disponibilidade: "portal BASA — a mapear (M3)" }
-  - { campo: titulo_localizado, tipo: booleano, origem: subsidio, descricao: "Via original/assinada do título está nos autos ou no portal do BASA", obrigatorio: true, bloqueia_minuta_se_ausente: true, disponibilidade: "portal BASA — a mapear (M3)" }
+  - { campo: titulo_tipo, tipo: texto, origem: subsidio, descricao: "ccb | cedula_rural_pignoraticia | cedula_rural_hipotecaria | nota_credito_rural | cpr | cedula_industrial | contrato_bancario | confissao_divida | cheque | sentenca | outro", obrigatorio: true, bloqueia_minuta_se_ausente: true, disponibilidade: "a confirmar — portal BASA (documentação solicitada)" }
+  - { campo: titulo_localizado, tipo: booleano, origem: subsidio, descricao: "Via original/assinada do título está nos autos ou no portal do BASA", obrigatorio: true, bloqueia_minuta_se_ausente: true, disponibilidade: "a confirmar — portal BASA (documentação solicitada)" }
   - { campo: titulo_requisitos_ok, tipo: booleano, origem: calculado, descricao: "Liquidez, certeza e exigibilidade verificadas (valor determinável pela cédula + planilha; vencimento ocorrido; assinaturas do emitente/avalistas; testemunhas quando exigidas)", obrigatorio: true, bloqueia_minuta_se_ausente: true }
   - { campo: titulo_assinaturas_ok, tipo: booleano, origem: extracao, descricao: "Assinaturas do devedor e dos garantidores legíveis/compatíveis com os documentos de identificação", obrigatorio: true }
   - { campo: valor_causa, tipo: valor_monetario, origem: extracao, descricao: "Valor da causa na inicial (histórico)", obrigatorio: true }
-  - { campo: valor_divida_atualizado, tipo: valor_monetario, origem: subsidio, descricao: "Saldo devedor atualizado pelo BASA (encargos contratuais até a data do cálculo)", obrigatorio: true, bloqueia_minuta_se_ausente: true, disponibilidade: "portal BASA — a mapear (M3)" }
-  - { campo: data_calculo_saldo, tipo: data, origem: subsidio, descricao: "Data-base do saldo devedor", obrigatorio: true, disponibilidade: "portal BASA — a mapear (M3)" }
-  - { campo: memoria_calculo_disponivel, tipo: booleano, origem: subsidio, descricao: "Planilha de evolução da dívida (CPC 798, I, b) [A CONFERIR] disponível e juntável", obrigatorio: true, bloqueia_minuta_se_ausente: true, disponibilidade: "portal BASA — a mapear (M3)" }
+  - { campo: valor_divida_atualizado, tipo: valor_monetario, origem: subsidio, descricao: "Saldo devedor atualizado pelo BASA (encargos contratuais até a data do cálculo)", obrigatorio: true, bloqueia_minuta_se_ausente: true, disponibilidade: "a confirmar — portal BASA (documentação solicitada)" }
+  - { campo: data_calculo_saldo, tipo: data, origem: subsidio, descricao: "Data-base do saldo devedor", obrigatorio: true, disponibilidade: "a confirmar — portal BASA (documentação solicitada)" }
+  - { campo: memoria_calculo_disponivel, tipo: booleano, origem: subsidio, descricao: "Planilha de evolução da dívida (CPC 798, I, b) [A CONFERIR] disponível e juntável", obrigatorio: true, bloqueia_minuta_se_ausente: true, disponibilidade: "a confirmar — portal BASA (documentação solicitada)" }
   - { campo: valor_moeda_antiga_suspeito, tipo: booleano, origem: antifraude, descricao: "Valor cadastrado incompatível (ex.: > R$ 5 mi em execução de 1992–94 — moeda antiga/centavos não convertidos)", obrigatorio: true }
   # --- encargos (para antecipar/impugnar embargos) ---
-  - { campo: taxa_juros_remuneratorios, tipo: numero, origem: subsidio, descricao: "Taxa pactuada (% a.a.)", obrigatorio: false, disponibilidade: "portal BASA — a mapear (M3)" }
+  - { campo: taxa_juros_remuneratorios, tipo: numero, origem: subsidio, descricao: "Taxa pactuada (% a.a.)", obrigatorio: false, disponibilidade: "a confirmar — portal BASA (documentação solicitada)" }
   - { campo: encargos_capitalizacao_pactuada, tipo: booleano, origem: subsidio, descricao: "Capitalização com periodicidade inferior à anual expressamente pactuada (cláusula localizável)", obrigatorio: false }
   - { campo: encargos_comissao_permanencia, tipo: booleano, origem: subsidio, descricao: "Cálculo cobra comissão de permanência (cumulada ou não com outros encargos)", obrigatorio: false }
-  - { campo: encargos_fno_programa, tipo: texto, origem: subsidio, descricao: "Fonte do recurso: fno | pronaf | recursos_proprios | outro — define encargos e programas de renegociação aplicáveis", obrigatorio: false, disponibilidade: "portal BASA — a mapear (M3)" }
+  - { campo: encargos_fno_programa, tipo: texto, origem: subsidio, descricao: "Fonte do recurso: fno | pronaf | recursos_proprios | outro — define encargos e programas de renegociação aplicáveis", obrigatorio: false, disponibilidade: "a confirmar — portal BASA (documentação solicitada)" }
   # --- garantias ---
-  - { campo: garantia_tipo, tipo: lista, origem: subsidio, descricao: "hipoteca | penhor_rural | penhor_mercantil | alienacao_fiduciaria_imovel | alienacao_fiduciaria_movel | aval | fianca | cessao_fiduciaria_recebiveis | nenhuma", obrigatorio: true, bloqueia_minuta_se_ausente: false, disponibilidade: "portal BASA — a mapear (M3)" }
+  - { campo: garantia_tipo, tipo: lista, origem: subsidio, descricao: "hipoteca | penhor_rural | penhor_mercantil | alienacao_fiduciaria_imovel | alienacao_fiduciaria_movel | aval | fianca | cessao_fiduciaria_recebiveis | nenhuma", obrigatorio: true, bloqueia_minuta_se_ausente: false, disponibilidade: "a confirmar — portal BASA (documentação solicitada)" }
   - { campo: garantia_valor_estimado, tipo: valor_monetario, origem: subsidio, descricao: "Valor de avaliação da garantia real (contratual ou laudo)", obrigatorio: false }
   - { campo: garantia_registrada, tipo: booleano, origem: subsidio, descricao: "Hipoteca/alienação registrada na matrícula; penhor rural registrado no RI/RTD", obrigatorio: false }
   - { campo: garantia_matricula, tipo: texto, origem: subsidio, descricao: "Matrícula(s) e cartório do imóvel dado em garantia", obrigatorio: false }
@@ -187,6 +240,10 @@ campos_dossie_obrigatorios:
   # --- bens e diligências ---
   - { campo: bens_localizados, tipo: booleano, origem: calculado, descricao: "Há bem penhorável identificado (Sisbajud positivo, veículo, imóvel, safra, recebíveis)", obrigatorio: true }
   - { campo: bens_tipos, tipo: lista, origem: calculado, descricao: "dinheiro | veiculo | imovel_rural | imovel_urbano | safra | semoventes | recebiveis | quotas | nenhum", obrigatorio: false }
+  - { campo: indicio_bens_fonte, tipo: lista, origem: publicacao, descricao: "De onde veio o indício de bens (andamentos legalone_andamentos/DataJud ou título): penhora | arresto | sisbajud_positivo | renajud_veiculo | garantia_real_registrada | nenhum — é o critério de 'bens localizados' da amostra do piloto", obrigatorio: true }
+  - { campo: bens_cobertura_pct, tipo: numero, origem: calculado, descricao: "Valor estimado dos bens localizados / valor_divida_atualizado (%). 0 = nada; 1–99 = bens PARCIAIS (faixa em que a FBS propõe acordo ativamente — T09.1); ≥ 100 = cobertura integral", obrigatorio: true }
+  - { campo: diligencias_cumuladas_negativas, tipo: booleano, origem: publicacao, descricao: "Sisbajud + Renajud + Infojud já cumpridos (em pedido cumulado ou sequencial) com resultado negativo/irrisório", obrigatorio: true }
+  - { campo: preferencia_juizo_cumulado, tipo: texto, origem: calculado, descricao: "cumulado | sequencial | desconhecida — preferência do órgão julgador quanto ao pedido cumulado Sisbajud+Renajud+Infojud; a esteira aprende por vara/juízo a partir das decisões (indeferimento do cumulado → sequencial) e registra em M10", obrigatorio: true }
   - { campo: sisbajud_tentativas_n, tipo: numero, origem: publicacao, descricao: "Nº de ordens Sisbajud já cumpridas no processo", obrigatorio: true }
   - { campo: sisbajud_ultimo_resultado, tipo: valor_monetario, origem: publicacao, descricao: "Valor bloqueado na última ordem (0 se negativa)", obrigatorio: false }
   - { campo: sisbajud_ultima_data, tipo: data, origem: publicacao, descricao: "Data da última ordem Sisbajud", obrigatorio: false }
@@ -199,6 +256,9 @@ campos_dossie_obrigatorios:
   # --- prescrição e suspensões ---
   - { campo: prescricao_titulo_data_limite, tipo: data, origem: calculado, descricao: "Data-limite da prescrição da pretensão executiva (prazo do título a partir do vencimento) [A CONFERIR — 3 anos títulos de crédito × 5 anos dívida líquida]", obrigatorio: true }
   - { campo: prescricao_intercorrente_risco, tipo: booleano, origem: calculado, descricao: "Suspensão art. 921 III há ≥ 1 ano sem diligência útil e prazo prescricional do título em curso", obrigatorio: true }
+  - { campo: prescricao_intercorrente_data_limite, tipo: data, origem: calculado, descricao: "Data estimada de consumação da prescrição intercorrente (CPC 921 §4º): termo inicial (fim do 1 ano de suspensão / ciência da 1ª diligência infrutífera — [A CONFERIR] regime e transição do art. 1.056) + prazo do título; calculada POR PROCESSO", obrigatorio: true }
+  - { campo: prescricao_intercorrente_meses_restantes, tipo: numero, origem: calculado, descricao: "Meses até prescricao_intercorrente_data_limite; < 12 dispara prioridade (T08.1) e diligência útil obrigatória", obrigatorio: true }
+  - { campo: diligencia_util_antes_intercorrente, tipo: booleano, origem: publicacao, descricao: "Há diligência útil (localização efetiva de bens/penhora — não pedido genérico) protocolada após o alerta de < 12 meses e antes do vencimento (M13)", obrigatorio: false }
   - { campo: suspensao_921_data, tipo: data, origem: publicacao, descricao: "Data da decisão de suspensão por ausência de bens (art. 921, III)", obrigatorio: false }
   - { campo: arquivamento_data, tipo: data, origem: publicacao, descricao: "Data do arquivamento provisório (art. 921 §2º)", obrigatorio: false }
   - { campo: suspensao_outra_causa, tipo: texto, origem: publicacao, descricao: "nenhuma | recuperacao_judicial | calamidade | covid | convencao_partes | decisao_judicial", obrigatorio: true }
@@ -211,7 +271,10 @@ campos_dossie_obrigatorios:
   - { campo: honorarios_sucumbencia_fixados, tipo: valor_monetario, origem: publicacao, descricao: "Honorários já fixados em favor do exequente (execução + embargos)", obrigatorio: false }
   # --- triagem (T01, calculado) ---
   - { campo: score_recuperabilidade, tipo: numero, origem: calculado, descricao: "0–1: probabilidade estimada de recuperar ≥ custo de diligências em 24 meses (T01)", obrigatorio: true }
-  - { campo: recomendacao_triagem, tipo: texto, origem: calculado, descricao: "viva_prioritaria | viva | observacao | morta_baixa | morta_cessao (T01)", obrigatorio: true }
+  - { campo: recomendacao_triagem, tipo: texto, origem: calculado, descricao: "viva_prioritaria | viva | observacao | morta (T01). 'morta' = parar de diligenciar; baixa/suspensão art. 921 só por decisão de sócio caso a caso (T01.1/X03)", obrigatorio: true }
+  - { campo: carteira_morta_criterios, tipo: lista, origem: calculado, descricao: "Critérios de carteira morta atendidos (decisão 1; qualquer um basta): sem_bens_e_3_anos_parado (Sisbajud + Renajud + Infojud negativos E > 3 anos sem movimentação útil) | falecido_sem_herdeiros (executado falecido sem herdeiros/inventário localizável) | valor_abaixo_custo (valor atualizado < custo esperado de diligências + custas) | nenhum. Prescrição intercorrente NÃO entra aqui (é gatilho de prioridade — T08.1)", obrigatorio: true }
+  - { campo: valor_abaixo_piso_diligencia, tipo: booleano, origem: calculado, descricao: "valor_divida_atualizado < piso de valor para não diligenciar — R$ 10.000 (PROVISÓRIO; definir com o BASA — política do banco; parâmetro em antifraude.valor_abaixo_piso_diligencia)", obrigatorio: true }
+  - { campo: socio_decisao_carteira_morta, tipo: texto, origem: calculado, descricao: "Decisão do SÓCIO registrada na plataforma (human_decide, OAB) para processo morta: pendente | manter_diligenciando | aceitar_suspensao_921 | requerer_baixa — caso a caso, nunca em lote; sem ela nenhuma peça de suspensão/baixa sai", obrigatorio: true }
   # --- incidentes defensivos ---
   - { campo: embargos_opostos, tipo: booleano, origem: publicacao, descricao: "Há embargos à execução pendentes de resposta", obrigatorio: true }
   - { campo: embargos_materia, tipo: lista, origem: extracao, descricao: "excesso_execucao | iliquidez | capitalizacao | comissao_permanencia | nulidade_citacao | prescricao | renegociacao_rural | ilegitimidade | pagamento | outra", obrigatorio: false }
@@ -233,6 +296,8 @@ campos_dossie_obrigatorios:
   # --- acordo ---
   - { campo: acordo_proposta_valor, tipo: valor_monetario, origem: subsidio, descricao: "Valor da proposta de acordo em análise (do executado ou recomendada pela FBS)", obrigatorio: false }
   - { campo: acordo_desconto_pct, tipo: numero, origem: calculado, descricao: "Desconto sobre valor_divida_atualizado implícito na proposta (%)", obrigatorio: false }
+  - { campo: acordo_iniciativa, tipo: texto, origem: calculado, descricao: "nenhuma | executado | fbs_proativa | basa — quem originou a proposta; fbs_proativa = T09.1 (score médio, bens parciais)", obrigatorio: true }
+  - { campo: acordo_aprovacao_basa_registrada, tipo: booleano, origem: subsidio, descricao: "Aprovação do BASA (alçada do banco) registrada na plataforma para a proposta recomendada pela FBS", obrigatorio: false }
   # --- qualidade de dados (M4) ---
   - { campo: cnj_duplicado, tipo: booleano, origem: antifraude, descricao: "Mesmo CNJ em mais de uma pasta do Legal One (771 CNJs em 1.638 pastas) — consolidar antes de impulsionar", obrigatorio: true }
   - { campo: cadastro_cliente_id, tipo: texto, origem: subsidio, descricao: "contato_id do BASA no Legal One (3863 | 14574 | 15082 | 36641) — unificar", obrigatorio: false }
@@ -253,11 +318,12 @@ teses:
     pai: null
     resumo: >-
       Antes de qualquer peça, cada processo recebe um score 0–1 de recuperabilidade e uma
-      recomendação (viva_prioritaria | viva | observacao | morta_baixa | morta_cessao). O score
-      pondera: existência e valor de garantia real; bens localizados; idade do processo; tempo
-      desde a última diligência útil; óbito/insolvência do executado; valor líquido da dívida;
-      custas e diligências futuras. É o mesmo motor de pricing do spinoff de créditos, visto
-      pelo lado do credor originário. Pesos abaixo são ILUSTRATIVOS; calibrar por replay (M10).
+      recomendação (viva_prioritaria | viva | observacao | morta). O score pondera: existência e
+      valor de garantia real; bens localizados; idade do processo; tempo desde a última
+      diligência útil; óbito/insolvência do executado; valor líquido da dívida; custas e
+      diligências futuras. A recomendação "morta" só sai se ao menos um dos três critérios
+      objetivos de T01.1 estiver presente (decisão 1) — o score sozinho não mata processo.
+      Pesos abaixo são ILUSTRATIVOS; calibrar por replay (M10).
     condicoes_aplicacao:
       - { campo: valor_divida_atualizado, operador: existe }
       - { campo: fase_execucao, operador: existe }
@@ -276,45 +342,60 @@ teses:
       precedentes: []
       argumentos_chave:
         - "Fatores com peso ILUSTRATIVO (soma 1,0): garantia real registrada com valor ≥ 50 % da dívida 0,25; bens localizados (Sisbajud positivo, veículo, imóvel, safra) 0,20; última diligência útil há < 180 dias 0,10; idade do processo < 5 anos 0,10; executado vivo e sem RJ/falência 0,15; valor líquido (dívida − custas futuras) ≥ R$ 30 mil 0,10; CPF/CNPJ válido e sem homonímia 0,10. [A CONFERIR/CALIBRAR]"
-        - "Faixas ILUSTRATIVAS: ≥ 0,70 viva_prioritaria; 0,45–0,69 viva; 0,25–0,44 observacao (só diligência barata periódica — T08); < 0,25 morta → morta_baixa (recomendar baixa/arquivamento) ou morta_cessao (candidata a cessão em lote)."
-        - "Dados da carteira que balizam a régua: mediana R$ 57,5 mil, p90 R$ 276 mil; 85 % com movimento em 2026 (carteira viva, não acervo morto); três ondas de distribuição (2015–16, 2019–21, 2024–25) — a onda de 2015–16 é a primeira a passar pelo crivo de prescrição intercorrente."
-        - "O score nunca extingue nada sozinho: morta_baixa e morta_cessao vão ao advogado da carteira e ao sócio (X03) e, depois, à alçada do BASA."
+        - "Faixas ILUSTRATIVAS: ≥ 0,70 viva_prioritaria; 0,45–0,69 viva; 0,25–0,44 observacao (só diligência barata periódica — T08); < 0,25 E ao menos um critério objetivo de T01.1 → morta (parar de diligenciar; decisão de baixa/suspensão é do sócio, caso a caso)."
+        - "Score médio (viva/observacao) com bens PARCIAIS (bens_cobertura_pct entre 1 e 99 %) é a faixa em que a FBS propõe acordo ativamente (T09.1 — decisão 8)."
+        - "Dados da carteira que balizam a régua: mediana R$ 57,5 mil, p90 R$ 276 mil; 85 % com movimento em 2026 (carteira viva, não acervo morto); três ondas de distribuição (2015–16, 2019–21, 2024–25) — a onda de 2015–16 é a primeira a passar pelo crivo de prescrição intercorrente (T08.1)."
+        - "Prescrição intercorrente próxima NÃO rebaixa o processo a morta: é gatilho de PRIORIDADE (T08.1) — processo com intercorrente < 12 meses e qualquer indício de bens sobe na fila."
+        - "O score nunca extingue nada sozinho: morta vai ao advogado da carteira e ao sócio (X03), que decide caso a caso."
     pedidos:
-      - "Classificar o processo e registrar o score e a recomendação no dossiê (sem peça)."
+      - "Classificar o processo e registrar o score, a recomendação e os critérios de carteira morta atendidos no dossiê (sem peça)."
     pedidos_subsidiarios:
-      - "Se recomendacao_triagem ∈ {morta_baixa, morta_cessao}: gerar relatório de baixa/cessão para o advogado da carteira (não é peça processual)."
+      - "Se recomendacao_triagem == morta: gerar relatório de carteira morta por processo para o advogado da carteira e o sócio (não é peça processual)."
     risco_se_mal_aplicada: "Score mal calibrado enterra crédito recuperável (falso 'morto') ou gasta diligência em crédito perdido; por isso o Brier (M10) é métrica de primeira linha."
     pendencia: "pesos e faixas do score aguardam replay sobre 200 processos encerrados; régua de baixa do BASA a obter"
     ativa: true
 
   - id: T01.1
-    nome: "Carteira morta — recomendação de baixa, arquivamento definitivo ou cessão em lote"
+    nome: "Carteira morta — três critérios objetivos; parar de diligenciar; baixa/suspensão só por decisão de sócio caso a caso"
     categoria: sinal
     ordem: 2
     pai: T01
     resumo: >-
-      Quando o valor líquido esperado é menor que o custo das próximas diligências (ou o executado
-      está morto sem inventário/insolvente sem garantia), a recomendação é parar de gastar: aceitar
-      a suspensão/arquivamento (T08), propor ao BASA baixa contábil ou cessão em lote. Toda
-      recomendação de baixa passa por sócio (X03) e pela alçada do banco.
+      Um processo é carteira morta quando atende a QUALQUER UM de três critérios (decisão 1 da
+      sessão de 20/10/2026): (a) sem bens localizados após Sisbajud + Renajud + Infojud negativos
+      E mais de 3 anos sem movimentação útil; (b) executado falecido sem herdeiros/inventário
+      localizável; (c) valor atualizado abaixo do custo esperado de diligências + custas (piso
+      provisório de R$ 10.000 — decisão 2). Prescrição intercorrente próxima NÃO é critério (é
+      gatilho de prioridade — T08.1). A recomendação é parar de gastar; a decisão de aceitar a
+      suspensão/baixa do art. 921 é do SÓCIO, caso a caso — nunca em lote, nunca do advogado da
+      carteira (decisão 3).
     condicoes_aplicacao:
-      - { campo: recomendacao_triagem, operador: in, valor: [morta_baixa, morta_cessao] }
+      - { campo: recomendacao_triagem, operador: "==", valor: morta }
+      - { campo: carteira_morta_criterios, operador: nao_contem, valor: nenhum, nota: "ao menos um de: sem_bens_e_3_anos_parado | falecido_sem_herdeiros | valor_abaixo_custo" }
     provas_necessarias:
-      - { tipo_documento: relatorio_triagem, descricao: "Score, fatores e custo de diligências estimado", origem: calculado, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: relatorio_triagem, descricao: "Score, fatores, critério(s) de carteira morta atendido(s) e custo de diligências estimado", origem: calculado, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: andamentos, descricao: "Critério (a): resultados negativos de Sisbajud, Renajud e Infojud (com datas) e data da última movimentação útil (> 3 anos)", origem: publicacao, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: relatorio_antifraude, descricao: "Critério (b): indício de óbito + busca negativa de inventário/herdeiros (DataJud, autos)", origem: antifraude, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: extrato_saldo_devedor, descricao: "Critério (c): valor atualizado × custo de diligências + custas (piso R$ 10.000 provisório)", origem: subsidio, obrigatoria: false, peso: 1.0 }
     provas_que_afastam:
       - { tipo_documento: relatorio_garantias, descricao: "Garantia real registrada ainda não excutida", origem: subsidio, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: andamentos, descricao: "Qualquer indício de bens nos andamentos (penhora, arresto, Sisbajud positivo, Renajud com veículo) — processo volta à carteira viva", origem: publicacao, obrigatoria: false, peso: 1.0 }
     fundamentacao:
       dispositivos:
-        - { ref: "CPC, art. 921, §§ 2º a 5º (arquivamento e prescrição intercorrente)", tipo: dispositivo, para_que_serve: "consequência jurídica de não impulsionar", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
-        - { ref: "CC, art. 286 e ss. (cessão de crédito); Res. CMN sobre cessão de créditos baixados [A CONFERIR]", tipo: dispositivo, para_que_serve: "viabilidade da cessão em lote", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CPC, art. 921, III e §§ 1º a 5º (suspensão, arquivamento e prescrição intercorrente)", tipo: dispositivo, para_que_serve: "consequência jurídica de não impulsionar; o que o sócio aceita ou não ao decidir", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CPC, arts. 797 e 805 (interesse do exequente × menor onerosidade) e 775 (desistência da execução)", tipo: dispositivo, para_que_serve: "base para parar de diligenciar sem extinguir o crédito", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
       precedentes: []
       argumentos_chave:
-        - "Custo esperado das diligências × valor líquido: se custo_diligencias_estimado > 30 % do valor esperado de recuperação, parar [ILUSTRATIVO]."
-        - "Lote de cessão = processos morta_cessao com título válido e sem decisão desfavorável transitada (ativo vendável)."
+        - "Critério (a) — sem bens: Sisbajud + Renajud + Infojud negativos (cumulados ou sequenciais) E dias_sem_andamento > 1.095 (3 anos sem movimentação útil). Só um dos dois não basta."
+        - "Critério (b) — falecido: óbito com busca negativa de inventário/arrolamento no DataJud e de herdeiros qualificáveis; se aparecer herdeiro/inventário, vai a T04.1."
+        - "Critério (c) — valor: valor_divida_atualizado < custo_diligencias_estimado + custas_pendentes_valor; piso absoluto PROVISÓRIO de R$ 10.000 (abaixo dele não se diligencia) — definir com o BASA, política do banco."
+        - "Saída possível do sócio, por processo: manter diligenciando (volta a T02/T08), aceitar a suspensão/arquivamento do art. 921 sem recurso, ou requerer baixa conforme a régua do BASA. Nenhuma dessas decisões é tomada em lote nem pelo advogado da carteira."
     pedidos:
-      - "Relatório de baixa/cessão ao advogado da carteira e ao sócio; nenhuma peça automática."
-    pedidos_subsidiarios: []
-    risco_se_mal_aplicada: "Baixar crédito com garantia real não excutida ou com herdeiros solventes."
+      - "Relatório de carteira morta por processo (critério atendido, evidência, custo × valor) ao advogado da carteira e ao sócio; nenhuma peça automática."
+    pedidos_subsidiarios:
+      - "Só após socio_decisao_carteira_morta ∈ {aceitar_suspensao_921, requerer_baixa}: a esteira gera a manifestação correspondente (pedido_suspensao_921) para revisão."
+    risco_se_mal_aplicada: "Parar de diligenciar crédito com garantia real não excutida ou com herdeiros solventes; ou, no sentido oposto, gastar diligência em processo que atende aos três critérios."
+    pendencia: "piso de R$ 10.000 e régua de baixa a definir com o BASA (política do banco)"
     ativa: true
 
   # ---------------------------------------------------------------- (2) IMPULSO PADRÃO POR FASE
@@ -326,7 +407,11 @@ teses:
     resumo: >-
       Para cada fase do processo há uma próxima diligência útil padrão. A tese-mãe define a regra:
       só impulsiona processo viva/viva_prioritaria/observacao, com saldo atualizado e memória de
-      cálculo citáveis; as subteses escolhem a peça. Cumpre o KPI do BASA de SLA de impulso.
+      cálculo citáveis; as subteses escolhem a peça. Peças de impulso padrão são processadas em
+      LOTE DIÁRIO, com piso de revisão de 300 s e revisor = advogado da carteira (decisão 5).
+      Processo parado há 90 dias sem movimentação útil recebe alerta + minuta de impulso
+      automática para a fila de revisão (decisão 9 — provisório; alinhar ao SLA do contrato
+      BASA). Cumpre o KPI do BASA de SLA de impulso.
     condicoes_aplicacao:
       - { campo: recomendacao_triagem, operador: in, valor: [viva_prioritaria, viva, observacao] }
       - { campo: cliente_orientou_suspender, operador: "==", valor: false }
@@ -345,6 +430,8 @@ teses:
       argumentos_chave:
         - "Toda petição de impulso traz: fase atual com citação de página, saldo atualizado com data-base e página da planilha, pedido específico e prazo."
         - "Nunca repetir diligência idêntica em menos de 180 dias sem fato novo [ILUSTRATIVO]."
+        - "Ordem de diligências após citação sem pagamento (decisão 6): pedido CUMULADO Sisbajud + Renajud + Infojud em uma única peça (T02.2); se o juízo indeferir o cumulado, fallback sequencial (Sisbajud → Renajud → Infojud) e registro de preferencia_juizo_cumulado = sequencial para aquela vara; depois CNIB/SREI (T02.3) → avaliação/leilão (T02.4)."
+        - "Gatilho de 90 dias (decisão 9): dias_sem_andamento > 90 em processo viva/observacao gera alerta e minuta de impulso da fase para a fila de revisão, sem esperar despacho (impulso_automatico_90d_gerado = true). Valor PROVISÓRIO — alinhar ao SLA do contrato BASA."
     pedidos:
       - "Prosseguimento da execução com a diligência da fase (ver subteses)."
     pedidos_subsidiarios: []
@@ -384,17 +471,21 @@ teses:
     ativa: true
 
   - id: T02.2
-    nome: "Citado sem pagamento → penhora on-line (Sisbajud), inclusive teimosinha"
+    nome: "Citado sem pagamento → pedido CUMULADO Sisbajud (com teimosinha) + Renajud + Infojud em uma peça; fallback sequencial por juízo"
     categoria: processual
     ordem: 5
     pai: T02
     resumo: >-
-      Decorrido o prazo de 3 dias sem pagamento, requerer bloqueio Sisbajud do saldo atualizado,
-      com reiteração automática (teimosinha) pelo prazo que o juízo admitir; pedir também a
-      inclusão dos avalistas/coexecutados.
+      Decorrido o prazo de 3 dias sem pagamento, requerer EM UMA ÚNICA PEÇA (decisão 6): bloqueio
+      Sisbajud do saldo atualizado com reiteração automática (teimosinha), restrição/penhora de
+      veículos via Renajud e quebra de sigilo fiscal via Infojud (DIRPF/DOI), contra todos os
+      executados (emitente e avalistas). Se o juízo indeferir o cumulado (exigindo esgotamento
+      prévio), a esteira registra preferencia_juizo_cumulado = sequencial para aquela vara/órgão
+      julgador (M10 aprende por juízo) e passa a pedir em sequência: Sisbajud → Renajud → Infojud.
     condicoes_aplicacao:
       - { campo: fase_execucao, operador: "==", valor: citado_sem_pagamento }
       - { campo: citacao_realizada, operador: "==", valor: true }
+      - { campo: preferencia_juizo_cumulado, operador: in, valor: [cumulado, desconhecida, sequencial], nota: "cumulado/desconhecida → peça cumulada; sequencial → só a próxima diligência da sequência" }
     provas_necessarias:
       - { tipo_documento: certidao_decurso_prazo, descricao: "Certidão de decurso do prazo de pagamento", origem: publicacao, obrigatoria: true, peso: 1.0 }
       - { tipo_documento: extrato_saldo_devedor, descricao: "Saldo atualizado com data-base ≤ 30 dias", origem: subsidio, obrigatoria: true, peso: 1.0 }
@@ -410,30 +501,35 @@ teses:
       argumentos_chave:
         - "Penhora on-line independe de esgotamento de outras diligências; valor = saldo atualizado da planilha anexa."
         - "Requer-se a ordem contra todos os executados (emitente e avalistas) e reiteração automática."
+        - "Pedido cumulado (Sisbajud + Renajud + Infojud) economiza um ciclo de despacho por diligência (meses no interior); Renajud é gratuito e Infojud é requerido no mesmo ato com a justificativa de que a execução se faz no interesse do credor (CPC 797) [A CONFERIR — há juízos que exigem Sisbajud negativo antes do Infojud]."
+        - "Fallback sequencial: ao primeiro indeferimento do cumulado pelo órgão julgador, registrar preferencia_juizo_cumulado = sequencial no dossiê e em M10 (por vara/juízo); nos próximos processos da mesma vara a esteira já gera a peça sequencial. Preferência volta a 'cumulado' se o mesmo juízo deferir um cumulado depois."
     pedidos:
-      - "Bloqueio Sisbajud do valor atualizado contra todos os executados, com reiteração automática; transferência para conta judicial; intimação do executado."
+      - "Peça cumulada: (i) bloqueio Sisbajud do valor atualizado contra todos os executados, com reiteração automática, transferência para conta judicial e intimação; (ii) Renajud — restrição de transferência e penhora de veículos; (iii) Infojud — 3 últimas DIRPF e DOI; tudo com CPF/CNPJ e valor da planilha."
     pedidos_subsidiarios:
+      - "Se o juízo indeferir o cumulado: deferimento ao menos do Sisbajud, seguindo-se Renajud e Infojud em peças sequenciais (preferencia_juizo_cumulado = sequencial)."
       - "Se bloqueio parcial: manutenção e prosseguimento pelo saldo remanescente."
-    risco_se_mal_aplicada: "Ordem contra homônimo ou com valor de moeda antiga (outlier) — ver antifraude."
+    risco_se_mal_aplicada: "Ordem contra homônimo ou com valor de moeda antiga (outlier) — ver antifraude; insistir no cumulado em juízo que já o indeferiu gera atraso e desgaste."
     ativa: true
 
   - id: T02.3
-    nome: "Penhora frustrada → Renajud, Infojud (DIRPF/DOI), CNIB, SREI e penhora de outros bens"
+    nome: "Diligências cumuladas negativas → CNIB, SREI/matrículas e penhora de outros bens (imóvel, quotas, recebíveis, faturamento)"
     categoria: processual
     ordem: 6
     pai: T02
     resumo: >-
-      Sisbajud negativo ou irrisório: requerer restrição/penhora de veículos (Renajud), quebra de
-      sigilo fiscal (Infojud — DIRPF e DOI), indisponibilidade de imóveis (CNIB), pesquisa de
-      matrículas (SREI/ONR) e, conforme o resultado, penhora de imóvel, quotas, recebíveis ou
-      faturamento (PJ).
+      Sisbajud + Renajud + Infojud negativos ou irrisórios (cumulados ou sequenciais — T02.2):
+      requerer indisponibilidade de imóveis (CNIB), pesquisa de matrículas (SREI/ONR, cruzada
+      com a DOI do Infojud) e, conforme o resultado, penhora de imóvel, quotas, recebíveis ou
+      faturamento (PJ). É o terceiro passo da ordem da decisão 6 (cumulado → CNIB/SREI →
+      avaliação/leilão). Se nenhuma diligência localizar bens e o processo passar 3 anos sem
+      movimentação útil, entra o critério (a) de carteira morta (T01.1).
     condicoes_aplicacao:
       - { campo: fase_execucao, operador: "==", valor: penhora_frustrada }
-      - { campo: sisbajud_tentativas_n, operador: ">=", valor: 1 }
+      - { campo: diligencias_cumuladas_negativas, operador: "==", valor: true }
     provas_necessarias:
-      - { tipo_documento: detalhamento_sisbajud, descricao: "Resultado negativo/irrisório da última ordem", origem: publicacao, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: detalhamento_sisbajud, descricao: "Resultado negativo/irrisório do Sisbajud, do Renajud e do Infojud (com datas)", origem: publicacao, obrigatoria: true, peso: 1.0 }
     provas_que_afastam:
-      - { tipo_documento: despacho, descricao: "Renajud/Infojud já cumpridos sem fato novo", origem: publicacao, obrigatoria: false, peso: 0.9 }
+      - { tipo_documento: despacho, descricao: "CNIB/SREI já cumpridos sem fato novo", origem: publicacao, obrigatoria: false, peso: 0.9 }
     fundamentacao:
       dispositivos:
         - { ref: "CPC, art. 835, II a XIII, 866 (penhora de faturamento), 835, § 3º (bem fiduciário)", tipo: dispositivo, para_que_serve: "ordem e espécies de penhora", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
@@ -443,10 +539,10 @@ teses:
         - { ref: "STJ — Infojud/quebra de sigilo fiscal após diligências do credor frustradas [A CONFERIR]", tipo: precedente, para_que_serve: "requisito para o Infojud", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
         - { ref: "STJ — medidas atípicas do art. 139, IV exigem indícios de patrimônio oculto (REsp 1.782.418 / 1.788.950) [A CONFERIR]", tipo: precedente, para_que_serve: "não pedir medida atípica sem indício", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
       argumentos_chave:
-        - "Sequência de custo crescente: Renajud (grátis) → Infojud → CNIB → SREI/matrículas → penhora de imóvel/quotas/recebíveis."
+        - "Sequência de custo crescente depois do cumulado (T02.2): CNIB → SREI/matrículas (cruzar com DOI do Infojud) → penhora de imóvel/quotas/recebíveis → avaliação e leilão (T02.4)."
         - "Em PJ: penhora de faturamento em percentual compatível com a continuidade da atividade."
     pedidos:
-      - "Renajud (restrição de transferência/penhora), Infojud (3 últimas DIRPF + DOI), CNIB e pesquisa SREI; penhora dos bens localizados."
+      - "CNIB (indisponibilidade de imóveis) e pesquisa SREI/ONR de matrículas; penhora dos bens localizados (imóvel, quotas, recebíveis, faturamento)."
     pedidos_subsidiarios:
       - "Medidas atípicas do art. 139, IV só com indício concreto de patrimônio (exige sócio)."
     risco_se_mal_aplicada: "Pedir medida atípica sem indício gera indeferimento e desgaste; penhorar pequena propriedade rural trabalhada pela família é nulo."
@@ -567,8 +663,9 @@ teses:
     pai: T04
     resumo: >-
       Executado falecido: suspender (CPC 313, I), habilitar espólio (se há inventário) ou herdeiros
-      (CPC 687-692 / 110), limitando a responsabilidade às forças da herança. Sem inventário e sem
-      bens conhecidos, o caso vai à triagem como carteira morta (X01).
+      (CPC 687-692 / 110), limitando a responsabilidade às forças da herança. Sem herdeiros nem
+      inventário localizável, o caso atende ao critério (b) de carteira morta (T01.1/X01) — a
+      decisão de parar é do sócio, caso a caso.
     condicoes_aplicacao:
       - { campo: executado_obito, operador: "==", valor: true }
       - { campo: executado_inventario_aberto, operador: "==", valor: true }
@@ -664,30 +761,35 @@ teses:
     ativa: true
 
   - id: T06.1
-    nome: "Excesso de execução — exigir planilha do embargante (art. 917 §§ 3º e 4º) e defender a memória de cálculo"
+    nome: "Excesso de execução — SEMPRE exigir a planilha do embargante (art. 917 §§ 3º e 4º), pedir rejeição liminar sem ela e recalcular pelo portal BASA"
     categoria: merito
     ordem: 13
     pai: T06
     resumo: >-
-      Alegação de excesso sem indicação do valor correto e planilha é rejeitada liminarmente
-      (917 §4º, I) ou não conhecida nessa parte. Com planilha: confrontar critério a critério
-      (índice, taxa, termo inicial, encargos) citando página do cálculo do BASA.
+      Regra fixa (decisão 7): toda impugnação que enfrente alegação de excesso de execução
+      EXIGE a planilha do embargante com o valor que ele entende correto (CPC 917 §3º) e pede a
+      rejeição liminar da alegação quando a planilha falta (917 §4º, I) — sem exceção e sem
+      entrar no mérito do cálculo nessa parte. Com planilha: antes de impugnar, a esteira
+      RECALCULA o débito com o saldo e a memória de cálculo do portal BASA (data-base atual) e
+      confronta critério a critério (índice, taxa, termo inicial, encargos), citando página.
     condicoes_aplicacao:
       - { campo: embargos_materia, operador: contem, valor: excesso_execucao }
     provas_necessarias:
-      - { tipo_documento: extrato_saldo_devedor, descricao: "Memória de cálculo com critérios", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: extrato_saldo_devedor, descricao: "Memória de cálculo do portal BASA com critérios, recalculada na data-base da impugnação", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: peticao_embargos, descricao: "Petição de embargos: verificar se há valor declarado e planilha (embargos_planilha_apresentada)", origem: extracao, obrigatoria: true, peso: 1.0 }
     provas_que_afastam:
-      - { tipo_documento: laudo_pericial, descricao: "Cálculo do BASA com erro aritmético evidente", origem: publicacao, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: laudo_pericial, descricao: "Cálculo do BASA com erro aritmético evidente (então recalcular e reconhecer a parte incontroversa, não defender)", origem: publicacao, obrigatoria: false, peso: 1.0 }
     fundamentacao:
       dispositivos:
-        - { ref: "CPC, art. 917, III, §§ 2º, 3º e 4º", tipo: dispositivo, para_que_serve: "ônus do embargante de declarar o valor e juntar planilha", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CPC, art. 917, III, §§ 2º, 3º e 4º", tipo: dispositivo, para_que_serve: "ônus do embargante de declarar o valor e juntar planilha; rejeição liminar / não conhecimento sem ela", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
       precedentes:
         - { ref: "STJ — excesso sem planilha: não conhecimento / rejeição liminar [A CONFERIR]", tipo: precedente, para_que_serve: "rejeição sem perícia", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
       argumentos_chave:
-        - "Sem planilha: rejeição liminar quanto ao excesso (917 §4º, I)."
-        - "Com planilha: a divergência deve ser enfrentada critério a critério; perícia só se a divergência não for resolvível por documentos."
+        - "SEMPRE: se embargos_planilha_apresentada == false → pedido principal de rejeição liminar da alegação de excesso (917 §4º, I), sem debater o cálculo; a esteira não gera impugnação de excesso sem esse pedido."
+        - "Com planilha: recalcular com saldo/memória do portal BASA (data-base ≤ 30 dias) e enfrentar a divergência critério a critério; perícia só se a divergência não for resolvível por documentos."
+        - "Se o recálculo do BASA mostrar que o embargante tem razão em parte (ex.: comissão de permanência cumulada — T06.3): reconhecer a parte e prosseguir pela incontroversa (917 §4º, II)."
     pedidos:
-      - "Rejeição liminar da alegação de excesso sem planilha; subsidiariamente, improcedência com base na memória de cálculo."
+      - "Rejeição liminar da alegação de excesso de execução por ausência de planilha/valor declarado (CPC 917 §§ 3º e 4º, I); subsidiariamente, improcedência com base na memória de cálculo recalculada do BASA."
     pedidos_subsidiarios:
       - "Se perícia: honorários periciais pelo embargante; prosseguimento pela parte incontroversa (917 §4º, II)."
     risco_se_mal_aplicada: "Defender cálculo com comissão de permanência cumulada (Súmula 472) perde."
@@ -903,12 +1005,16 @@ teses:
     resumo: >-
       Sem bens, a execução é suspensa por 1 ano (921 III, §1º) e depois começa a correr a
       prescrição intercorrente (§4º), que só se interrompe por efetiva localização de bens
-      (§4º-A). Para carteira viva/observação: diligência útil periódica antes de vencer o prazo
-      (calendário por processo). Para carteira morta: aceitar suspensão/arquivamento e não gastar;
-      recomendar baixa (T01.1). Este módulo alimenta o KPI "processos sem andamento > 90 dias".
+      (§4º-A). A esteira CALCULA POR PROCESSO a data-limite da intercorrente
+      (prescricao_intercorrente_data_limite) e os meses restantes (decisão 10); vencimentos
+      < 12 meses sobem para T08.1 com diligência útil obrigatória. Para carteira viva/observação:
+      diligência útil periódica antes de vencer o prazo. Para carteira morta: a decisão de
+      aceitar suspensão/arquivamento é do sócio, caso a caso (T01.1). Processo parado há mais de
+      90 dias sem movimentação útil recebe alerta + minuta de impulso para revisão (decisão 9 —
+      provisório, alinhar ao SLA do contrato BASA). Alimenta M03/M11/M13.
     condicoes_aplicacao:
       - { campo: fase_execucao, operador: in, valor: [suspensa_921, arquivada_921, penhora_frustrada] }
-      - { campo: dias_sem_andamento, operador: ">", valor: 90, nota: "SLA ILUSTRATIVO alinhado ao KPI do BASA — calibrar" }
+      - { campo: dias_sem_andamento, operador: ">", valor: 90, nota: "provisorio: true — gatilho de alerta + impulso automático para revisão; alinhar ao SLA do contrato BASA" }
     provas_necessarias:
       - { tipo_documento: andamentos, descricao: "Decisão de suspensão/arquivamento e data; última diligência útil", origem: publicacao, obrigatoria: true, peso: 1.0 }
     provas_que_afastam:
@@ -923,27 +1029,69 @@ teses:
         - { ref: "STJ, Tema 1.064? / tema repetitivo sobre diligências infrutíferas não interromperem a intercorrente [A CONFERIR]", tipo: tema, para_que_serve: "o que conta como diligência útil", conferido: false, nota: "[A CONFERIR pelo advogado-dono — número e tese]" }
       argumentos_chave:
         - "Pedidos genéricos de 'vista' ou 'prazo' não interrompem; só efetiva localização de bens/penhora (921 §4º-A) — logo o calendário de diligências deve ter conteúdo (Sisbajud/Renajud/Infojud com fato novo)."
-        - "Processo em observação: 1 diligência útil a cada 10–11 meses [ILUSTRATIVO] enquanto houver prazo; se morto, não gastar."
+        - "Cálculo por processo: termo inicial da intercorrente (fim do ano de suspensão ou ciência da primeira diligência infrutífera — regime [A CONFERIR], transição do art. 1.056 para a onda 2015–16) + prazo prescricional do título (3 × 5 anos [A CONFERIR]) = prescricao_intercorrente_data_limite; a fila ordena por meses restantes."
+        - "Processo em observação: 1 diligência útil a cada 10–11 meses [ILUSTRATIVO] enquanto houver prazo; se morto, a decisão de não gastar é do sócio (T01.1)."
+        - "Gatilho de 90 dias sem movimentação útil (decisão 9): alerta ao advogado da carteira + minuta de impulso da fase gerada automaticamente para a fila de revisão (lote diário). Valor PROVISÓRIO — alinhar ao SLA do contrato BASA."
     pedidos:
-      - "Carteira viva: diligência útil (T02.2/T02.3) antes do termo; carteira morta: ciência da suspensão/arquivamento sem recurso e relatório de baixa."
+      - "Carteira viva: diligência útil (T02.2/T02.3) antes do termo; carteira morta: ciência da suspensão/arquivamento sem recurso somente após decisão do sócio (socio_decisao_carteira_morta)."
     pedidos_subsidiarios:
       - "Antes de reconhecimento de intercorrente: manifestação prévia (921 §5º) apontando causa interruptiva ou suspensiva, se houver."
     risco_se_mal_aplicada: "Gastar diligência em processo morto ou, pior, deixar prescrever processo com garantia."
     ativa: true
 
+  - id: T08.1
+    nome: "Prescrição intercorrente a vencer em < 12 meses — prioridade da fila e diligência útil OBRIGATÓRIA antes do vencimento"
+    categoria: processual
+    ordem: 21
+    pai: T08
+    resumo: >-
+      Decisão 10: todo processo viva/viva_prioritaria/observacao cuja data-limite de prescrição
+      intercorrente (CPC 921 §4º) esteja a menos de 12 meses sobe ao topo da fila e recebe,
+      obrigatoriamente, uma diligência ÚTIL (com potencial de localizar bens — Sisbajud/Renajud/
+      Infojud cumulados com fato novo, CNIB/SREI, penhora de bem conhecido) protocolada antes do
+      vencimento. Pedido genérico não cumpre. A proximidade da intercorrente NÃO rebaixa o
+      processo a carteira morta (decisão 1): é gatilho de prioridade. A métrica M13 conta os
+      processos nessa janela ainda sem diligência útil.
+    condicoes_aplicacao:
+      - { campo: prescricao_intercorrente_meses_restantes, operador: "<", valor: 12 }
+      - { campo: recomendacao_triagem, operador: in, valor: [viva_prioritaria, viva, observacao] }
+      - { campo: diligencia_util_antes_intercorrente, operador: "!=", valor: true }
+    provas_necessarias:
+      - { tipo_documento: andamentos, descricao: "Data da suspensão/arquivamento, última diligência útil e cálculo da data-limite (por processo)", origem: publicacao, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: extrato_saldo_devedor, descricao: "Saldo atualizado para a ordem a sistema", origem: subsidio, obrigatoria: true, peso: 1.0 }
+    provas_que_afastam:
+      - { tipo_documento: andamentos, descricao: "Diligência útil já protocolada após o alerta (diligencia_util_antes_intercorrente = true) ou causa interruptiva reconhecida", origem: publicacao, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CPC, art. 921, §§ 4º, 4º-A e 5º", tipo: dispositivo, para_que_serve: "o que interrompe a intercorrente (efetiva localização de bens) e o contraditório prévio", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STJ, IAC 1 (REsp 1.604.412) e tema repetitivo sobre diligências infrutíferas [A CONFERIR]", tipo: precedente, para_que_serve: "termo inicial e o que conta como diligência útil", conferido: false, nota: "[A CONFERIR pelo advogado-dono — número e tese]" }
+      argumentos_chave:
+        - "Prioridade: a fila de impulso ordena primeiro por prescricao_intercorrente_meses_restantes (crescente) e só depois por valor; < 12 meses é obrigatória, não sugerida."
+        - "Diligência útil = pedido com potencial concreto de localizar/constringir bens; escolher a que ainda não foi feita (ou com fato novo) na ordem da decisão 6."
+        - "Checklist do revisor (R11): confirmar que a peça é diligência útil e que será protocolada antes de prescricao_intercorrente_data_limite."
+    pedidos:
+      - "Diligência útil da fase (peça cumulada T02.2 com fato novo, CNIB/SREI T02.3 ou penhora de bem conhecido) protocolada antes da data-limite; registro de diligencia_util_antes_intercorrente = true."
+    pedidos_subsidiarios:
+      - "Se houver causa interruptiva/suspensiva não reconhecida: manifestação prévia (921 §5º) demonstrando-a."
+    risco_se_mal_aplicada: "Deixar prescrever processo com indício de bens — é o pior desfecho desta tipologia (M11 = 0 em carteira viva)."
+    ativa: true
+
   # ---------------------------------------------------------------- (2/3) ACORDO
   - id: T09
-    nome: "Acordo / renegociação — sinal por faixa de dívida, garantia e programa"
+    nome: "Acordo / renegociação — sinal por faixa de dívida, garantia e programa; FBS recomenda → BASA aprova → registro"
     categoria: sinal
-    ordem: 21
+    ordem: 22
     pai: null
     resumo: >-
-      Não é peça: é a recomendação da FBS ao BASA de aceitar/propor acordo (valor, desconto,
+      Não é peça: é a recomendação da FBS ao BASA de aceitar ou PROPOR acordo (valor, desconto,
       parcelamento), respeitando as alçadas internas do banco e os programas legais vigentes.
-      Dívida sem garantia e sem bens com proposta ≥ X % é melhor que execução eterna; dívida com
-      garantia real excutível não se acorda com desconto alto.
+      Dispara tanto quando há proposta do executado quanto quando a FBS toma a iniciativa
+      (T09.1 — score médio com bens parciais, decisão 8). Fluxo fixo: FBS recomenda valor →
+      BASA aprova (alçada do banco) → plataforma registra → só então a petição de homologação.
+      Dívida com garantia real excutível não se acorda com desconto alto.
     condicoes_aplicacao:
-      - { campo: acordo_proposta_valor, operador: existe }
+      - { campo: acordo_iniciativa, operador: "!=", valor: nenhuma }
     provas_necessarias:
       - { tipo_documento: extrato_saldo_devedor, descricao: "Saldo atualizado", origem: subsidio, obrigatoria: true, peso: 1.0 }
       - { tipo_documento: relatorio_triagem, descricao: "Score e fatores", origem: calculado, obrigatoria: true, peso: 1.0 }
@@ -957,18 +1105,59 @@ teses:
       argumentos_chave:
         - "Homologar e suspender (922) em vez de extinguir: se descumprido, retoma pelo saldo com a cláusula penal."
         - "Pedir inclusão de honorários e custas no acordo (T11)."
+        - "A FBS recomenda o VALOR (e desconto, parcelas, racional); quem aprova é o BASA, dentro da alçada do banco; a plataforma registra os dois atos antes de qualquer peça (sinais_acordo.fluxo_aprovacao)."
     pedidos:
-      - "Recomendação FBS → aprovação BASA → petição de homologação com suspensão até o cumprimento."
+      - "Recomendação FBS (valor) → aprovação BASA (alçada do banco) → registro na plataforma → petição de homologação com suspensão até o cumprimento."
     pedidos_subsidiarios: []
     risco_se_mal_aplicada: "Desconto fora da alçada/programa expõe o gestor do banco; acordo sem cláusula de retomada perde a execução."
     pendencia: "política de alçadas e descontos do BASA por faixa e programa a obter"
+    ativa: true
+
+  - id: T09.1
+    nome: "Proposta ATIVA da FBS — score médio com bens parciais, dentro da política/programa do BASA"
+    categoria: sinal
+    ordem: 23
+    pai: T09
+    resumo: >-
+      Decisão 8: nos casos de score médio (recomendação viva ou observacao) em que há bens
+      localizados mas insuficientes para cobrir a dívida (bens parciais — bens_cobertura_pct entre
+      1 e 99 %), a FBS não espera proposta do executado: propõe ativamente, com valor recomendado
+      calculado sobre o que os bens cobrem + parcelamento do restante, sempre dentro da política
+      de descontos e dos programas do BASA. O fluxo é o mesmo de T09: FBS recomenda valor → BASA
+      aprova (alçada) → registro → petição/proposta ao executado.
+    condicoes_aplicacao:
+      - { campo: recomendacao_triagem, operador: in, valor: [viva, observacao] }
+      - { campo: bens_cobertura_pct, operador: ">", valor: 0 }
+      - { campo: bens_cobertura_pct, operador: "<", valor: 100 }
+      - { campo: renegociacao_em_curso, operador: "==", valor: false }
+      - { campo: indicio_fraude_cedula, operador: "==", valor: false }
+    provas_necessarias:
+      - { tipo_documento: extrato_saldo_devedor, descricao: "Saldo atualizado e memória de cálculo (portal BASA)", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: relatorio_triagem, descricao: "Score, bens localizados e cobertura estimada", origem: calculado, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: politica_alcadas_basa, descricao: "Política de descontos/alçadas e programas vigentes do BASA — define o teto da proposta", origem: subsidio, obrigatoria: true, peso: 1.0 }
+    provas_que_afastam:
+      - { tipo_documento: relatorio_garantias, descricao: "Garantia real registrada que cobre a dívida (então expropriar, não propor desconto — quando_nao_acordar)", origem: subsidio, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CPC, arts. 3º § 3º, 139, V e 922; política de renegociação do BASA e programas legais (T06.6)", tipo: dispositivo, para_que_serve: "base da proposta e limites de desconto", conferido: false, nota: "[A CONFERIR pelo advogado-dono — obter política do cliente]" }
+      precedentes: []
+      argumentos_chave:
+        - "Valor recomendado (ILUSTRATIVO — calibrar com a política do BASA): à vista ≥ valor estimado dos bens localizados + custas; ou entrada ≥ bens localizados e saldo parcelado dentro do programa aplicável; desconto só sobre encargos, nunca sobre principal garantido."
+        - "A proposta sai em nome do BASA somente após aprovação registrada (acordo_aprovacao_basa_registrada = true); antes disso é recomendação interna (acordo_iniciativa = fbs_proativa)."
+        - "Carteira em observacao com bens parciais: proposta ativa evita gastar com leilão de bem de baixa liquidez no interior."
+    pedidos:
+      - "Recomendação FBS de proposta ativa (valor, desconto, parcelas, racional) → aprovação BASA → registro → proposta ao executado / petição de homologação com suspensão (922)."
+    pedidos_subsidiarios:
+      - "Se o executado recusar: prosseguir com a expropriação dos bens localizados (T02.4) sem nova proposta por 180 dias [ILUSTRATIVO]."
+    risco_se_mal_aplicada: "Propor desconto em processo com garantia real integral destrói valor; propor fora da política do BASA expõe o gestor do banco."
+    pendencia: "política de descontos/alçadas e programas vigentes do BASA a obter (pendência externa — Gustavo)"
     ativa: true
 
   # ---------------------------------------------------------------- (2) INTERIOR / PRECATÓRIAS
   - id: T10
     nome: "Carta precatória, interior e correspondentes (TJPA interior + TJAM Itacoatiara/Manaus)"
     categoria: processual
-    ordem: 22
+    ordem: 24
     pai: null
     resumo: >-
       86 % do TJPA é interior e 31 % do TJAM é Itacoatiara: citação, penhora e avaliação dependem
@@ -998,7 +1187,7 @@ teses:
   - id: T11
     nome: "Honorários de sucumbência, custas e despesas — recuperar e quem adianta"
     categoria: subsidiaria
-    ordem: 23
+    ordem: 25
     pai: null
     resumo: >-
       Em toda peça com valor: incluir honorários de 10 % fixados no despacho inicial (827), os
@@ -1028,7 +1217,7 @@ teses:
   - id: T12
     nome: "Ação monitória e conversão em execução (título judicial)"
     categoria: processual
-    ordem: 24
+    ordem: 26
     pai: null
     resumo: >-
       Para contratos sem força executiva (abertura de crédito em conta, extratos, propostas
@@ -1067,7 +1256,7 @@ excecoes:
       - { campo: executado_inventario_aberto, operador: "==", valor: false }
     acao: escalar_advogado_carteira
     acoes_paralelas: [alertar_revisor]
-    nota: "Suspensão obrigatória (313 I); habilitar herdeiros exige qualificação segura. Sem bens → provável carteira morta (T01.1)."
+    nota: "Suspensão obrigatória (313 I); habilitar herdeiros exige qualificação segura. Sem herdeiros/inventário localizável → critério (b) de carteira morta (T01.1); decisão de parar é do sócio, caso a caso (X03)."
   - id: X02
     descricao: "Executado em recuperação judicial ou falência"
     condicoes:
@@ -1075,12 +1264,13 @@ excecoes:
     acao: escalar_socio
     nota: "Execução suspensa/atraída (Lei 11.101, arts. 6º e 49; credor fiduciário e crédito rural com regras próprias [A CONFERIR]); habilitação no juízo universal é peça de sócio."
   - id: X03
-    descricao: "Carteira morta — valor líquido abaixo do custo de diligências; recomendação de baixa/cessão"
+    descricao: "Carteira morta (T01.1: sem bens + 3 anos parado | falecido sem herdeiros | valor abaixo do custo) — decisão de baixa/suspensão art. 921 é de SÓCIO, caso a caso"
     condicoes:
-      - { campo: recomendacao_triagem, operador: in, valor: [morta_baixa, morta_cessao] }
+      - { campo: recomendacao_triagem, operador: "==", valor: morta }
+      - { campo: socio_decisao_carteira_morta, operador: "==", valor: pendente }
     acao: escalar_socio
     acoes_paralelas: [nao_gerar_minuta]
-    nota: "Nenhuma peça; relatório de baixa/cessão (T01.1) para sócio e alçada do BASA."
+    nota: "Nenhuma peça enquanto o sócio não decidir (socio_decisao_carteira_morta). A decisão é por processo — não em lote, não pelo advogado da carteira (decisão 3). Relatório de carteira morta (T01.1) vai ao sócio; a régua de baixa é do BASA."
   - id: X04
     descricao: "Indício de fraude na cédula (assinatura, emitente nega, inquérito)"
     condicoes:
@@ -1129,6 +1319,23 @@ excecoes:
     acao: alertar_revisor
     acoes_paralelas: [escalar_advogado_carteira]
     nota: "Prioridade máxima na fila de revisão (prazo de 15 dias — CPC 920 [A CONFERIR])."
+  - id: X11
+    descricao: "Prescrição intercorrente a vencer em menos de 12 meses sem diligência útil protocolada (T08.1)"
+    condicoes:
+      - { campo: prescricao_intercorrente_meses_restantes, operador: "<", valor: 12 }
+      - { campo: diligencia_util_antes_intercorrente, operador: "!=", valor: true }
+    acao: alertar_revisor
+    acoes_paralelas: [escalar_advogado_carteira]
+    nota: "Não para a esteira: sobe o processo ao topo da fila de impulso e exige diligência ÚTIL antes do vencimento (decisão 10). Não é critério de carteira morta."
+  - id: X12
+    descricao: "Processo viva/observacao parado há mais de 90 dias sem movimentação útil (gatilho de impulso automático)"
+    condicoes:
+      - { campo: dias_sem_andamento, operador: ">", valor: 90, nota: "provisorio: true — alinhar ao SLA do contrato BASA" }
+      - { campo: recomendacao_triagem, operador: in, valor: [viva_prioritaria, viva, observacao] }
+      - { campo: impulso_automatico_90d_gerado, operador: "!=", valor: true }
+    acao: alertar_revisor
+    acoes_paralelas: [escalar_advogado_carteira]
+    nota: "Decisão 9: alerta + a esteira gera a minuta de impulso da fase (T02.x/T08) para a fila de revisão do lote diário, sem esperar despacho; marca impulso_automatico_90d_gerado."
 
 # -----------------------------------------------------------------------------
 # SINAIS DE ACORDO / RENEGOCIAÇÃO
@@ -1141,13 +1348,20 @@ sinais_acordo:
     execução (score × saldo − custos); com garantia real excutível ou Sisbajud positivo, só
     descontos pequenos de encargos e parcelamento curto. Programas legais (Lei 13.340/2016 e
     sucessoras, PRONAF, securitização, Desenrola) prevalecem sobre a política geral quando o
-    contrato se enquadra. A FBS recomenda (valor, desconto, parcelas, racional); o BASA aprova
-    dentro da alçada do gestor/comitê; a plataforma registra.
+    contrato se enquadra. Decisão 8 (20/10/2026): em score médio com bens PARCIAIS a FBS propõe
+    ATIVAMENTE (T09.1), dentro da política/programa do BASA. Em todos os casos o fluxo é único:
+    a FBS recomenda o valor (desconto, parcelas, racional); o BASA aprova dentro da alçada do
+    gestor/comitê; a plataforma registra; só então sai peça.
   quando_acordar:
     - condicoes:
-        - { campo: recomendacao_triagem, operador: in, valor: [observacao, morta_baixa, morta_cessao] }
+        - { campo: recomendacao_triagem, operador: in, valor: [observacao, morta] }
         - { campo: acordo_proposta_valor, operador: existe }
-      racional: "Qualquer recuperação em carteira de baixo score supera a alternativa (prescrição intercorrente/baixa)."
+      racional: "Qualquer recuperação em carteira de baixo score supera a alternativa (prescrição intercorrente / parar de diligenciar)."
+    - condicoes:
+        - { campo: recomendacao_triagem, operador: in, valor: [viva, observacao] }
+        - { campo: bens_cobertura_pct, operador: ">", valor: 0 }
+        - { campo: bens_cobertura_pct, operador: "<", valor: 100 }
+      racional: "Score médio com bens parciais: a FBS propõe ativamente (T09.1) — recupera o que os bens cobrem sem o custo/prazo de leilão e parcela o restante dentro do programa do BASA."
     - condicoes:
         - { campo: programa_renegociacao_elegivel, operador: "!=", valor: nenhum }
       racional: "Programa legal aplicável: o devedor tem direito; litigar só adia e gera sucumbência (T06.6)."
@@ -1209,9 +1423,9 @@ sinais_acordo:
     provisórias; recalibrar em 90 dias com M01 (valor recuperado) e M05 (custo por diligência).
   alcadas: []
   fluxo_aprovacao:
-    recomendacao: "A FBS recomenda (valor, desconto %, parcelas, racional com score e custo de diligência; OAB do advogado da carteira)."
-    aprovacao: "O BASA aprova dentro da alçada interna (gestor de recuperação / comitê, por faixa e programa — [A CONFERIR] política do banco); a FBS não aprova desconto."
-    registro: "A plataforma registra recomendação e decisão (quem, quando, valor, desconto, programa) vinculadas ao caso; a petição de homologação só é gerada após o registro da aprovação."
+    recomendacao: "A FBS recomenda o VALOR (desconto %, parcelas, racional com score, bens localizados e custo de diligência; OAB do advogado da carteira) — tanto para proposta recebida do executado quanto para proposta ativa da FBS (T09.1)."
+    aprovacao: "O BASA aprova dentro da alçada interna (gestor de recuperação / comitê, por faixa e programa — [A CONFERIR] política do banco); a FBS não aprova desconto nem envia proposta em nome do banco antes da aprovação."
+    registro: "A plataforma registra recomendação e decisão (quem, quando, valor, desconto, programa, iniciativa) vinculadas ao caso (acordo_aprovacao_basa_registrada); a proposta ao executado e a petição de homologação só são geradas após o registro da aprovação."
   decisao_final: "A decisão de acordar é do BASA, por recomendação da FBS; a plataforma só sinaliza e registra."
 
 # -----------------------------------------------------------------------------
@@ -1312,34 +1526,57 @@ antifraude:
       implementada_em_m4: false
       calibrar: true
     - codigo: prescricao_intercorrente_proxima
-      descricao: "Suspensão 921 III há mais de 1 ano e prazo do título a vencer em menos de 180 dias sem diligência útil"
-      parametros: { alerta_dias_antes: 180, nota: "[A CONFERIR] prazo do título (3 × 5 anos)" }
+      descricao: "Prescrição intercorrente (CPC 921 §4º) calculada por processo com data-limite a menos de 12 meses e sem diligência útil protocolada após o alerta (T08.1 / X11 / M13)"
+      parametros: { alerta_meses_antes: 12, calcular_por_processo: true, nota: "[A CONFERIR] termo inicial (regime 921 / transição art. 1.056) e prazo do título (3 × 5 anos); decisão 10 de 20/10/2026" }
       severidade: high
-      evidencia_esperada: "data da suspensão, prazo aplicável e última diligência útil"
+      evidencia_esperada: "data da suspensão/1ª diligência infrutífera, prazo aplicável, data-limite calculada, última diligência útil"
       implementada_em_m4: false
       calibrar: true
+    - codigo: valor_abaixo_piso_diligencia
+      descricao: "Valor atualizado da dívida abaixo do piso a partir do qual se diligencia — critério (c) de carteira morta (T01.1)"
+      parametros: { piso_brl: 10000, base: valor_divida_atualizado, provisorio: true, nota: "definir com o BASA — política do banco (decisão 2 de 20/10/2026)" }
+      severidade: medium
+      evidencia_esperada: "valor_divida_atualizado, data-base e custo estimado de diligências + custas"
+      implementada_em_m4: false
+      calibrar: true
+    - codigo: processo_parado_90_dias
+      descricao: "Processo viva/observacao sem movimentação útil há mais de 90 dias — gera alerta + minuta de impulso automática para a fila de revisão (X12 / M03)"
+      parametros: { dias: 90, provisorio: true, acao: "alerta ao advogado da carteira + minuta de impulso da fase no lote diário", nota: "alinhar ao SLA do contrato BASA (decisão 9 de 20/10/2026)" }
+      severidade: medium
+      evidencia_esperada: "data da última movimentação útil (não conta juntada de procuração, vista, carga) e fase"
+      implementada_em_m4: false
+      calibrar: true
+    - codigo: carteira_morta_criterio_a
+      descricao: "Critério (a) de carteira morta: Sisbajud + Renajud + Infojud negativos E mais de 3 anos sem movimentação útil"
+      parametros: { anos_sem_movimentacao_util: 3, diligencias_exigidas: [sisbajud, renajud, infojud], nota: "decisão 1 de 20/10/2026 — ambos os requisitos; prescrição intercorrente NÃO entra" }
+      severidade: medium
+      evidencia_esperada: "resultados negativos das três diligências (datas) e data da última movimentação útil"
+      implementada_em_m4: false
+      calibrar: false
 
 # -----------------------------------------------------------------------------
 # MODELO DE PEÇA (M6) — BIBLIOTECA DE PEÇAS PADRÃO DO POLO ATIVO
 # -----------------------------------------------------------------------------
 # Uma única estrutura de seções serve a toda a biblioteca; `tipo_peca_prevista` escolhe
-# o corpo. Biblioteca (drafts.draft_type): peticao_impulso (T02), requerimento_sisbajud
-# (T02.2), requerimento_renajud_infojud (T02.3), citacao_edital (T02.1),
-# manifestacao_penhora_negativa (T02.3/T08), impugnacao_embargos (T06.x),
-# resposta_excecao_pre_executividade (T07), cumprimento_sentenca (T05/T12),
-# pedido_suspensao_921 (T08), habilitacao_herdeiros (T04.1), idpj (T04),
-# homologacao_acordo (T09). Valores e datas SEMPRE com página (planilha/andamento).
+# o corpo. Biblioteca (drafts.draft_type): peticao_impulso (T02),
+# requerimento_cumulado_sisbajud_renajud_infojud (T02.2 — peça padrão após citação),
+# requerimento_sisbajud / requerimento_renajud_infojud (T02.2 — fallback sequencial),
+# requerimento_cnib_srei (T02.3), citacao_edital (T02.1), manifestacao_penhora_negativa
+# (T02.3/T08), impugnacao_embargos (T06.x), resposta_excecao_pre_executividade (T07),
+# cumprimento_sentenca (T05/T12), pedido_suspensao_921 (T08/T01.1 — só após decisão do
+# sócio quando carteira morta), habilitacao_herdeiros (T04.1), idpj (T04),
+# homologacao_acordo (T09/T09.1). Valores e datas SEMPRE com página (planilha/andamento).
 modelo_peca:
   tipo: peticao_execucao_polo_ativo
   formato_saida: markdown
   regra_citacao: "Toda afirmação de fato, valor ou data cita document_page_id (draft_citations): saldo e data-base → página da planilha do BASA; fase/andamento → página do andamento/decisão; título → página da cédula. Sem página, sem afirmação."
   secoes:
     - { ordem: 1, id: enderecamento, titulo: "Endereçamento e identificação", obrigatoria: true, teses_vinculadas: [], instrucoes: "Juízo, vara, comarca, número CNJ, exequente (Banco da Amazônia S.A.), executado(s) com CPF/CNPJ, classe. Em precatória: juízo deprecante e deprecado.", exige_citacao_de_pagina: false }
-    - { ordem: 2, id: situacao_processual, titulo: "Situação processual", obrigatoria: true, teses_vinculadas: [T01, T08], instrucoes: "Fase atual, data e conteúdo do último andamento útil, diligências já realizadas (com resultado) e despacho pendente. Cada evento com página. Máximo 10 linhas em peças de impulso.", exige_citacao_de_pagina: true }
-    - { ordem: 3, id: credito, titulo: "Do crédito exequendo", obrigatoria: true, teses_vinculadas: [T11], instrucoes: "Título (tipo, número, data, vencimento), saldo devedor atualizado com data-base e página da planilha; honorários e custas incluídos. Em impugnação a embargos, incluir os critérios do cálculo.", exige_citacao_de_pagina: true }
-    - { ordem: 4, id: fundamento, titulo: "Fundamento do requerimento / da impugnação", obrigatoria: true, teses_vinculadas: [T02, T02.1, T02.2, T02.3, T02.4, T03, T04, T04.1, T05, T06, T06.1, T06.2, T06.3, T06.4, T06.5, T06.6, T07, T10, T12], instrucoes: "Peças de impulso: parágrafo único com a base legal da diligência (só referências conferidas). Impugnação a embargos/exceção: uma subseção por matéria alegada, na ordem do playbook; não enfrentar matéria não alegada.", exige_citacao_de_pagina: true }
-    - { ordem: 5, id: requerimentos, titulo: "Dos requerimentos", obrigatoria: true, teses_vinculadas: [], instrucoes: "Pedidos específicos, numerados, com valor e CPF/CNPJ quando for ordem a sistema (Sisbajud/Renajud/Infojud); prazo; intimações necessárias (cônjuge, credores, art. 889).", exige_citacao_de_pagina: false }
-    - { ordem: 6, id: acordo_registro, titulo: "Registro de acordo (quando houver)", obrigatoria: false, teses_vinculadas: [T09], instrucoes: "Só após registro da aprovação do BASA na plataforma: termos, parcelas, cláusula de retomada, pedido de homologação e suspensão (CPC 922).", exige_citacao_de_pagina: true }
+    - { ordem: 2, id: situacao_processual, titulo: "Situação processual", obrigatoria: true, teses_vinculadas: [T01, T08, T08.1], instrucoes: "Fase atual, data e conteúdo do último andamento útil, diligências já realizadas (com resultado) e despacho pendente. Cada evento com página. Máximo 10 linhas em peças de impulso.", exige_citacao_de_pagina: true }
+    - { ordem: 3, id: credito, titulo: "Do crédito exequendo", obrigatoria: true, teses_vinculadas: [T11], instrucoes: "Título (tipo, número, data, vencimento), saldo devedor atualizado com data-base e página da planilha do portal BASA; honorários e custas incluídos. Em impugnação a embargos, incluir os critérios do cálculo e o recálculo na data-base da impugnação.", exige_citacao_de_pagina: true }
+    - { ordem: 4, id: fundamento, titulo: "Fundamento do requerimento / da impugnação", obrigatoria: true, teses_vinculadas: [T02, T02.1, T02.2, T02.3, T02.4, T03, T04, T04.1, T05, T06, T06.1, T06.2, T06.3, T06.4, T06.5, T06.6, T07, T10, T12], instrucoes: "Peças de impulso: parágrafo único com a base legal da diligência (só referências conferidas); na peça cumulada (T02.2), um parágrafo para o conjunto Sisbajud+Renajud+Infojud. Impugnação a embargos/exceção: uma subseção por matéria alegada, na ordem do playbook; não enfrentar matéria não alegada; em excesso de execução, a primeira subseção é SEMPRE a exigência da planilha (917 §§3º/4º) com pedido de rejeição liminar quando ela falta.", exige_citacao_de_pagina: true }
+    - { ordem: 5, id: requerimentos, titulo: "Dos requerimentos", obrigatoria: true, teses_vinculadas: [], instrucoes: "Pedidos específicos, numerados, com valor e CPF/CNPJ quando for ordem a sistema (Sisbajud/Renajud/Infojud — na peça cumulada, os três pedidos numerados em sequência e o pedido subsidiário de deferimento ao menos do Sisbajud); prazo; intimações necessárias (cônjuge, credores, art. 889).", exige_citacao_de_pagina: false }
+    - { ordem: 6, id: acordo_registro, titulo: "Registro de acordo (quando houver)", obrigatoria: false, teses_vinculadas: [T09, T09.1], instrucoes: "Só após registro da aprovação do BASA na plataforma (acordo_aprovacao_basa_registrada): termos, parcelas, cláusula de retomada, pedido de homologação e suspensão (CPC 922). Vale também para proposta ativa da FBS (T09.1).", exige_citacao_de_pagina: true }
     - { ordem: 7, id: anexos, titulo: "Rol de documentos", obrigatoria: true, teses_vinculadas: [], instrucoes: "Planilha atualizada do BASA (sempre), título (quando ainda não nos autos), certidões, guias de custas; cada um com o tipo do playbook.", exige_citacao_de_pagina: false }
   estilo:
     - "Peças de impulso: no máximo 1 página; sem retórica; o juiz do interior lê centenas por semana."
@@ -1352,26 +1589,31 @@ modelo_peca:
 # CRITÉRIOS DE REVISÃO (M7)
 # -----------------------------------------------------------------------------
 # tempo_minimo_segundos é o piso da peça padrão (impulso, 5 min). Pisos por draft_type
-# (REVIEW_MIN_SECONDS_<TIPO>): peticao_impulso / requerimento_sisbajud /
-# requerimento_renajud_infojud / manifestacao_penhora_negativa / pedido_suspensao_921 = 300;
-# citacao_edital / cumprimento_sentenca / habilitacao_herdeiros = 600;
-# impugnacao_embargos / resposta_excecao_pre_executividade / idpj / homologacao_acordo = 1200.
+# (REVIEW_MIN_SECONDS_<TIPO>) — decisão 5 de 20/10/2026:
+#   300 s  (revisor = advogado da carteira; processamento em LOTE DIÁRIO):
+#          peticao_impulso / requerimento_cumulado_sisbajud_renajud_infojud /
+#          requerimento_sisbajud / requerimento_renajud_infojud / requerimento_cnib_srei /
+#          citacao_edital / manifestacao_penhora_negativa / pedido_suspensao_921;
+#   600 s  (peças intermediárias): cumprimento_sentenca / habilitacao_herdeiros /
+#          homologacao_acordo;
+#   1200 s (mérito): impugnacao_embargos / resposta_excecao_pre_executividade / idpj.
 criterios_revisao:
   tempo_minimo_segundos: 300
   papel_minimo_revisor: lawyer
-  revisor_final: "advogado com OAB responsável pela carteira BASA (12 pessoas hoje com 1.500–1.950 processos cada — a revisão precisa caber nessa carga)"
+  revisor_final: "advogado com OAB responsável pela carteira BASA (12 pessoas hoje com 1.500–1.950 processos cada — a revisão precisa caber nessa carga); peças de impulso padrão revisadas em lote diário"
   exige_segunda_revisao_se:
     - { campo: tipo_peca_prevista, operador: in, valor: [idpj, habilitacao_herdeiros], nota: "desconsideração e sucessão: sócio" }
     - { campo: acordo_proposta_valor, operador: ">", valor: 100000.0, nota: "ILUSTRATIVO — acordo acima de R$ 100 mil (≈ p75 da carteira) vai a sócio antes de ir ao BASA; calibrar com alçadas do banco" }
     - { campo: acordo_desconto_pct, operador: ">", valor: 30, nota: "ILUSTRATIVO" }
-    - { campo: recomendacao_triagem, operador: in, valor: [morta_baixa, morta_cessao], nota: "baixa/arquivamento/cessão de carteira: sócio" }
+    - { campo: recomendacao_triagem, operador: "==", valor: morta, nota: "decisão 3: baixa/suspensão art. 921 de carteira morta é decisão de SÓCIO, caso a caso — nunca em lote, nunca do advogado da carteira; vale para o relatório de T01.1 e para qualquer pedido_suspensao_921 derivado dele" }
     - { campo: valor_divida_atualizado, operador: ">", valor: 276000.0, nota: "≈ p90 da carteira — ILUSTRATIVO" }
     - { campo: garantidor_terceiro_vulneravel, operador: "==", valor: true, nota: "X05" }
     - { campo: indicio_fraude_cedula, operador: "==", valor: true, nota: "X04" }
   exige_segunda_revisao_tambem:
     - "Medidas atípicas do art. 139, IV (T02.3)."
-    - "Qualquer relatório de baixa/cessão em lote (T01.1) antes de ir ao BASA."
+    - "Toda decisão de parar de diligenciar / aceitar suspensão ou arquivamento (art. 921) / requerer baixa em processo de carteira morta (T01.1): sócio, processo a processo — a plataforma não aceita decisão em lote nem do advogado da carteira."
     - "Primeira impugnação a embargos de cada subtese T06.x gerada pela esteira (amostra de calibração)."
+    - "Primeira peça cumulada Sisbajud+Renajud+Infojud (T02.2) em cada órgão julgador (calibra preferencia_juizo_cumulado)."
   autorizacao_dupla: null
   checklist:
     - { id: R01, item: "Saldo devedor, data-base e honorários batem com a planilha do BASA citada (página)", bloqueante: true }
@@ -1379,27 +1621,37 @@ criterios_revisao:
     - { id: R03, item: "CPF/CNPJ do(s) executado(s) presente e válido em toda ordem a sistema (Sisbajud/Renajud/Infojud); sem homônimo", bloqueante: true }
     - { id: R04, item: "Todas as referências legais citadas estão conferidas no playbook (nenhum placeholder sobrou)", bloqueante: true }
     - { id: R05, item: "Nenhuma exceção aberta (óbito sem inventário, RJ/falência, fraude na cédula, cliente orientou suspender, carteira morta) sem decisão humana registrada", bloqueante: true }
-    - { id: R06, item: "Impugnação a embargos: cada matéria alegada enfrentada com cláusula/página; nenhuma matéria não alegada enfrentada; planilha do embargante exigida quando falta", bloqueante: true }
+    - { id: R06, item: "Impugnação a embargos: cada matéria alegada enfrentada com cláusula/página; nenhuma matéria não alegada enfrentada; em excesso de execução, a planilha do embargante foi SEMPRE exigida e, se falta, há pedido de rejeição liminar (917 §§3º/4º); o débito foi recalculado com saldo/memória do portal BASA", bloqueante: true }
     - { id: R07, item: "Impenhorabilidades evidentes (salário, poupança ≤ 40 SM, pequena propriedade rural, bem de família sem hipoteca) não estão sendo atacadas", bloqueante: true }
     - { id: R08, item: "Acordo: recomendação FBS e aprovação do BASA registradas antes da petição de homologação; cláusula de retomada presente", bloqueante: true }
     - { id: R09, item: "Peça de impulso cabe em 1 página e tem pedido específico com prazo", bloqueante: false }
-    - { id: R10, item: "Score de recuperabilidade e recomendação de triagem visíveis ao revisor e coerentes com a peça (não impulsionar carteira morta)", bloqueante: false }
+    - { id: R10, item: "Score de recuperabilidade e recomendação de triagem visíveis ao revisor e coerentes com a peça (não impulsionar carteira morta sem decisão do sócio)", bloqueante: false }
+    - { id: R11, item: "Processo com prescrição intercorrente a menos de 12 meses (prescricao_intercorrente_meses_restantes < 12): a peça é diligência ÚTIL (com potencial de localizar/constringir bens, não pedido genérico) e será protocolada antes de prescricao_intercorrente_data_limite", bloqueante: true }
+    - { id: R12, item: "Peça cumulada Sisbajud+Renajud+Infojud: o órgão julgador não tem preferencia_juizo_cumulado = sequencial; se tem, a peça é só a próxima diligência da sequência", bloqueante: true }
+    - { id: R13, item: "Carteira morta: nenhuma manifestação de ciência de suspensão/arquivamento ou pedido de baixa sem socio_decisao_carteira_morta registrada por sócio para ESTE processo", bloqueante: true }
   motivos_recusa_padrao:
     - "Saldo/data-base divergentes da planilha do BASA"
     - "Diligência repetida sem fato novo"
     - "CPF/CNPJ ausente ou homônimo não afastado"
     - "Referência legal não conferida ou inexistente"
-    - "Exceção aberta sem decisão humana (óbito, RJ, fraude, cliente suspendeu, carteira morta)"
+    - "Exceção aberta sem decisão humana (óbito, RJ, fraude, cliente suspendeu, carteira morta sem decisão do sócio)"
     - "Impugnação enfrenta matéria não alegada ou deixa matéria alegada sem resposta"
+    - "Excesso de execução impugnado sem exigir planilha do embargante / sem pedido de rejeição liminar / sem recálculo pelo portal BASA"
     - "Ataque a verba/bem evidentemente impenhorável"
     - "Acordo sem aprovação do BASA registrada"
+    - "Processo com intercorrente < 12 meses recebendo pedido genérico em vez de diligência útil"
+    - "Pedido cumulado em juízo que já o indeferiu (preferência sequencial registrada)"
   observacoes: >-
-    Piso de 5 min para peças de impulso: são peças de 1 página cujo risco está nos dados
-    (saldo, CPF, fase), conferíveis em minutos contra a planilha e o andamento; um piso maior
-    inviabiliza a carga (12 advogados × 1.500–1.950 processos). Piso de 20 min para impugnação a
-    embargos e resposta a exceção: peça de mérito, com várias matérias, cálculo e risco de
-    sucumbência — é a peça desta tipologia em que o erro custa dinheiro. Medir nas primeiras 100
-    peças de cada tipo; ajustar só para cima, com justificativa registrada.
+    Decisão 5 (20/10/2026). Piso de 300 s para peças de impulso padrão (Sisbajud/Renajud/Infojud
+    — cumulado ou sequencial —, citação por edital, manifestação sobre penhora negativa, art.
+    921): são peças de 1 página cujo risco está nos dados (saldo, CPF, fase), conferíveis em
+    minutos contra a planilha e o andamento; revisor = advogado da carteira; processamento em
+    LOTE DIÁRIO (a esteira agrupa as minutas do dia por advogado/comarca). Um piso maior
+    inviabiliza a carga (12 advogados × 1.500–1.950 processos). 600 s para peças intermediárias
+    (cumprimento de sentença, habilitação de herdeiros, homologação de acordo). 1.200 s para
+    impugnação a embargos, resposta a exceção e IDPJ: peça de mérito, com várias matérias,
+    cálculo e risco de sucumbência — é a peça desta tipologia em que o erro custa dinheiro. Medir
+    nas primeiras 100 peças de cada tipo; ajustar só para cima, com justificativa registrada.
 
 # -----------------------------------------------------------------------------
 # MÉTRICAS (M10/M11) — alinhadas aos KPIs do BASA (valor recuperado, prazo, SLA de impulso)
@@ -1407,13 +1659,16 @@ criterios_revisao:
 metricas:
   - { id: M01, nome: "Valor recuperado por mês", definicao: "soma de outcomes.recovered_value (bloqueios transferidos, pagamentos, acordos cumpridos, arrematações) por mês, por tribunal/comarca e por tese que gerou a diligência", meta: "baseline nos 3 primeiros meses; depois +15 % vs. baseline [A CONFERIR com o BASA]", fonte: outcomes }
   - { id: M02, nome: "Prazo médio até penhora efetiva", definicao: "dias entre citação válida e primeiro bloqueio/penhora com valor > 0", meta: "redução de 30 % vs. baseline da carteira [ILUSTRATIVO]", fonte: "outcomes + andamentos" }
-  - { id: M03, nome: "Processos sem andamento útil > 90 dias", definicao: "% de processos viva/viva_prioritaria com dias_sem_andamento > 90 (SLA de impulso do BASA)", meta: "< 5 % da carteira viva [A CONFERIR SLA contratual]", fonte: dossiers }
+  - { id: M03, nome: "Processos sem andamento útil > 90 dias", definicao: "% de processos viva/viva_prioritaria/observacao com dias_sem_andamento > 90 (gatilho de alerta + impulso automático — X12; provisório, alinhar ao SLA do contrato BASA) e % desses que receberam minuta de impulso no lote diário seguinte", meta: "< 5 % da carteira viva; 100 % com minuta gerada em até 1 dia útil após o gatilho [A CONFERIR SLA contratual]", fonte: "dossiers + drafts" }
   - { id: M04, nome: "SLA de impulso após despacho", definicao: "dias entre publicação de despacho que exige manifestação e protocolo da peça", meta: "mediana ≤ 5 dias úteis; 95 % dentro do prazo legal", fonte: "publicacoes + drafts" }
   - { id: M05, nome: "Custo por diligência e por R$ recuperado", definicao: "custas + correspondente + tokens (llm_calls.cost_usd) por diligência, dividido pelo valor recuperado atribuível", meta: "< 10 % do valor recuperado [ILUSTRATIVO]", fonte: "custas + llm_calls + outcomes" }
   - { id: M06, nome: "Taxa de êxito em embargos e exceções", definicao: "% de embargos/exceções julgados improcedentes ou não conhecidos por subtese T06.x/T07 e por comarca", meta: "≥ baseline FBS + 10 p.p. [A CONFERIR]", fonte: outcomes }
-  - { id: M07, nome: "Carteira morta identificada", definicao: "nº de processos e R$ (valor atualizado) com recomendacao_triagem ∈ {morta_baixa, morta_cessao} confirmada por sócio; e nº efetivamente baixados/cedidos", meta: "100 % da carteira triada em 6 meses; relatório mensal ao BASA", fonte: "dossiers + reviews" }
+  - { id: M07, nome: "Carteira morta identificada", definicao: "nº de processos e R$ (valor atualizado) com recomendacao_triagem = morta, por critério (a/b/c), e decisão do sócio registrada por processo (manter / aceitar suspensão 921 / requerer baixa); nº efetivamente suspensos/baixados", meta: "100 % da carteira triada em 6 meses; relatório mensal ao BASA", fonte: "dossiers + reviews" }
   - { id: M08, nome: "Tempo médio de revisão por tipo de peça", definicao: "média de reviews.review_seconds por draft_type", meta: "impulso < 10 min; impugnação < 40 min [ILUSTRATIVO]", fonte: reviews }
   - { id: M09, nome: "Aprovação sem alteração substancial", definicao: "% de reviews com substantial_change = false, por draft_type", meta: "> 80 % em impulsos; > 50 % em impugnações após 100 peças [ILUSTRATIVO]", fonte: reviews }
   - { id: M10, nome: "Brier do score de recuperabilidade", definicao: "Brier score entre score_recuperabilidade e desfecho binário 'recuperou ≥ custo em 24 meses' (replay sobre encerrados + acompanhamento prospectivo)", meta: "< 0,20 no replay; recalibrar pesos trimestralmente", fonte: "dossiers + outcomes" }
-  - { id: M11, nome: "Prescrição intercorrente evitada × consumada", definicao: "nº de processos com alerta prescricao_intercorrente_proxima que receberam diligência útil no prazo vs. nº com prescrição reconhecida", meta: "0 prescrições em processos viva/viva_prioritaria", fonte: "fraud_checks + outcomes" }
+  - { id: M11, nome: "Prescrição intercorrente evitada × consumada", definicao: "nº de processos com alerta prescricao_intercorrente_proxima (< 12 meses) que receberam diligência útil no prazo vs. nº com prescrição reconhecida", meta: "0 prescrições em processos viva/viva_prioritaria/observacao", fonte: "fraud_checks + outcomes" }
   - { id: M12, nome: "Qualidade de dados da carteira", definicao: "% de processos com CNJ válido e único, CPF/CNPJ válido, valor plausível e saldo com memória de cálculo", meta: "> 95 % antes do fim do piloto (hoje: 93 % CNJ válido; 771 duplicados; 8,8 % sem valor)", fonte: fraud_checks }
+  - { id: M13, nome: "Processos com intercorrente < 12 meses sem diligência útil", definicao: "nº (e R$) de processos viva/viva_prioritaria/observacao com prescricao_intercorrente_meses_restantes < 12 e diligencia_util_antes_intercorrente != true, por comarca e por meses restantes (0–3, 3–6, 6–12) — painel diário da fila T08.1", meta: "0 processos na faixa 0–3 meses; faixa 3–12 zerada em até 30 dias do alerta", fonte: "dossiers + drafts" }
+  - { id: M14, nome: "Deferimento do pedido cumulado por órgão julgador", definicao: "% de peças cumuladas Sisbajud+Renajud+Infojud (T02.2) deferidas integralmente, por vara/juízo; alimenta preferencia_juizo_cumulado", meta: "mapa de preferência de 100 % dos órgãos julgadores da amostra em 90 dias", fonte: "outcomes + publicacoes" }
+  - { id: M15, nome: "Acordos propostos ativamente pela FBS (T09.1)", definicao: "nº de recomendações fbs_proativa → aprovadas pelo BASA → aceitas pelo executado → cumpridas; valor recuperado vs. valor estimado dos bens parciais", meta: "baseline no piloto; aceitação ≥ 30 % [ILUSTRATIVO]", fonte: "reviews + outcomes" }
