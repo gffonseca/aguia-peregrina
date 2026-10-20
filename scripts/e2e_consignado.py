@@ -124,7 +124,7 @@ def petition_pdf(text_pages: list[str]) -> bytes | None:
     except ImportError:
         return None
     buf = io.BytesIO()
-    c = canvas.Canvas(buf, pagesize=A4)
+    c = canvas.Canvas(buf, pagesize=A4, invariant=1)  # sem timestamp: bytes estáveis → sha estável
     width, height = A4
     for page in text_pages:
         y = height - 60
@@ -424,7 +424,10 @@ def main() -> int:
         draft = api.call("GET", f"/drafts/{result['draft_id']}").json()
         how = "gerada"
     body = draft["body_markdown"]
-    assert "fraudador" not in body.lower(), "minuta não pode rotular o autor como fraudador"
+    # a peça em si (sem o bloco de alertas ao revisor) não pode rotular o autor
+    piece = "\n".join(line for line in body.splitlines() if not line.startswith(">"))
+    for forbidden in ("fraudador", "fraudadora", "litigante de má-fé", "estelionat"):
+        assert forbidden not in piece.lower(), f"minuta rotula o autor: {forbidden!r}"
     tr = api.call("GET", f"/ops/cases/{case_id}/trace", headers=api.headers(ops=True)).json()
     n, ti, to, cost, seen_ids = trace_totals(tr, seen_ids)
     tl.add(

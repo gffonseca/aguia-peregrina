@@ -58,6 +58,20 @@ async def upload_document(
         pages = extract_pages(content, mime_type=file.content_type, filename=filename)
     except Exception as exc:  # noqa: BLE001 - PDF corrompido etc.
         raise HTTPException(422, f"não foi possível extrair texto: {exc}") from exc
+    # mesmo nome e mesmo texto por página (ex.: PDF regenerado com outro timestamp) → reuso
+    for other in db.scalars(
+        select(Document).where(Document.case_id == case_id, Document.filename == filename)
+    ):
+        texts = [
+            t or ""
+            for t in db.scalars(
+                select(DocumentPage.text)
+                .where(DocumentPage.document_id == other.id)
+                .order_by(DocumentPage.page_number)
+            )
+        ]
+        if texts and [t.strip() for t in texts] == [p.strip() for p in pages]:
+            return other
     # TODO: enviar para S3; no esqueleto só registramos a chave lógica
     storage_key = f"{tenant_id}/{case_id}/{uuid.uuid4()}-{filename}"
     doc = register_document(
