@@ -73,7 +73,7 @@ def importar_fichas(db: Session, tenant_id: uuid.UUID, arquivos: Iterable[bytes]
         for r in rows[1:]:
             if not r[i_f]:
                 continue
-            ficha = str(r[i_f]).strip()
+            ficha = str(r[i_f]).strip()[:30]
             f = existentes.get(ficha)
             if f is None:
                 f = BasaFicha(tenant_id=tenant_id, ficha=ficha, cnj="", situacao="")
@@ -82,8 +82,8 @@ def importar_fichas(db: Session, tenant_id: uuid.UUID, arquivos: Iterable[bytes]
                 novas += 1
             else:
                 atualizadas += 1
-            f.cnj = _dig(r[i_c]) or str(r[i_c] or "")
-            f.situacao = str(r[i_s] or "")
+            f.cnj = (_dig(r[i_c]) or str(r[i_c] or ""))[:25]
+            f.situacao = str(r[i_s] or "")[:40]
             f.categoria = "trabalhista" if ficha.upper().startswith("TRAB") else "civel"
             f.adverso = str(r[i_a])[:200] if i_a is not None and r[i_a] else None
             v = r[i_v] if i_v is not None else None
@@ -118,8 +118,8 @@ def importar_prestacao(
             BasaAtoCobrado(
                 tenant_id=tenant_id,
                 competencia=competencia,
-                cnj=_dig(ln.cnj),
-                ficha=ln.ficha or None,
+                cnj=(_dig(ln.cnj) or ln.cnj)[:25],
+                ficha=(ln.ficha or None) and ln.ficha[:30],
                 uf=None,
                 ato_id=reconhecer_ato(ln.ato_texto),
                 ato_texto=ln.ato_texto,
