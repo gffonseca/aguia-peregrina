@@ -114,7 +114,7 @@ def test_fluxo_completo(db: Session, as_tenant) -> None:  # type: ignore[no-unty
                 )
             ],
         )
-        assert r == {"novas": 3, "atualizadas": 0, "total": 3}
+        assert r == {"novas": 3, "atualizadas": 0, "total": 3, "correcoes_confirmadas": 0}
         assert len(servico.fichas_ativas(db)) == 2
 
         pres = servico.importar_prestacao(
