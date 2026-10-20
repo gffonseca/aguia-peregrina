@@ -22,6 +22,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PLAYBOOKS = ROOT / "playbooks"
 TEMPLATE = PLAYBOOKS / "TEMPLATE.playbook.yaml"
 CONSIGNADO = PLAYBOOKS / "consignado-rmc-tjpa.playbook.yaml"
+EXECUCAO_BASA = PLAYBOOKS / "execucao-credito-basa-tjpa-tjam.playbook.yaml"
 
 
 @pytest.mark.parametrize("path", sorted(PLAYBOOKS.glob("*.playbook.yaml")), ids=lambda p: p.name)
@@ -131,6 +132,44 @@ def test_consignado_encodes_review_session_1_decisions() -> None:
 
     # 16: referências continuam não conferidas
     assert pb.referencias_nao_conferidas()
+
+
+def test_polo_defaults_to_passivo_and_accepts_ativo() -> None:
+    """`metadata.polo` entrou com a tipologia de execução de crédito (credor = BASA)."""
+    raw = _raw(TEMPLATE)
+    raw["metadata"].pop("polo", None)
+    assert Playbook.model_validate(copy.deepcopy(raw)).metadata.polo == "passivo"
+    raw["metadata"]["polo"] = "ativo"
+    assert Playbook.model_validate(copy.deepcopy(raw)).metadata.polo == "ativo"
+    raw["metadata"]["polo"] = "terceiro"
+    with pytest.raises(ValueError, match="polo"):
+        Playbook.model_validate(raw)
+
+
+def test_execucao_basa_is_polo_ativo_draft() -> None:
+    pb = validate_playbook(EXECUCAO_BASA)
+    assert pb.metadata.polo == "ativo"
+    assert pb.metadata.lado == "autor"
+    assert pb.metadata.status == "rascunho"
+    assert pb.metadata.tribunal == "TJPA"
+    assert pb.metadata.autor_oab == "PA 12724"
+    assert pb.metadata.piloto is not None and "BASA" in (pb.metadata.piloto.cliente_piloto or "")
+    nomes = " ".join(t.nome.lower() for t in pb.teses)
+    for termo in (
+        "recuperabilidade",
+        "impulso",
+        "embargos",
+        "pré-executividade",
+        "921",
+        "monitória",
+    ):
+        assert termo in nomes, termo
+    # Rascunho: nada conferido ainda.
+    assert pb.referencias_nao_conferidas()
+    assert all(not a.conferido for a in pb.gatilhos_classificacao.assuntos_cnj)
+    assert pb.sinais_acordo.fluxo_aprovacao is not None
+    # Peça de impulso é curta: tempo mínimo menor que o da contestação (900 s).
+    assert 60 <= pb.criterios_revisao.tempo_minimo_segundos < 900
 
 
 def test_dual_authorization_block_is_required_when_a_level_demands_it() -> None:

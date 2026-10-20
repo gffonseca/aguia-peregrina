@@ -641,13 +641,18 @@
           "type": "string"
         },
         "reu_tipo": {
-          "description": "ex.: instituicao_financeira_regional",
+          "description": "ex.: instituicao_financeira_regional (no polo ativo: tipo do executado, ex.: devedor_pf_pj_credito_bancario)",
           "title": "Reu Tipo",
           "type": "string"
         },
         "lado": {
           "$ref": "#/$defs/Lado",
           "default": "defesa"
+        },
+        "polo": {
+          "$ref": "#/$defs/Polo",
+          "default": "passivo",
+          "description": "posição processual do cliente: passivo (réu/executado, padrão) | ativo (autor/exequente — ex.: execução de crédito bancário)"
         },
         "tipo_peca_padrao": {
           "default": "contestacao",
@@ -971,6 +976,15 @@
         "superado"
       ],
       "title": "PlaybookStatus",
+      "type": "string"
+    },
+    "Polo": {
+      "description": "Posição processual do cliente na tipologia. `passivo` (réu/executado) é o padrão\nhistórico da esteira; `ativo` (autor/exequente) entrou com a tipologia de execução de\ncrédito bancário em massa (credor = banco).",
+      "enum": [
+        "ativo",
+        "passivo"
+      ],
+      "title": "Polo",
       "type": "string"
     },
     "Prova": {

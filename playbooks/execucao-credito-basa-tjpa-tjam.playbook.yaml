@@ -1,0 +1,1419 @@
+# =============================================================================
+# Águia Peregrina — M0 Playbook — Execução / recuperação de crédito bancário em
+# massa — POLO ATIVO (credor = Banco da Amazônia) — TJPA + TJAM
+# =============================================================================
+# RASCUNHO (2026-10-20). Primeira tipologia de polo ativo da esteira: o cliente é o
+# exequente, não o réu. Nenhuma citação legal, código CNJ, número, prazo, faixa ou
+# valor aqui foi conferido por advogado — tudo marcado "[A CONFERIR pelo advogado-dono]"
+# e `conferido: false`; os números (dias, valores, pesos do score) são ILUSTRATIVOS e
+# serão calibrados com a carteira. O validador recusa `status: aprovado` enquanto
+# houver pendência.
+#
+# Base empírica: radiografia da carteira BASA no Legal One/DataJud (19–20/10/2026,
+# /reports "Legal One base FBS"): 16.656 processos ativos; 71% Execução de Título
+# Extrajudicial; TJPA 63% (Belém só 14%), TJAM 35% (Itacoatiara 31% do TJAM); 80%
+# executados PF; mediana R$ 57,5 mil, p90 R$ 276 mil; 85% com movimento em 2026.
+#
+# Ordem de prioridade decidida para a esteira (decisão 2026-10-20):
+#   (1) triagem de recuperabilidade (carteira viva × morta)        → T01
+#   (2) peças repetitivas em massa (impulsos, Sisbajud/Renajud/Infojud,
+#       cumprimento de sentença, habilitação, suspensão art. 921)   → T02, T03, T04, T05, T08, T12
+#   (3) resposta a embargos / exceção de pré-executividade          → T06, T07
+#   (4) monitoramento de prazos/andamentos e priorização do parado  → T08 + métricas M03/M04
+#
+# Fonte da verdade: este YAML. A versão em prosa
+# (execucao-credito-basa-tjpa-tjam.playbook.md) é derivada.
+# =============================================================================
+
+schema_version: "1.0"
+
+metadata:
+  id: execucao-credito-basa-tjpa-tjam
+  nome: "Execução / recuperação de crédito bancário em massa — polo ativo (credor = Banco da Amazônia) — TJPA + TJAM"
+  tipologia: execucao_credito_bancario_basa
+  tribunal: TJPA                      # tribunal principal (63%); TJAM (35%) coberto pelo mesmo playbook — ver observacoes
+  reu_tipo: devedor_pf_pj_credito_bancario
+  lado: autor
+  polo: ativo
+  tipo_peca_padrao: peticao_impulso_execucao
+  versao: 1
+  supera_versao: null
+  autor_nome: "Gustavo Fonseca"
+  autor_oab: "PA 12724"
+  criado_em: 2026-10-20T09:00:00-03:00
+  status: rascunho
+  aprovado_por_nome: null
+  aprovado_por_oab: null
+  aprovado_em: null
+  descricao: >-
+    Carteira de recuperação de crédito do Banco da Amazônia (BASA) patrocinada pela FBS:
+    execuções de título extrajudicial (CCB, cédulas e notas de crédito rural, contratos
+    bancários), cumprimentos de sentença, monitórias e os incidentes defensivos do executado
+    (embargos à execução, exceção de pré-executividade). O cliente é o exequente. O objetivo da
+    esteira não é "vencer a ação", é recuperar valor no menor prazo e com o menor custo de
+    diligência, separando carteira viva de carteira morta.
+  observacoes: >-
+    Rascunho. O campo `tribunal` do schema aceita um único tribunal; TJPA é o principal (63,5% da
+    carteira) e o TJAM (34,8%) é coberto por este mesmo playbook — as diferenças (Itacoatiara,
+    cartas precatórias, correspondentes) estão em T10 e nas faixas por grupo de comarcas. Os
+    códigos CNJ de classe/assunto vieram da tabela TPU de memória e estão todos `conferido:
+    false`. O portal do BASA (contratos/cédulas, garantias, extratos, saldo devedor e cálculo
+    atualizado) é o subsídio central e ainda precisa ser mapeado (M3). Os pesos do score de
+    recuperabilidade (T01) são ilustrativos e devem ser calibrados por replay sobre processos
+    encerrados (Brier — métrica M10).
+  revisoes: []
+  piloto:
+    cliente_piloto: "Banco da Amazônia S.A. (BASA) — carteira já patrocinada pela FBS (16.656 processos ativos)"
+    plano: >-
+      Amostra de 200 processos: 100 TJPA interior (Tucuruí, Marabá, Rurópolis, Novo Progresso,
+      Parauapebas, Altamira, Alenquer), 60 TJAM (Itacoatiara e Manaus), 40 Belém. Fase 1: rodar
+      T01 (triagem) em replay sobre a amostra + 200 processos encerrados para calibrar o score.
+      Fase 2: peças de impulso (T02/T08) com revisão do advogado da carteira. Fase 3:
+      impugnações a embargos (T06). Pré-requisito: mapear o portal do BASA em M3 (quais campos
+      saem estruturados; quem tem acesso; frequência de atualização do saldo). KPIs do cliente:
+      valor recuperado, prazo, SLA de impulso / processos sem andamento.
+    prospeccao: []
+
+# -----------------------------------------------------------------------------
+# GATILHOS DE CLASSIFICAÇÃO (M1/M9)
+# -----------------------------------------------------------------------------
+gatilhos_classificacao:
+  assuntos_cnj:
+    - { codigo: "11806", nome: "Cédula de Crédito Bancário — 43,8% da carteira [A CONFERIR pelo advogado-dono — código TPU]", conferido: false }
+    - { codigo: "9607", nome: "Contratos Bancários — 9,7% [A CONFERIR pelo advogado-dono — código TPU]", conferido: false }
+    - { codigo: "4850", nome: "Cédula de Crédito Rural — 8,7% [A CONFERIR pelo advogado-dono — código TPU]", conferido: false }
+    - { codigo: "4852", nome: "Nota de Crédito Rural — 2,6% [A CONFERIR pelo advogado-dono — código TPU]", conferido: false }
+    - { codigo: "4849", nome: "Crédito Rural (genérico) [A CONFERIR pelo advogado-dono — código TPU]", conferido: false }
+    - { codigo: "4851", nome: "Cédula de Crédito Industrial [A CONFERIR pelo advogado-dono — código TPU]", conferido: false }
+    - { codigo: "4847", nome: "Cédula Hipotecária [A CONFERIR pelo advogado-dono — código TPU]", conferido: false }
+    - { codigo: "9582", nome: "Penhora / Depósito / Avaliação [A CONFERIR pelo advogado-dono — código TPU]", conferido: false }
+    - { codigo: "10670", nome: "Efeito Suspensivo / Impugnação / Embargos à Execução [A CONFERIR pelo advogado-dono — código TPU]", conferido: false }
+    - { codigo: "9163", nome: "Alienação Fiduciária [A CONFERIR pelo advogado-dono — código TPU]", conferido: false }
+  classes_cnj:
+    - { codigo: "12154", nome: "Execução de Título Extrajudicial — 71,0% [A CONFERIR pelo advogado-dono — código TPU]", conferido: false }
+    - { codigo: "156", nome: "Cumprimento de sentença — 5,6% [A CONFERIR pelo advogado-dono — código TPU]", conferido: false }
+    - { codigo: "172", nome: "Embargos à Execução — 4,5% [A CONFERIR pelo advogado-dono — código TPU]", conferido: false }
+    - { codigo: "40", nome: "Monitória — 3,4% [A CONFERIR pelo advogado-dono — código TPU]", conferido: false }
+    - { codigo: "261", nome: "Carta Precatória Cível — 3,8% (6,1% no TJAM) [A CONFERIR pelo advogado-dono — código TPU]", conferido: false }
+    - { codigo: "1118", nome: "Execução de Título Judicial (legado) [A CONFERIR pelo advogado-dono — código TPU]", conferido: false }
+    - { codigo: "37", nome: "Embargos de Terceiro Cível [A CONFERIR pelo advogado-dono — código TPU]", conferido: false }
+    - { codigo: "0", nome: "Exceção de pré-executividade — não é classe própria no TPU; detectar por petição/andamento 'exceção de pré-executividade' [A CONFERIR pelo advogado-dono]", conferido: false }
+  palavras_chave:
+    - "execução de título extrajudicial"
+    - "cédula de crédito bancário"
+    - "cédula de crédito rural"
+    - "nota de crédito rural"
+    - "cédula rural pignoratícia"
+    - "cédula rural hipotecária"
+    - "cédula de produto rural"
+    - "Banco da Amazônia"
+    - "BASA"
+    - "FNO"
+    - "penhora"
+    - "Sisbajud"
+    - "Bacenjud"
+    - "Renajud"
+    - "Infojud"
+    - "citação do executado"
+    - "embargos à execução"
+    - "exceção de pré-executividade"
+    - "cumprimento de sentença"
+    - "ação monitória"
+    - "excesso de execução"
+    - "prescrição intercorrente"
+    - "art. 921"
+  palavras_que_excluem:
+    - "consignado"
+    - "reserva de margem consignável"
+    - "inexistência de débito"
+    - "reclamação trabalhista"
+    - "execução fiscal"
+    - "dívida ativa"
+  confianca_minima: 0.85
+
+# -----------------------------------------------------------------------------
+# CAMPOS OBRIGATÓRIOS DO DOSSIÊ (M5)
+# -----------------------------------------------------------------------------
+# origem: extracao (autos) | subsidio (portal BASA / Legal One) | publicacao (DataJud/andamentos)
+#         | antifraude (M4) | calculado (esteira)
+campos_dossie_obrigatorios:
+  # --- identificação e situação processual ---
+  - { campo: numero_cnj, tipo: texto, origem: extracao, descricao: "Número CNJ válido (20 dígitos no padrão)", obrigatorio: true, bloqueia_minuta_se_ausente: true }
+  - { campo: tribunal, tipo: texto, origem: calculado, descricao: "TJPA | TJAM | outro — derivado das posições J.TR do CNJ (mais confiável que courtId do Legal One)", obrigatorio: true }
+  - { campo: comarca, tipo: texto, origem: calculado, descricao: "Comarca/foro derivado do CNJ (código do foro) e confirmado pelo DataJud", obrigatorio: true }
+  - { campo: classe_cnj, tipo: texto, origem: publicacao, descricao: "Classe DataJud: execucao_titulo_extrajudicial | cumprimento_sentenca | embargos_execucao | monitoria | carta_precatoria | outra", obrigatorio: true, bloqueia_minuta_se_ausente: true }
+  - { campo: fase_execucao, tipo: texto, origem: calculado, descricao: "distribuida | citacao_pendente | citado_sem_pagamento | penhora_frustrada | bens_penhorados | avaliacao_leilao | embargos_pendentes | suspensa_921 | arquivada_921 | cumprimento_sentenca | extinta — derivada dos andamentos (DataJud/Legal One)", obrigatorio: true, bloqueia_minuta_se_ausente: true }
+  - { campo: data_ajuizamento, tipo: data, origem: calculado, descricao: "Ano/data de distribuição — usar o ano do CNJ; distributionDate do Legal One tem 966 placeholders 01/01/1900", obrigatorio: true }
+  - { campo: data_ultima_movimentacao_util, tipo: data, origem: publicacao, descricao: "Última movimentação que impulsionou a execução (não conta juntada de procuração, vista, carga)", obrigatorio: true }
+  - { campo: dias_sem_andamento, tipo: numero, origem: calculado, descricao: "Hoje − data_ultima_movimentacao_util", obrigatorio: true }
+  - { campo: prazo_fatal, tipo: data, origem: publicacao, descricao: "Prazo em curso (intimação para manifestação, resposta a embargos, art. 921 §1º etc.)", obrigatorio: false }
+  - { campo: tipo_peca_prevista, tipo: texto, origem: calculado, descricao: "Peça que a esteira pretende gerar: peticao_impulso | requerimento_sisbajud | requerimento_renajud_infojud | citacao_edital | manifestacao_penhora_negativa | impugnacao_embargos | resposta_excecao_pre_executividade | cumprimento_sentenca | pedido_suspensao_921 | habilitacao_herdeiros | idpj | acordo", obrigatorio: true }
+  # --- título e valores (portal BASA) ---
+  - { campo: titulo_tipo, tipo: texto, origem: subsidio, descricao: "ccb | cedula_rural_pignoraticia | cedula_rural_hipotecaria | nota_credito_rural | cpr | cedula_industrial | contrato_bancario | confissao_divida | cheque | sentenca | outro", obrigatorio: true, bloqueia_minuta_se_ausente: true, disponibilidade: "portal BASA — a mapear (M3)" }
+  - { campo: titulo_localizado, tipo: booleano, origem: subsidio, descricao: "Via original/assinada do título está nos autos ou no portal do BASA", obrigatorio: true, bloqueia_minuta_se_ausente: true, disponibilidade: "portal BASA — a mapear (M3)" }
+  - { campo: titulo_requisitos_ok, tipo: booleano, origem: calculado, descricao: "Liquidez, certeza e exigibilidade verificadas (valor determinável pela cédula + planilha; vencimento ocorrido; assinaturas do emitente/avalistas; testemunhas quando exigidas)", obrigatorio: true, bloqueia_minuta_se_ausente: true }
+  - { campo: titulo_assinaturas_ok, tipo: booleano, origem: extracao, descricao: "Assinaturas do devedor e dos garantidores legíveis/compatíveis com os documentos de identificação", obrigatorio: true }
+  - { campo: valor_causa, tipo: valor_monetario, origem: extracao, descricao: "Valor da causa na inicial (histórico)", obrigatorio: true }
+  - { campo: valor_divida_atualizado, tipo: valor_monetario, origem: subsidio, descricao: "Saldo devedor atualizado pelo BASA (encargos contratuais até a data do cálculo)", obrigatorio: true, bloqueia_minuta_se_ausente: true, disponibilidade: "portal BASA — a mapear (M3)" }
+  - { campo: data_calculo_saldo, tipo: data, origem: subsidio, descricao: "Data-base do saldo devedor", obrigatorio: true, disponibilidade: "portal BASA — a mapear (M3)" }
+  - { campo: memoria_calculo_disponivel, tipo: booleano, origem: subsidio, descricao: "Planilha de evolução da dívida (CPC 798, I, b) [A CONFERIR] disponível e juntável", obrigatorio: true, bloqueia_minuta_se_ausente: true, disponibilidade: "portal BASA — a mapear (M3)" }
+  - { campo: valor_moeda_antiga_suspeito, tipo: booleano, origem: antifraude, descricao: "Valor cadastrado incompatível (ex.: > R$ 5 mi em execução de 1992–94 — moeda antiga/centavos não convertidos)", obrigatorio: true }
+  # --- encargos (para antecipar/impugnar embargos) ---
+  - { campo: taxa_juros_remuneratorios, tipo: numero, origem: subsidio, descricao: "Taxa pactuada (% a.a.)", obrigatorio: false, disponibilidade: "portal BASA — a mapear (M3)" }
+  - { campo: encargos_capitalizacao_pactuada, tipo: booleano, origem: subsidio, descricao: "Capitalização com periodicidade inferior à anual expressamente pactuada (cláusula localizável)", obrigatorio: false }
+  - { campo: encargos_comissao_permanencia, tipo: booleano, origem: subsidio, descricao: "Cálculo cobra comissão de permanência (cumulada ou não com outros encargos)", obrigatorio: false }
+  - { campo: encargos_fno_programa, tipo: texto, origem: subsidio, descricao: "Fonte do recurso: fno | pronaf | recursos_proprios | outro — define encargos e programas de renegociação aplicáveis", obrigatorio: false, disponibilidade: "portal BASA — a mapear (M3)" }
+  # --- garantias ---
+  - { campo: garantia_tipo, tipo: lista, origem: subsidio, descricao: "hipoteca | penhor_rural | penhor_mercantil | alienacao_fiduciaria_imovel | alienacao_fiduciaria_movel | aval | fianca | cessao_fiduciaria_recebiveis | nenhuma", obrigatorio: true, bloqueia_minuta_se_ausente: false, disponibilidade: "portal BASA — a mapear (M3)" }
+  - { campo: garantia_valor_estimado, tipo: valor_monetario, origem: subsidio, descricao: "Valor de avaliação da garantia real (contratual ou laudo)", obrigatorio: false }
+  - { campo: garantia_registrada, tipo: booleano, origem: subsidio, descricao: "Hipoteca/alienação registrada na matrícula; penhor rural registrado no RI/RTD", obrigatorio: false }
+  - { campo: garantia_matricula, tipo: texto, origem: subsidio, descricao: "Matrícula(s) e cartório do imóvel dado em garantia", obrigatorio: false }
+  - { campo: avalistas_n, tipo: numero, origem: subsidio, descricao: "Número de avalistas/fiadores no título", obrigatorio: true }
+  - { campo: garantidor_terceiro_vulneravel, tipo: booleano, origem: calculado, descricao: "Garantidor é terceiro com indício de vulnerabilidade (idoso, analfabeto, cônjuge sem outorga, pequeno produtor) — sinal, não rótulo", obrigatorio: true }
+  # --- datas do crédito ---
+  - { campo: data_vencimento, tipo: data, origem: subsidio, descricao: "Vencimento (final ou antecipado) do título", obrigatorio: true }
+  - { campo: data_inadimplemento, tipo: data, origem: subsidio, descricao: "Primeira parcela vencida e não paga", obrigatorio: true }
+  - { campo: data_citacao, tipo: data, origem: publicacao, descricao: "Data da citação válida (ou null)", obrigatorio: false }
+  - { campo: citacao_realizada, tipo: booleano, origem: publicacao, descricao: "Executado citado validamente (todos os executados)", obrigatorio: true, bloqueia_minuta_se_ausente: false }
+  - { campo: citacao_tentativas_n, tipo: numero, origem: publicacao, descricao: "Tentativas de citação pessoal/postal/oficial frustradas", obrigatorio: false }
+  # --- executado ---
+  - { campo: executado_tipo, tipo: texto, origem: extracao, descricao: "pf | pj | pf_e_pj (80% da carteira é só PF)", obrigatorio: true }
+  - { campo: executado_cpf_cnpj_valido, tipo: booleano, origem: antifraude, descricao: "CPF/CNPJ presente e com dígito verificador válido (só 1.357 contatos têm documento no Legal One)", obrigatorio: true }
+  - { campo: executado_obito, tipo: booleano, origem: antifraude, descricao: "Indício de óbito do executado (certidão nos autos, base pública, informação do oficial)", obrigatorio: true }
+  - { campo: executado_inventario_aberto, tipo: booleano, origem: antifraude, descricao: "Há inventário/arrolamento localizável (DataJud) do executado falecido", obrigatorio: false }
+  - { campo: executado_recuperacao_judicial, tipo: booleano, origem: antifraude, descricao: "Executado (PJ ou produtor rural) em recuperação judicial", obrigatorio: true }
+  - { campo: executado_falencia, tipo: booleano, origem: antifraude, descricao: "Executado com falência decretada", obrigatorio: true }
+  - { campo: executado_homonimo_risco, tipo: booleano, origem: antifraude, descricao: "Nome comum sem CPF confirmado — risco de diligência contra homônimo", obrigatorio: true }
+  # --- bens e diligências ---
+  - { campo: bens_localizados, tipo: booleano, origem: calculado, descricao: "Há bem penhorável identificado (Sisbajud positivo, veículo, imóvel, safra, recebíveis)", obrigatorio: true }
+  - { campo: bens_tipos, tipo: lista, origem: calculado, descricao: "dinheiro | veiculo | imovel_rural | imovel_urbano | safra | semoventes | recebiveis | quotas | nenhum", obrigatorio: false }
+  - { campo: sisbajud_tentativas_n, tipo: numero, origem: publicacao, descricao: "Nº de ordens Sisbajud já cumpridas no processo", obrigatorio: true }
+  - { campo: sisbajud_ultimo_resultado, tipo: valor_monetario, origem: publicacao, descricao: "Valor bloqueado na última ordem (0 se negativa)", obrigatorio: false }
+  - { campo: sisbajud_ultima_data, tipo: data, origem: publicacao, descricao: "Data da última ordem Sisbajud", obrigatorio: false }
+  - { campo: renajud_consultado, tipo: booleano, origem: publicacao, descricao: "Renajud já requerido/cumprido", obrigatorio: true }
+  - { campo: infojud_consultado, tipo: booleano, origem: publicacao, descricao: "Infojud (DIRPF/DOI) já requerido/cumprido", obrigatorio: true }
+  - { campo: cnib_consultado, tipo: booleano, origem: publicacao, descricao: "Indisponibilidade CNIB já requerida", obrigatorio: false }
+  - { campo: matriculas_localizadas, tipo: lista, origem: subsidio, descricao: "Matrículas em nome do executado (SREI/ONR, DOI, garantia)", obrigatorio: false }
+  - { campo: penhora_conta_titularidade, tipo: texto, origem: antifraude, descricao: "executado | conjunta | terceiro | desconhecida — titularidade da conta bloqueada", obrigatorio: false }
+  - { campo: penhora_verba_impenhoravel_indicio, tipo: booleano, origem: antifraude, descricao: "Bloqueio recaiu sobre salário/aposentadoria/poupança ≤ 40 SM/benefício (CPC 833) [A CONFERIR]", obrigatorio: false }
+  # --- prescrição e suspensões ---
+  - { campo: prescricao_titulo_data_limite, tipo: data, origem: calculado, descricao: "Data-limite da prescrição da pretensão executiva (prazo do título a partir do vencimento) [A CONFERIR — 3 anos títulos de crédito × 5 anos dívida líquida]", obrigatorio: true }
+  - { campo: prescricao_intercorrente_risco, tipo: booleano, origem: calculado, descricao: "Suspensão art. 921 III há ≥ 1 ano sem diligência útil e prazo prescricional do título em curso", obrigatorio: true }
+  - { campo: suspensao_921_data, tipo: data, origem: publicacao, descricao: "Data da decisão de suspensão por ausência de bens (art. 921, III)", obrigatorio: false }
+  - { campo: arquivamento_data, tipo: data, origem: publicacao, descricao: "Data do arquivamento provisório (art. 921 §2º)", obrigatorio: false }
+  - { campo: suspensao_outra_causa, tipo: texto, origem: publicacao, descricao: "nenhuma | recuperacao_judicial | calamidade | covid | convencao_partes | decisao_judicial", obrigatorio: true }
+  - { campo: programa_renegociacao_elegivel, tipo: texto, origem: subsidio, descricao: "nenhum | lei_13340_2016 | lei_14995_2024 | pronaf | securitizacao | desenrola | politica_interna_basa — [A CONFERIR quais programas estão vigentes]", obrigatorio: true, disponibilidade: "política do BASA — a mapear" }
+  - { campo: renegociacao_em_curso, tipo: booleano, origem: subsidio, descricao: "Há proposta/renegociação administrativa em andamento no banco", obrigatorio: true }
+  - { campo: cliente_orientou_suspender, tipo: booleano, origem: subsidio, descricao: "BASA orientou expressamente não impulsionar (negociação, política, auditoria)", obrigatorio: true, bloqueia_minuta_se_ausente: false }
+  # --- custos ---
+  - { campo: custas_pendentes_valor, tipo: valor_monetario, origem: publicacao, descricao: "Custas/diligências pendentes de recolhimento (oficial, edital, leiloeiro, precatória)", obrigatorio: true }
+  - { campo: custo_diligencias_estimado, tipo: valor_monetario, origem: calculado, descricao: "Custo esperado das próximas diligências úteis (tabela por tribunal/comarca + correspondente) [ILUSTRATIVO — calibrar]", obrigatorio: true }
+  - { campo: honorarios_sucumbencia_fixados, tipo: valor_monetario, origem: publicacao, descricao: "Honorários já fixados em favor do exequente (execução + embargos)", obrigatorio: false }
+  # --- triagem (T01, calculado) ---
+  - { campo: score_recuperabilidade, tipo: numero, origem: calculado, descricao: "0–1: probabilidade estimada de recuperar ≥ custo de diligências em 24 meses (T01)", obrigatorio: true }
+  - { campo: recomendacao_triagem, tipo: texto, origem: calculado, descricao: "viva_prioritaria | viva | observacao | morta_baixa | morta_cessao (T01)", obrigatorio: true }
+  # --- incidentes defensivos ---
+  - { campo: embargos_opostos, tipo: booleano, origem: publicacao, descricao: "Há embargos à execução pendentes de resposta", obrigatorio: true }
+  - { campo: embargos_materia, tipo: lista, origem: extracao, descricao: "excesso_execucao | iliquidez | capitalizacao | comissao_permanencia | nulidade_citacao | prescricao | renegociacao_rural | ilegitimidade | pagamento | outra", obrigatorio: false }
+  - { campo: embargos_planilha_apresentada, tipo: booleano, origem: extracao, descricao: "Embargante alegou excesso e juntou planilha com o valor que entende correto (CPC 917 §3º) [A CONFERIR]", obrigatorio: false }
+  - { campo: embargos_efeito_suspensivo, tipo: booleano, origem: publicacao, descricao: "Juízo atribuiu efeito suspensivo aos embargos", obrigatorio: false }
+  - { campo: embargos_julgados_resultado, tipo: texto, origem: publicacao, descricao: "pendente | improcedentes | parcialmente_procedentes | procedentes", obrigatorio: false }
+  - { campo: sentenca_embargos_transitada, tipo: booleano, origem: publicacao, descricao: "Sentença dos embargos transitou em julgado", obrigatorio: false }
+  - { campo: excecao_pre_executividade_oposta, tipo: booleano, origem: publicacao, descricao: "Há exceção de pré-executividade pendente", obrigatorio: true }
+  - { campo: excecao_materia_cognoscivel_oficio, tipo: booleano, origem: extracao, descricao: "A matéria da exceção é cognoscível de ofício e não exige dilação probatória (Súmula 393 STJ por analogia) [A CONFERIR]", obrigatorio: false }
+  - { campo: decisao_desfavoravel_transitada, tipo: booleano, origem: publicacao, descricao: "Há decisão desfavorável ao exequente transitada (extinção, nulidade do título, prescrição)", obrigatorio: true }
+  - { campo: indicio_fraude_cedula, tipo: booleano, origem: antifraude, descricao: "Indício de fraude na cédula (assinatura divergente, emitente nega, laudo, inquérito) — sinal, não rótulo", obrigatorio: true }
+  # --- monitória ---
+  - { campo: monitoria_embargos_opostos, tipo: booleano, origem: publicacao, descricao: "Na monitória, houve embargos monitórios", obrigatorio: false }
+  - { campo: monitoria_prazo_pagamento_decorrido, tipo: booleano, origem: publicacao, descricao: "Prazo de 15 dias do mandado monitório decorreu sem pagamento nem embargos (CPC 701 §2º) [A CONFERIR]", obrigatorio: false }
+  # --- interior / precatórias ---
+  - { campo: carta_precatoria_necessaria, tipo: booleano, origem: calculado, descricao: "Ato (citação, penhora, avaliação) depende de comarca diversa", obrigatorio: true }
+  - { campo: comarca_deprecada, tipo: texto, origem: calculado, descricao: "Comarca onde o ato será cumprido", obrigatorio: false }
+  - { campo: correspondente_disponivel, tipo: booleano, origem: subsidio, descricao: "FBS tem correspondente cadastrado na comarca deprecada/do interior", obrigatorio: false }
+  # --- acordo ---
+  - { campo: acordo_proposta_valor, tipo: valor_monetario, origem: subsidio, descricao: "Valor da proposta de acordo em análise (do executado ou recomendada pela FBS)", obrigatorio: false }
+  - { campo: acordo_desconto_pct, tipo: numero, origem: calculado, descricao: "Desconto sobre valor_divida_atualizado implícito na proposta (%)", obrigatorio: false }
+  # --- qualidade de dados (M4) ---
+  - { campo: cnj_duplicado, tipo: booleano, origem: antifraude, descricao: "Mesmo CNJ em mais de uma pasta do Legal One (771 CNJs em 1.638 pastas) — consolidar antes de impulsionar", obrigatorio: true }
+  - { campo: cadastro_cliente_id, tipo: texto, origem: subsidio, descricao: "contato_id do BASA no Legal One (3863 | 14574 | 15082 | 36641) — unificar", obrigatorio: false }
+
+# -----------------------------------------------------------------------------
+# ÁRVORE DE "TESES" = MÓDULOS DE DECISÃO DO POLO ATIVO
+# -----------------------------------------------------------------------------
+# Em polo ativo a "tese" raramente é um argumento de mérito: é a decisão do que fazer
+# com o processo nesta fase. categoria: sinal (triagem/acordo — não vira peça sozinha),
+# processual (impulsos e incidentes), merito (resposta a embargos/exceção),
+# subsidiaria (sucumbência/custas).
+teses:
+  # ---------------------------------------------------------------- (1) TRIAGEM
+  - id: T01
+    nome: "Triagem de recuperabilidade — score e separação de carteira viva × carteira morta"
+    categoria: sinal
+    ordem: 1
+    pai: null
+    resumo: >-
+      Antes de qualquer peça, cada processo recebe um score 0–1 de recuperabilidade e uma
+      recomendação (viva_prioritaria | viva | observacao | morta_baixa | morta_cessao). O score
+      pondera: existência e valor de garantia real; bens localizados; idade do processo; tempo
+      desde a última diligência útil; óbito/insolvência do executado; valor líquido da dívida;
+      custas e diligências futuras. É o mesmo motor de pricing do spinoff de créditos, visto
+      pelo lado do credor originário. Pesos abaixo são ILUSTRATIVOS; calibrar por replay (M10).
+    condicoes_aplicacao:
+      - { campo: valor_divida_atualizado, operador: existe }
+      - { campo: fase_execucao, operador: existe }
+    provas_necessarias:
+      - { tipo_documento: extrato_saldo_devedor, descricao: "Saldo devedor atualizado e memória de cálculo (portal BASA)", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: andamentos, descricao: "Linha do tempo dos andamentos (DataJud/Legal One) com a última diligência útil", origem: publicacao, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: relatorio_garantias, descricao: "Garantias do título (tipo, valor, registro, matrícula)", origem: subsidio, obrigatoria: false, peso: 0.9 }
+      - { tipo_documento: relatorio_antifraude, descricao: "Óbito, RJ/falência, CPF válido, homônimo, CNJ duplicado", origem: antifraude, obrigatoria: true, peso: 0.8 }
+    provas_que_afastam:
+      - { tipo_documento: extrato_saldo_devedor, descricao: "Saldo em moeda antiga/centavos não convertidos (outlier) — recalcular antes de pontuar", origem: antifraude, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CPC, art. 797 (execução no interesse do exequente) e art. 805 (menor onerosidade)", tipo: dispositivo, para_que_serve: "enquadrar a escolha de diligências úteis × custo", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CPC, art. 921, III, §§ 1º a 5º", tipo: dispositivo, para_que_serve: "efeito da carteira parada: suspensão → prescrição intercorrente", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "Res. CMN 2.682/1999 (classificação de risco/provisão) e normas de baixa para prejuízo do BASA", tipo: norma_regulatoria, para_que_serve: "alinhar a recomendação de baixa à régua contábil do banco", conferido: false, nota: "[A CONFERIR pelo advogado-dono — norma vigente e política interna do BASA]" }
+      precedentes: []
+      argumentos_chave:
+        - "Fatores com peso ILUSTRATIVO (soma 1,0): garantia real registrada com valor ≥ 50 % da dívida 0,25; bens localizados (Sisbajud positivo, veículo, imóvel, safra) 0,20; última diligência útil há < 180 dias 0,10; idade do processo < 5 anos 0,10; executado vivo e sem RJ/falência 0,15; valor líquido (dívida − custas futuras) ≥ R$ 30 mil 0,10; CPF/CNPJ válido e sem homonímia 0,10. [A CONFERIR/CALIBRAR]"
+        - "Faixas ILUSTRATIVAS: ≥ 0,70 viva_prioritaria; 0,45–0,69 viva; 0,25–0,44 observacao (só diligência barata periódica — T08); < 0,25 morta → morta_baixa (recomendar baixa/arquivamento) ou morta_cessao (candidata a cessão em lote)."
+        - "Dados da carteira que balizam a régua: mediana R$ 57,5 mil, p90 R$ 276 mil; 85 % com movimento em 2026 (carteira viva, não acervo morto); três ondas de distribuição (2015–16, 2019–21, 2024–25) — a onda de 2015–16 é a primeira a passar pelo crivo de prescrição intercorrente."
+        - "O score nunca extingue nada sozinho: morta_baixa e morta_cessao vão ao advogado da carteira e ao sócio (X03) e, depois, à alçada do BASA."
+    pedidos:
+      - "Classificar o processo e registrar o score e a recomendação no dossiê (sem peça)."
+    pedidos_subsidiarios:
+      - "Se recomendacao_triagem ∈ {morta_baixa, morta_cessao}: gerar relatório de baixa/cessão para o advogado da carteira (não é peça processual)."
+    risco_se_mal_aplicada: "Score mal calibrado enterra crédito recuperável (falso 'morto') ou gasta diligência em crédito perdido; por isso o Brier (M10) é métrica de primeira linha."
+    pendencia: "pesos e faixas do score aguardam replay sobre 200 processos encerrados; régua de baixa do BASA a obter"
+    ativa: true
+
+  - id: T01.1
+    nome: "Carteira morta — recomendação de baixa, arquivamento definitivo ou cessão em lote"
+    categoria: sinal
+    ordem: 2
+    pai: T01
+    resumo: >-
+      Quando o valor líquido esperado é menor que o custo das próximas diligências (ou o executado
+      está morto sem inventário/insolvente sem garantia), a recomendação é parar de gastar: aceitar
+      a suspensão/arquivamento (T08), propor ao BASA baixa contábil ou cessão em lote. Toda
+      recomendação de baixa passa por sócio (X03) e pela alçada do banco.
+    condicoes_aplicacao:
+      - { campo: recomendacao_triagem, operador: in, valor: [morta_baixa, morta_cessao] }
+    provas_necessarias:
+      - { tipo_documento: relatorio_triagem, descricao: "Score, fatores e custo de diligências estimado", origem: calculado, obrigatoria: true, peso: 1.0 }
+    provas_que_afastam:
+      - { tipo_documento: relatorio_garantias, descricao: "Garantia real registrada ainda não excutida", origem: subsidio, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CPC, art. 921, §§ 2º a 5º (arquivamento e prescrição intercorrente)", tipo: dispositivo, para_que_serve: "consequência jurídica de não impulsionar", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CC, art. 286 e ss. (cessão de crédito); Res. CMN sobre cessão de créditos baixados [A CONFERIR]", tipo: dispositivo, para_que_serve: "viabilidade da cessão em lote", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes: []
+      argumentos_chave:
+        - "Custo esperado das diligências × valor líquido: se custo_diligencias_estimado > 30 % do valor esperado de recuperação, parar [ILUSTRATIVO]."
+        - "Lote de cessão = processos morta_cessao com título válido e sem decisão desfavorável transitada (ativo vendável)."
+    pedidos:
+      - "Relatório de baixa/cessão ao advogado da carteira e ao sócio; nenhuma peça automática."
+    pedidos_subsidiarios: []
+    risco_se_mal_aplicada: "Baixar crédito com garantia real não excutida ou com herdeiros solventes."
+    ativa: true
+
+  # ---------------------------------------------------------------- (2) IMPULSO PADRÃO POR FASE
+  - id: T02
+    nome: "Impulso padrão por fase da execução"
+    categoria: processual
+    ordem: 3
+    pai: null
+    resumo: >-
+      Para cada fase do processo há uma próxima diligência útil padrão. A tese-mãe define a regra:
+      só impulsiona processo viva/viva_prioritaria/observacao, com saldo atualizado e memória de
+      cálculo citáveis; as subteses escolhem a peça. Cumpre o KPI do BASA de SLA de impulso.
+    condicoes_aplicacao:
+      - { campo: recomendacao_triagem, operador: in, valor: [viva_prioritaria, viva, observacao] }
+      - { campo: cliente_orientou_suspender, operador: "==", valor: false }
+      - { campo: memoria_calculo_disponivel, operador: "==", valor: true }
+    provas_necessarias:
+      - { tipo_documento: extrato_saldo_devedor, descricao: "Saldo atualizado com data-base", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: andamentos, descricao: "Último andamento útil e despacho pendente", origem: publicacao, obrigatoria: true, peso: 1.0 }
+    provas_que_afastam:
+      - { tipo_documento: despacho, descricao: "Despacho recente já determinando a diligência pretendida (não repetir pedido)", origem: publicacao, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CPC, arts. 797, 798, I, b (demonstrativo do débito) e 829", tipo: dispositivo, para_que_serve: "requisitos de qualquer petição de impulso com valor", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CPC, art. 835 (ordem de penhora) e art. 854 (penhora de dinheiro — Sisbajud)", tipo: dispositivo, para_que_serve: "preferência legal do dinheiro", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STJ — penhora on-line não exige esgotamento de outras diligências (jurisprudência consolidada) [A CONFERIR]", tipo: precedente, para_que_serve: "pedir Sisbajud já após a citação sem pagamento", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "Toda petição de impulso traz: fase atual com citação de página, saldo atualizado com data-base e página da planilha, pedido específico e prazo."
+        - "Nunca repetir diligência idêntica em menos de 180 dias sem fato novo [ILUSTRATIVO]."
+    pedidos:
+      - "Prosseguimento da execução com a diligência da fase (ver subteses)."
+    pedidos_subsidiarios: []
+    risco_se_mal_aplicada: "Impulso genérico ('requer o prosseguimento') não conta como diligência útil para fins de prescrição intercorrente e não move o KPI."
+    ativa: true
+
+  - id: T02.1
+    nome: "Citação pendente → novas diligências de endereço, citação por hora certa ou por edital"
+    categoria: processual
+    ordem: 4
+    pai: T02
+    resumo: >-
+      Executado ainda não citado: pedir consulta de endereços (Sisbajud/Renajud/Infojud/SIEL),
+      citação por hora certa se há ocultação, e, esgotadas as tentativas, citação por edital.
+      Alternativa: arresto executivo (CPC 830) quando há bens e o executado não é encontrado.
+    condicoes_aplicacao:
+      - { campo: fase_execucao, operador: in, valor: [distribuida, citacao_pendente] }
+      - { campo: citacao_realizada, operador: "==", valor: false }
+    provas_necessarias:
+      - { tipo_documento: certidao_oficial, descricao: "Certidões negativas do oficial/AR com os endereços diligenciados", origem: publicacao, obrigatoria: true, peso: 1.0 }
+    provas_que_afastam:
+      - { tipo_documento: certidao_oficial, descricao: "Menos de 2 tentativas em endereços distintos (edital prematuro é nulo)", origem: publicacao, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CPC, arts. 252 a 254 (hora certa), 256 e 257 (edital), 830 (arresto executivo)", tipo: dispositivo, para_que_serve: "formas de citação e arresto", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CPC, art. 256, § 3º (esgotamento das tentativas; consulta a cadastros públicos)", tipo: dispositivo, para_que_serve: "requisito do edital", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STJ — nulidade de citação por edital sem esgotamento dos meios [A CONFERIR]", tipo: precedente, para_que_serve: "não pedir edital cedo demais (vira nulidade em embargos — T06.4)", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "Sequência: endereço do título/portal → AR → oficial → consultas (Sisbajud endereços, Renajud, Infojud, SIEL) → hora certa (se ocultação certificada) → edital."
+        - "Se há bens conhecidos e o executado não é encontrado: arresto executivo antes do edital."
+    pedidos:
+      - "Consulta de endereços nos sistemas conveniados; citação por hora certa ou edital conforme a certidão; arresto executivo se houver bens."
+    pedidos_subsidiarios:
+      - "Citação por meio eletrônico/aplicativo quando o tribunal admitir [A CONFERIR — TJPA/TJAM]."
+    risco_se_mal_aplicada: "Edital prematuro → nulidade de todo o processado."
+    ativa: true
+
+  - id: T02.2
+    nome: "Citado sem pagamento → penhora on-line (Sisbajud), inclusive teimosinha"
+    categoria: processual
+    ordem: 5
+    pai: T02
+    resumo: >-
+      Decorrido o prazo de 3 dias sem pagamento, requerer bloqueio Sisbajud do saldo atualizado,
+      com reiteração automática (teimosinha) pelo prazo que o juízo admitir; pedir também a
+      inclusão dos avalistas/coexecutados.
+    condicoes_aplicacao:
+      - { campo: fase_execucao, operador: "==", valor: citado_sem_pagamento }
+      - { campo: citacao_realizada, operador: "==", valor: true }
+    provas_necessarias:
+      - { tipo_documento: certidao_decurso_prazo, descricao: "Certidão de decurso do prazo de pagamento", origem: publicacao, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: extrato_saldo_devedor, descricao: "Saldo atualizado com data-base ≤ 30 dias", origem: subsidio, obrigatoria: true, peso: 1.0 }
+    provas_que_afastam:
+      - { tipo_documento: comprovante_pagamento, descricao: "Pagamento/depósito nos autos", origem: publicacao, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CPC, arts. 829, 835, I, e 854", tipo: dispositivo, para_que_serve: "penhora de dinheiro como primeira opção", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CPC, art. 833, IV e X (impenhorabilidade de salário e poupança até 40 SM)", tipo: dispositivo, para_que_serve: "antecipar a manifestação sobre impenhorabilidade", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STJ — reiteração periódica do Sisbajud ('teimosinha') admitida [A CONFERIR]", tipo: precedente, para_que_serve: "pedir reiteração automática", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "STJ — relativização da impenhorabilidade de salário para dívida não alimentar em percentual razoável (EREsp 1.582.475) [A CONFERIR]", tipo: precedente, para_que_serve: "penhora de percentual de remuneração alta", conferido: false, nota: "[A CONFERIR pelo advogado-dono — número e alcance]" }
+      argumentos_chave:
+        - "Penhora on-line independe de esgotamento de outras diligências; valor = saldo atualizado da planilha anexa."
+        - "Requer-se a ordem contra todos os executados (emitente e avalistas) e reiteração automática."
+    pedidos:
+      - "Bloqueio Sisbajud do valor atualizado contra todos os executados, com reiteração automática; transferência para conta judicial; intimação do executado."
+    pedidos_subsidiarios:
+      - "Se bloqueio parcial: manutenção e prosseguimento pelo saldo remanescente."
+    risco_se_mal_aplicada: "Ordem contra homônimo ou com valor de moeda antiga (outlier) — ver antifraude."
+    ativa: true
+
+  - id: T02.3
+    nome: "Penhora frustrada → Renajud, Infojud (DIRPF/DOI), CNIB, SREI e penhora de outros bens"
+    categoria: processual
+    ordem: 6
+    pai: T02
+    resumo: >-
+      Sisbajud negativo ou irrisório: requerer restrição/penhora de veículos (Renajud), quebra de
+      sigilo fiscal (Infojud — DIRPF e DOI), indisponibilidade de imóveis (CNIB), pesquisa de
+      matrículas (SREI/ONR) e, conforme o resultado, penhora de imóvel, quotas, recebíveis ou
+      faturamento (PJ).
+    condicoes_aplicacao:
+      - { campo: fase_execucao, operador: "==", valor: penhora_frustrada }
+      - { campo: sisbajud_tentativas_n, operador: ">=", valor: 1 }
+    provas_necessarias:
+      - { tipo_documento: detalhamento_sisbajud, descricao: "Resultado negativo/irrisório da última ordem", origem: publicacao, obrigatoria: true, peso: 1.0 }
+    provas_que_afastam:
+      - { tipo_documento: despacho, descricao: "Renajud/Infojud já cumpridos sem fato novo", origem: publicacao, obrigatoria: false, peso: 0.9 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CPC, art. 835, II a XIII, 866 (penhora de faturamento), 835, § 3º (bem fiduciário)", tipo: dispositivo, para_que_serve: "ordem e espécies de penhora", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CPC, art. 139, IV (medidas atípicas) e 772-773 (poderes do juiz na execução)", tipo: dispositivo, para_que_serve: "consultas e medidas indutivas", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "Lei 8.009/1990, art. 3º, V (bem de família: exceção da hipoteca) e CF, art. 5º, XXVI / CPC 833, VIII (pequena propriedade rural)", tipo: dispositivo, para_que_serve: "limites da penhora de imóvel rural", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STJ — Infojud/quebra de sigilo fiscal após diligências do credor frustradas [A CONFERIR]", tipo: precedente, para_que_serve: "requisito para o Infojud", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "STJ — medidas atípicas do art. 139, IV exigem indícios de patrimônio oculto (REsp 1.782.418 / 1.788.950) [A CONFERIR]", tipo: precedente, para_que_serve: "não pedir medida atípica sem indício", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "Sequência de custo crescente: Renajud (grátis) → Infojud → CNIB → SREI/matrículas → penhora de imóvel/quotas/recebíveis."
+        - "Em PJ: penhora de faturamento em percentual compatível com a continuidade da atividade."
+    pedidos:
+      - "Renajud (restrição de transferência/penhora), Infojud (3 últimas DIRPF + DOI), CNIB e pesquisa SREI; penhora dos bens localizados."
+    pedidos_subsidiarios:
+      - "Medidas atípicas do art. 139, IV só com indício concreto de patrimônio (exige sócio)."
+    risco_se_mal_aplicada: "Pedir medida atípica sem indício gera indeferimento e desgaste; penhorar pequena propriedade rural trabalhada pela família é nulo."
+    ativa: true
+
+  - id: T02.4
+    nome: "Bens penhorados → avaliação, intimação do cônjuge/credores, leilão eletrônico ou adjudicação"
+    categoria: processual
+    ordem: 7
+    pai: T02
+    resumo: >-
+      Com penhora formalizada: requerer avaliação (oficial ou avaliador), registro da penhora
+      (imóvel/veículo), intimação do cônjuge e de credores com garantia, e expropriação —
+      adjudicação pelo BASA, alienação por iniciativa particular ou leilão eletrônico.
+    condicoes_aplicacao:
+      - { campo: fase_execucao, operador: in, valor: [bens_penhorados, avaliacao_leilao] }
+      - { campo: bens_localizados, operador: "==", valor: true }
+    provas_necessarias:
+      - { tipo_documento: auto_penhora, descricao: "Auto/termo de penhora e, se imóvel, matrícula atualizada", origem: publicacao, obrigatoria: true, peso: 1.0 }
+    provas_que_afastam:
+      - { tipo_documento: embargos_terceiro, descricao: "Embargos de terceiro pendentes sobre o bem", origem: publicacao, obrigatoria: false, peso: 0.9 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CPC, arts. 838-844 (formalização e registro), 870-875 (avaliação), 876 (adjudicação), 879-903 (alienação e leilão eletrônico), 842 (cônjuge), 889 (intimações)", tipo: dispositivo, para_que_serve: "rito expropriatório", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "Res. CNJ 236/2016 (leilão eletrônico) e provimentos TJPA/TJAM sobre leiloeiros [A CONFERIR]", tipo: norma_regulatoria, para_que_serve: "regras locais de leilão", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STJ — preço vil: inferior a 50 % da avaliação (CPC 891) [A CONFERIR]", tipo: precedente, para_que_serve: "fixar lance mínimo", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "Adjudicação pelo BASA é a via mais rápida quando o bem interessa ao banco (política interna [A CONFERIR])."
+        - "Intimações do art. 889 omitidas anulam o leilão: checklist obrigatório."
+    pedidos:
+      - "Avaliação, registro da penhora, intimações legais e designação de leilão eletrônico (ou adjudicação/alienação particular)."
+    pedidos_subsidiarios:
+      - "Lance mínimo não inferior a 50 % da avaliação [A CONFERIR]."
+    risco_se_mal_aplicada: "Leilão anulado por falta de intimação do cônjuge/credor hipotecário/coproprietário."
+    ativa: true
+
+  # ---------------------------------------------------------------- (2) GARANTIA RURAL / FIDUCIÁRIA
+  - id: T03
+    nome: "Penhora de safra, penhor rural, cédula de produto rural e alienação fiduciária"
+    categoria: processual
+    ordem: 8
+    pai: null
+    resumo: >-
+      Crédito rural (cédula rural pignoratícia/hipotecária, nota de crédito rural, CPR) tem
+      garantia típica: penhor de safra/semoventes/máquinas e hipoteca rural. Requerer a penhora
+      do bem empenhado/hipotecado com depositário, vistoria e, na safra, acompanhamento da
+      colheita/venda. Alienação fiduciária (imóvel ou móvel) não é penhorável pelo próprio credor
+      fiduciário — segue rito próprio (consolidação/busca e apreensão), fora desta execução.
+    condicoes_aplicacao:
+      - { campo: titulo_tipo, operador: in, valor: [cedula_rural_pignoraticia, cedula_rural_hipotecaria, nota_credito_rural, cpr] }
+      - { campo: garantia_tipo, operador: contem, valor: penhor_rural }
+    provas_necessarias:
+      - { tipo_documento: cedula, descricao: "Cédula com a descrição do bem empenhado/hipotecado e registro", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: certidao_registro_garantia, descricao: "Registro do penhor/hipoteca (RI/RTD)", origem: subsidio, obrigatoria: false, peso: 0.8 }
+    provas_que_afastam:
+      - { tipo_documento: laudo_vistoria, descricao: "Bem empenhado inexistente/perecido (safra colhida e vendida; semoventes dispersos)", origem: publicacao, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "Decreto-Lei 167/1967 (cédulas de crédito rural — arts. 10, 41 e ss. penhor rural; 60 e ss. execução; 69 e 71 impenhorabilidade relativa)", tipo: dispositivo, para_que_serve: "regime da cédula rural e de sua garantia", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "Lei 8.929/1994 (CPR) e Lei 13.986/2020 (Agro: CPR, patrimônio rural em afetação)", tipo: dispositivo, para_que_serve: "execução da CPR e garantias", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CC, arts. 1.438 a 1.446 (penhor rural) e 1.473 e ss. (hipoteca)", tipo: dispositivo, para_que_serve: "direito material da garantia", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "Lei 9.514/1997 (alienação fiduciária de imóvel) e Decreto-Lei 911/1969 (móveis)", tipo: dispositivo, para_que_serve: "rito próprio fora da execução; credor fiduciário não penhora bem próprio", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CPC, art. 835, § 3º e art. 833, VIII; CF, art. 5º, XXVI", tipo: dispositivo, para_que_serve: "limites: pequena propriedade rural; bem fiduciário", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STJ — penhora de safra futura/percentual da produção admitida [A CONFERIR]", tipo: precedente, para_que_serve: "penhorar produção", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "STJ, Súmula 93 (capitalização em cédulas rurais) [A CONFERIR]", tipo: sumula, para_que_serve: "encargos próprios da cédula rural", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "O penhor rural recai sobre o bem descrito na cédula independentemente de nova penhora: pedir constatação e depósito."
+        - "Safra: percentual da produção com depositário e comunicação a cooperativas/compradores habituais."
+    pedidos:
+      - "Penhora/constatação do bem empenhado ou hipotecado, nomeação de depositário, vistoria e avaliação; penhora de percentual da safra."
+    pedidos_subsidiarios:
+      - "Se o bem pereceu: reforço de penhora e Sisbajud (T02.2/T02.3)."
+    risco_se_mal_aplicada: "Confundir alienação fiduciária com penhor; penhorar bem de pequena propriedade rural familiar."
+    ativa: true
+
+  # ---------------------------------------------------------------- (2) IDPJ E SUCESSÃO
+  - id: T04
+    nome: "Desconsideração da personalidade jurídica (IDPJ) e redirecionamento a sócios"
+    categoria: processual
+    ordem: 9
+    pai: null
+    resumo: >-
+      Executado PJ sem bens, com indícios de confusão patrimonial, encerramento irregular ou
+      desvio de finalidade: instaurar incidente de desconsideração para alcançar os sócios.
+      Exige sócio FBS (custo, risco e padrão probatório altos); jamais em massa sem indício.
+    condicoes_aplicacao:
+      - { campo: executado_tipo, operador: in, valor: [pj, pf_e_pj] }
+      - { campo: fase_execucao, operador: "==", valor: penhora_frustrada }
+      - { campo: bens_localizados, operador: "==", valor: false }
+    provas_necessarias:
+      - { tipo_documento: ficha_cadastral_junta, descricao: "Ficha da Junta Comercial / QSA com sócios e situação (baixa, inapta)", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: detalhamento_sisbajud, descricao: "Diligências negativas contra a PJ", origem: publicacao, obrigatoria: true, peso: 0.9 }
+      - { tipo_documento: certidao_oficial, descricao: "Certidão de encerramento irregular (empresa não localizada no endereço fiscal)", origem: publicacao, obrigatoria: false, peso: 0.8 }
+    provas_que_afastam:
+      - { tipo_documento: cedula, descricao: "Sócios já são avalistas no título (redirecionamento desnecessário — executar o aval)", origem: subsidio, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CPC, arts. 133 a 137 (IDPJ) e 790, VII", tipo: dispositivo, para_que_serve: "rito do incidente", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CC, art. 50 (teoria maior; redação da Lei 13.874/2019)", tipo: dispositivo, para_que_serve: "requisitos materiais", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STJ, Súmula 435 (dissolução irregular — execução fiscal; aplicação à civil é controvertida) [A CONFERIR]", tipo: sumula, para_que_serve: "encerramento irregular como indício, não presunção", conferido: false, nota: "[A CONFERIR pelo advogado-dono — STJ exige teoria maior na execução civil]" }
+        - { ref: "STJ — encerramento irregular, por si só, não autoriza desconsideração na execução civil (REsp 1.526.287 e outros) [A CONFERIR]", tipo: precedente, para_que_serve: "padrão probatório", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "Antes do IDPJ: executar avalistas (80 % dos títulos têm aval) — mais barato e certo."
+        - "IDPJ só com indício documentado de abuso (confusão patrimonial, desvio); custo processual e risco de sucumbência."
+    pedidos:
+      - "Instauração do IDPJ com citação dos sócios; suspensão do processo principal (CPC 134 §3º)."
+    pedidos_subsidiarios: []
+    risco_se_mal_aplicada: "IDPJ em massa sem indício: indeferimento, honorários contra o banco e precedente ruim na comarca."
+    ativa: true
+
+  - id: T04.1
+    nome: "Óbito do executado — habilitação do espólio/herdeiros e sucessão processual"
+    categoria: processual
+    ordem: 10
+    pai: T04
+    resumo: >-
+      Executado falecido: suspender (CPC 313, I), habilitar espólio (se há inventário) ou herdeiros
+      (CPC 687-692 / 110), limitando a responsabilidade às forças da herança. Sem inventário e sem
+      bens conhecidos, o caso vai à triagem como carteira morta (X01).
+    condicoes_aplicacao:
+      - { campo: executado_obito, operador: "==", valor: true }
+      - { campo: executado_inventario_aberto, operador: "==", valor: true }
+    provas_necessarias:
+      - { tipo_documento: certidao_obito, descricao: "Certidão de óbito", origem: extracao, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: certidao_inventario, descricao: "Dados do inventário/arrolamento e do inventariante (DataJud)", origem: antifraude, obrigatoria: true, peso: 1.0 }
+    provas_que_afastam:
+      - { tipo_documento: certidao_inventario, descricao: "Inventário negativo (sem bens)", origem: antifraude, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CPC, arts. 110, 313, I e § 1º, 687 a 692 (habilitação), 779, II (espólio/herdeiros)", tipo: dispositivo, para_que_serve: "sucessão processual na execução", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CC, arts. 1.792 e 1.997 (herdeiro responde nas forças da herança)", tipo: dispositivo, para_que_serve: "limite da responsabilidade", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CPC, art. 642 e ss. (habilitação de crédito no inventário)", tipo: dispositivo, para_que_serve: "via alternativa: habilitar o crédito no inventário", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STJ — atos praticados após o óbito sem suspensão são nulos (CPC 313 §1º) [A CONFERIR]", tipo: precedente, para_que_serve: "pedir suspensão imediata ao constatar óbito", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "Havendo inventário: habilitar o crédito nos autos do inventário e/ou citar o espólio na execução."
+        - "Sem inventário: habilitação dos herdeiros conhecidos (certidão de óbito + qualificação)."
+    pedidos:
+      - "Suspensão (CPC 313, I) e habilitação do espólio/herdeiros; prosseguimento contra eles nos limites da herança."
+    pedidos_subsidiarios:
+      - "Habilitação do crédito no inventário (CPC 642)."
+    risco_se_mal_aplicada: "Prosseguir contra morto anula os atos; habilitar herdeiro errado (homônimo) gera dano."
+    ativa: true
+
+  # ---------------------------------------------------------------- (2) CUMPRIMENTO DE SENTENÇA
+  - id: T05
+    nome: "Cumprimento de sentença — embargos julgados improcedentes, honorários e sentença condenatória"
+    categoria: processual
+    ordem: 11
+    pai: null
+    resumo: >-
+      Após trânsito em julgado de embargos improcedentes (ou de sentença em monitória/ação de
+      cobrança), requerer o cumprimento: intimação para pagar em 15 dias sob pena de multa de
+      10 % e honorários de 10 % (CPC 523), incluindo a sucumbência dos embargos.
+    condicoes_aplicacao:
+      - { campo: sentenca_embargos_transitada, operador: "==", valor: true }
+      - { campo: embargos_julgados_resultado, operador: in, valor: [improcedentes, parcialmente_procedentes] }
+    provas_necessarias:
+      - { tipo_documento: sentenca, descricao: "Sentença/acórdão dos embargos e certidão de trânsito", origem: publicacao, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: extrato_saldo_devedor, descricao: "Planilha atualizada incluindo honorários fixados", origem: subsidio, obrigatoria: true, peso: 1.0 }
+    provas_que_afastam:
+      - { tipo_documento: despacho, descricao: "Recurso pendente com efeito suspensivo", origem: publicacao, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CPC, arts. 523, 524 (demonstrativo), 525 (impugnação), 513 § 2º (intimação)", tipo: dispositivo, para_que_serve: "rito do cumprimento", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CPC, art. 85, §§ 1º e 13 (honorários nos embargos e no cumprimento)", tipo: dispositivo, para_que_serve: "cumular honorários", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STJ, Tema 410 / Súmula 517 (honorários no cumprimento após o prazo de pagamento) [A CONFERIR]", tipo: tema, para_que_serve: "honorários do cumprimento", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "Em embargos parcialmente procedentes, prosseguir pelo valor remanescente apurado na própria sentença (não refazer o cálculo fora dela)."
+    pedidos:
+      - "Intimação do executado para pagar em 15 dias (CPC 523); multa e honorários de 10 %; Sisbajud na sequência."
+    pedidos_subsidiarios: []
+    risco_se_mal_aplicada: "Cumprimento com valor que ignora a parcial procedência dos embargos → excesso de execução."
+    ativa: true
+
+  # ---------------------------------------------------------------- (3) RESPOSTA A EMBARGOS
+  - id: T06
+    nome: "Impugnação aos embargos à execução — tese-mãe"
+    categoria: merito
+    ordem: 12
+    pai: null
+    resumo: >-
+      Resposta padrão do exequente aos embargos: tempestividade/efeito suspensivo, higidez do
+      título e do cálculo, e enfrentamento das matérias típicas do executado (subteses). Peça
+      de maior risco da tipologia: revisão de 20 min e advogado da carteira.
+    condicoes_aplicacao:
+      - { campo: embargos_opostos, operador: "==", valor: true }
+      - { campo: titulo_localizado, operador: "==", valor: true }
+      - { campo: memoria_calculo_disponivel, operador: "==", valor: true }
+    provas_necessarias:
+      - { tipo_documento: peticao_embargos, descricao: "Petição de embargos e anexos (para enfrentar cada matéria)", origem: extracao, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: cedula, descricao: "Título com cláusulas de encargos destacadas", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: extrato_saldo_devedor, descricao: "Memória de cálculo com critérios (índices, taxas, datas)", origem: subsidio, obrigatoria: true, peso: 1.0 }
+    provas_que_afastam:
+      - { tipo_documento: laudo_pericial, descricao: "Perícia contábil já apontou excesso relevante", origem: publicacao, obrigatoria: false, peso: 0.9 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CPC, arts. 914 a 920 (embargos; 915 prazo; 917 matérias; 918 rejeição liminar; 919 sem efeito suspensivo; 920 impugnação em 15 dias)", tipo: dispositivo, para_que_serve: "rito e prazo da impugnação", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CPC, arts. 783 e 784, III e XII; Lei 10.931/2004, art. 28 (CCB é título executivo); DL 167/67, art. 41 (cédula rural)", tipo: dispositivo, para_que_serve: "executividade do título", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STJ, Súmula 300 (confissão de dívida é título executivo) e Súmula 233/247 (abertura de crédito em conta corrente não é — risco) [A CONFERIR]", tipo: sumula, para_que_serve: "delimitar o que é título e o que exige monitória (T12)", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "STJ, Súmula 381 (vedado conhecer de ofício abusividade em contrato bancário)", tipo: sumula, para_que_serve: "limitar a cognição às matérias alegadas", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "Embargos não suspendem a execução sem garantia + risco (CPC 919 §1º): pedir prosseguimento."
+        - "Enfrentar cada matéria alegada com a cláusula e a página do cálculo; não responder matéria não alegada (Súmula 381)."
+    pedidos:
+      - "Rejeição liminar ou improcedência dos embargos; prosseguimento da execução; honorários."
+    pedidos_subsidiarios:
+      - "Se acolhido algum item, prosseguimento pelo valor remanescente com honorários recíprocos."
+    risco_se_mal_aplicada: "Impugnação genérica perde embargos vencíveis; responder matéria não alegada abre porta a revisão de ofício."
+    ativa: true
+
+  - id: T06.1
+    nome: "Excesso de execução — exigir planilha do embargante (art. 917 §§ 3º e 4º) e defender a memória de cálculo"
+    categoria: merito
+    ordem: 13
+    pai: T06
+    resumo: >-
+      Alegação de excesso sem indicação do valor correto e planilha é rejeitada liminarmente
+      (917 §4º, I) ou não conhecida nessa parte. Com planilha: confrontar critério a critério
+      (índice, taxa, termo inicial, encargos) citando página do cálculo do BASA.
+    condicoes_aplicacao:
+      - { campo: embargos_materia, operador: contem, valor: excesso_execucao }
+    provas_necessarias:
+      - { tipo_documento: extrato_saldo_devedor, descricao: "Memória de cálculo com critérios", origem: subsidio, obrigatoria: true, peso: 1.0 }
+    provas_que_afastam:
+      - { tipo_documento: laudo_pericial, descricao: "Cálculo do BASA com erro aritmético evidente", origem: publicacao, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CPC, art. 917, III, §§ 2º, 3º e 4º", tipo: dispositivo, para_que_serve: "ônus do embargante de declarar o valor e juntar planilha", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STJ — excesso sem planilha: não conhecimento / rejeição liminar [A CONFERIR]", tipo: precedente, para_que_serve: "rejeição sem perícia", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "Sem planilha: rejeição liminar quanto ao excesso (917 §4º, I)."
+        - "Com planilha: a divergência deve ser enfrentada critério a critério; perícia só se a divergência não for resolvível por documentos."
+    pedidos:
+      - "Rejeição liminar da alegação de excesso sem planilha; subsidiariamente, improcedência com base na memória de cálculo."
+    pedidos_subsidiarios:
+      - "Se perícia: honorários periciais pelo embargante; prosseguimento pela parte incontroversa (917 §4º, II)."
+    risco_se_mal_aplicada: "Defender cálculo com comissão de permanência cumulada (Súmula 472) perde."
+    ativa: true
+
+  - id: T06.2
+    nome: "Iliquidez / incerteza do título — CCB e cédula rural são líquidas com a planilha"
+    categoria: merito
+    ordem: 14
+    pai: T06
+    resumo: >-
+      A CCB é título executivo líquido quando acompanhada da planilha de evolução da dívida
+      (Lei 10.931, art. 28 §2º); a cédula rural, pelo DL 167/67. Iliquidez só se o valor não for
+      apurável pelos critérios do próprio título.
+    condicoes_aplicacao:
+      - { campo: embargos_materia, operador: contem, valor: iliquidez }
+    provas_necessarias:
+      - { tipo_documento: cedula, descricao: "Título com cláusulas de valor, encargos e vencimento", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: extrato_saldo_devedor, descricao: "Planilha de evolução", origem: subsidio, obrigatoria: true, peso: 1.0 }
+    provas_que_afastam:
+      - { tipo_documento: cedula, descricao: "Contrato de abertura de crédito em conta corrente (Súmula 233) sem CCB", origem: subsidio, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "Lei 10.931/2004, art. 28, caput e § 2º", tipo: dispositivo, para_que_serve: "CCB + planilha = título líquido", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "DL 167/1967, arts. 10 e 41; CPC, art. 783", tipo: dispositivo, para_que_serve: "liquidez da cédula rural", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STJ, Tema repetitivo sobre executividade da CCB (REsp 1.291.575 — Tema 576) [A CONFERIR]", tipo: tema, para_que_serve: "CCB é título executivo mesmo em abertura de crédito", conferido: false, nota: "[A CONFERIR pelo advogado-dono — número do tema]" }
+        - { ref: "STJ, Súmulas 233 e 247 [A CONFERIR]", tipo: sumula, para_que_serve: "distinguir abertura de crédito (não título) — se for o caso, converter em monitória (T12)", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "Liquidez = determinabilidade por cálculo aritmético a partir do título; a planilha anexa satisfaz."
+    pedidos:
+      - "Improcedência da alegação de iliquidez."
+    pedidos_subsidiarios:
+      - "Se reconhecida a inexecutividade, aproveitamento dos autos como monitória/cobrança (fungibilidade) [A CONFERIR]."
+    risco_se_mal_aplicada: "Insistir em executividade de contrato de abertura de crédito puro."
+    ativa: true
+
+  - id: T06.3
+    nome: "Encargos — capitalização pactuada e comissão de permanência (Súmulas 539, 541, 472, 93, 596 STF)"
+    categoria: merito
+    ordem: 15
+    pai: T06
+    resumo: >-
+      Capitalização inferior à anual é válida se pactuada após 31/03/2000 (Súmula 539), bastando
+      taxa anual > 12× a mensal (Súmula 541); em cédulas rurais, Súmula 93. Comissão de
+      permanência só é defensável se não cumulada (Súmula 472) — se o cálculo do BASA cumula,
+      recalcular antes de impugnar (sinal de acordo parcial).
+    condicoes_aplicacao:
+      - { campo: embargos_materia, operador: contem, valor: capitalizacao }
+    provas_necessarias:
+      - { tipo_documento: cedula, descricao: "Cláusula de capitalização e taxas (mensal/anual) destacadas", origem: subsidio, obrigatoria: true, peso: 1.0 }
+    provas_que_afastam:
+      - { tipo_documento: extrato_saldo_devedor, descricao: "Cálculo com comissão de permanência cumulada com juros/multa/correção", origem: subsidio, obrigatoria: false, peso: 1.0 }
+      - { tipo_documento: cedula, descricao: "Título sem cláusula expressa de capitalização", origem: subsidio, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "MP 2.170-36/2001, art. 5º; DL 167/67, art. 5º (cédula rural); Lei 10.931/2004, art. 28 § 1º, I", tipo: dispositivo, para_que_serve: "base legal da capitalização", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "Res. CMN sobre encargos de inadimplemento (comissão de permanência — Res. 1.129/1986 e sucessoras) [A CONFERIR]", tipo: norma_regulatoria, para_que_serve: "regime da comissão de permanência", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STJ, Súmula 539", tipo: sumula, para_que_serve: "capitalização pactuada após 31/03/2000", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "STJ, Súmula 541", tipo: sumula, para_que_serve: "pactuação pela taxa anual > duodécuplo da mensal", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "STJ, Súmula 472", tipo: sumula, para_que_serve: "comissão de permanência não cumulável", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "STJ, Súmula 93", tipo: sumula, para_que_serve: "capitalização em cédula rural/comercial/industrial", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "STF, Súmula 596; STJ, Súmula 382 (juros > 12 % não é abusivo por si)", tipo: sumula, para_que_serve: "juros remuneratórios", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "STJ, Temas 246/247 (REsp 1.061.530 — contratos bancários; juros, capitalização, comissão de permanência) [A CONFERIR]", tipo: tema, para_que_serve: "repetitivo-base de encargos bancários", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "Cláusula expressa + taxa anual > 12× mensal = capitalização válida."
+        - "Se o cálculo cumula comissão de permanência: substituir por juros + correção + multa antes de impugnar (não defender o indefensável)."
+    pedidos:
+      - "Improcedência quanto aos encargos; manutenção do cálculo."
+    pedidos_subsidiarios:
+      - "Se afastada a comissão de permanência: recálculo com juros remuneratórios pactuados + correção + multa de 2 %, prosseguindo pelo saldo."
+    risco_se_mal_aplicada: "Defender cumulação da comissão de permanência: derrota certa e sucumbência."
+    ativa: true
+
+  - id: T06.4
+    nome: "Nulidade de citação (edital/hora certa) — regularidade e comparecimento espontâneo"
+    categoria: merito
+    ordem: 16
+    pai: T06
+    resumo: >-
+      Edital precedido de esgotamento dos meios (certidões, consultas) é válido; o comparecimento
+      do executado para embargar supre eventual vício (CPC 239 §1º) sem reabrir prazo de pagamento.
+    condicoes_aplicacao:
+      - { campo: embargos_materia, operador: contem, valor: nulidade_citacao }
+    provas_necessarias:
+      - { tipo_documento: certidao_oficial, descricao: "Certidões negativas e consultas prévias ao edital", origem: publicacao, obrigatoria: true, peso: 1.0 }
+    provas_que_afastam:
+      - { tipo_documento: certidao_oficial, descricao: "Edital sem tentativa em endereço conhecido do título", origem: publicacao, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CPC, arts. 239, § 1º, 256, § 3º, 257 e 280", tipo: dispositivo, para_que_serve: "requisitos do edital e convalidação", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STJ — comparecimento espontâneo supre a citação; prazo de embargos corre da ciência [A CONFERIR]", tipo: precedente, para_que_serve: "neutralizar a nulidade", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "Demonstrar com páginas a sequência de tentativas; se o vício for real, aceitar renovação da citação (não insistir)."
+    pedidos:
+      - "Rejeição da nulidade; subsidiariamente, aproveitamento dos atos e prosseguimento."
+    pedidos_subsidiarios: []
+    risco_se_mal_aplicada: "Defender edital prematuro perde e anula a penhora."
+    ativa: true
+
+  - id: T06.5
+    nome: "Prescrição da pretensão executiva — prazo do título, interrupção pelo despacho citatório e causas suspensivas"
+    categoria: merito
+    ordem: 17
+    pai: T06
+    resumo: >-
+      Prazo: 3 anos para títulos de crédito (CC 206 §3º, VIII; Súmula 504 para cheque/nota
+      promissória) × 5 anos para dívida líquida de instrumento particular (CC 206 §5º, I) — qual
+      se aplica à CCB e à cédula rural o advogado-dono deve fixar. Interrupção retroage ao
+      ajuizamento (CPC 240 §1º); suspensões por renegociação/moratória legal (Lei 13.340 etc.).
+    condicoes_aplicacao:
+      - { campo: embargos_materia, operador: contem, valor: prescricao }
+    provas_necessarias:
+      - { tipo_documento: cedula, descricao: "Vencimento (final/antecipado)", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: andamentos, descricao: "Data do ajuizamento e do despacho citatório", origem: publicacao, obrigatoria: true, peso: 1.0 }
+    provas_que_afastam:
+      - { tipo_documento: andamentos, descricao: "Ajuizamento após o prazo contado do vencimento, sem causa suspensiva", origem: publicacao, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CC, art. 206, § 3º, VIII e § 5º, I; art. 202, I e parágrafo único", tipo: dispositivo, para_que_serve: "prazo e interrupção", conferido: false, nota: "[A CONFERIR pelo advogado-dono — prazo aplicável à CCB e às cédulas rurais]" }
+        - { ref: "CPC, art. 240, §§ 1º a 3º", tipo: dispositivo, para_que_serve: "interrupção retroativa ao ajuizamento", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "Lei 10.931/2004, art. 44 (prescrição da CCB — aplica regras dos títulos de crédito?) [A CONFERIR]", tipo: dispositivo, para_que_serve: "prazo da CCB", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "DL 167/1967, art. 60 (aplicação da legislação cambial às cédulas rurais) [A CONFERIR]", tipo: dispositivo, para_que_serve: "prazo da cédula rural", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STJ, Súmulas 503 e 504 (prazo para cheque/nota promissória prescritos); jurisprudência sobre prazo da CCB (3 × 5 anos) [A CONFERIR]", tipo: sumula, para_que_serve: "definir prazo", conferido: false, nota: "[A CONFERIR pelo advogado-dono — risco: há decisões de 3 anos para CCB]" }
+      argumentos_chave:
+        - "Termo inicial: vencimento (ou vencimento antecipado notificado); interrupção retroage à distribuição se a citação não demorou por culpa do exequente."
+        - "Moratórias legais do crédito rural (Lei 13.340/2016 e sucessoras) suspendem/interrompem [A CONFERIR]."
+    pedidos:
+      - "Rejeição da prescrição."
+    pedidos_subsidiarios: []
+    risco_se_mal_aplicada: "Se o prazo de 3 anos for o aplicável e a onda 2015–16 não tiver interrupção válida, insistir gera sucumbência; ver T08."
+    pendencia: "prazo prescricional da CCB e da cédula rural (3 × 5 anos) aguarda levantamento STJ/TJPA/TJAM"
+    ativa: true
+
+  - id: T06.6
+    nome: "Renegociação/moratória de crédito rural — Lei 13.340/2016, Lei 14.995/2024, PRONAF, securitização"
+    categoria: merito
+    ordem: 18
+    pai: T06
+    resumo: >-
+      Executado alega direito à renegociação/liquidação com desconto (programas do FNO/crédito
+      rural). O direito existe se o contrato se enquadra (fonte, data, valor, região) e o pedido
+      foi feito no prazo; fora disso, não suspende a execução. Quando se enquadra, é sinal de
+      acordo (T09), não de litígio.
+    condicoes_aplicacao:
+      - { campo: embargos_materia, operador: contem, valor: renegociacao_rural }
+    provas_necessarias:
+      - { tipo_documento: cedula, descricao: "Fonte do recurso (FNO/PRONAF), data e valor originais", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: parecer_renegociacao_basa, descricao: "Análise do BASA sobre enquadramento do contrato nos programas vigentes", origem: subsidio, obrigatoria: true, peso: 1.0 }
+    provas_que_afastam:
+      - { tipo_documento: parecer_renegociacao_basa, descricao: "Contrato enquadrável e pedido tempestivo do devedor não processado pelo banco", origem: subsidio, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "Lei 13.340/2016 (liquidação e renegociação de dívidas rurais — FNO/FNE/FCO) e prorrogações", tipo: dispositivo, para_que_serve: "enquadramento e prazos", conferido: false, nota: "[A CONFERIR pelo advogado-dono — vigência e prorrogações]" }
+        - { ref: "Lei 14.995/2024 (renegociação de operações de crédito rural na Amazônia Legal) [A CONFERIR existência/alcance]", tipo: dispositivo, para_que_serve: "programa recente", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "Lei 11.775/2008; Lei 12.844/2013; Res. CMN / MCR (Manual de Crédito Rural) cap. sobre renegociação; Lei 14.690/2023 (Desenrola) [A CONFERIR quais vigentes]", tipo: norma_regulatoria, para_que_serve: "demais programas", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "Lei 13.606/2018 e Lei 13.729/2018 (securitização / renegociação) [A CONFERIR]", tipo: dispositivo, para_que_serve: "securitização de dívidas rurais", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STJ — renegociação por lei de crédito rural: direito subjetivo do mutuário quando preenchidos os requisitos; suspensão da execução (Tema repetitivo [A CONFERIR])", tipo: tema, para_que_serve: "risco principal desta subtese", conferido: false, nota: "[A CONFERIR pelo advogado-dono — número do tema e requisitos]" }
+      argumentos_chave:
+        - "Ônus do devedor: demonstrar enquadramento e pedido administrativo tempestivo."
+        - "Se enquadrado, a FBS recomenda ao BASA formalizar a renegociação (T09) — não litigar."
+    pedidos:
+      - "Improcedência por falta de enquadramento ou de requerimento tempestivo."
+    pedidos_subsidiarios:
+      - "Suspensão para formalização da renegociação administrativa, com homologação."
+    risco_se_mal_aplicada: "Negar renegociação a quem tem direito legal gera suspensão, sucumbência e passivo de dano moral."
+    pendencia: "lista dos programas vigentes e política do BASA a obter do cliente"
+    ativa: true
+
+  # ---------------------------------------------------------------- (3) EXCEÇÃO DE PRÉ-EXECUTIVIDADE
+  - id: T07
+    nome: "Resposta à exceção de pré-executividade — cabimento restrito a matéria de ordem pública sem dilação probatória"
+    categoria: merito
+    ordem: 19
+    pai: null
+    resumo: >-
+      A exceção só cabe para matéria cognoscível de ofício provada de plano (Súmula 393 STJ, por
+      analogia); excesso de execução, encargos e fatos que exigem prova são matéria de embargos
+      (com garantia). Responder no mérito só o que for de ordem pública; no mais, não conhecimento.
+    condicoes_aplicacao:
+      - { campo: excecao_pre_executividade_oposta, operador: "==", valor: true }
+    provas_necessarias:
+      - { tipo_documento: peticao_excecao, descricao: "Petição da exceção e documentos", origem: extracao, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: cedula, descricao: "Título e planilha para demonstrar higidez de plano", origem: subsidio, obrigatoria: true, peso: 0.9 }
+    provas_que_afastam:
+      - { tipo_documento: certidao_obito, descricao: "Matéria de ordem pública evidente (ex.: óbito anterior ao ajuizamento; pagamento integral comprovado)", origem: extracao, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CPC, arts. 803, parágrafo único, 525 § 11 e 518 (construção doutrinária/jurisprudencial da exceção)", tipo: dispositivo, para_que_serve: "base da exceção e seus limites", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STJ, Súmula 393 (exceção de pré-executividade: matérias de ofício sem dilação probatória — exec. fiscal, aplicada por analogia)", tipo: sumula, para_que_serve: "limitar o cabimento", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "STJ — excesso de execução não cabe em exceção de pré-executividade (salvo erro aritmético evidente) [A CONFERIR]", tipo: precedente, para_que_serve: "remeter aos embargos", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "STJ — honorários na exceção acolhida/rejeitada [A CONFERIR]", tipo: precedente, para_que_serve: "sucumbência", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "Matérias de T06 (excesso, encargos, renegociação) → não conhecimento por via inadequada."
+        - "Matérias de ordem pública (prescrição, título inexistente, ilegitimidade): responder com T06.2/T06.5."
+    pedidos:
+      - "Não conhecimento da exceção (via inadequada) e, no que for de ordem pública, rejeição; prosseguimento."
+    pedidos_subsidiarios: []
+    risco_se_mal_aplicada: "Responder tudo no mérito legitima a via e abre discussão sem garantia do juízo."
+    ativa: true
+
+  # ---------------------------------------------------------------- (4) SUSPENSÃO / PRESCRIÇÃO INTERCORRENTE
+  - id: T08
+    nome: "Suspensão do art. 921, III e prescrição intercorrente — como evitar, quando aceitar"
+    categoria: processual
+    ordem: 20
+    pai: null
+    resumo: >-
+      Sem bens, a execução é suspensa por 1 ano (921 III, §1º) e depois começa a correr a
+      prescrição intercorrente (§4º), que só se interrompe por efetiva localização de bens
+      (§4º-A). Para carteira viva/observação: diligência útil periódica antes de vencer o prazo
+      (calendário por processo). Para carteira morta: aceitar suspensão/arquivamento e não gastar;
+      recomendar baixa (T01.1). Este módulo alimenta o KPI "processos sem andamento > 90 dias".
+    condicoes_aplicacao:
+      - { campo: fase_execucao, operador: in, valor: [suspensa_921, arquivada_921, penhora_frustrada] }
+      - { campo: dias_sem_andamento, operador: ">", valor: 90, nota: "SLA ILUSTRATIVO alinhado ao KPI do BASA — calibrar" }
+    provas_necessarias:
+      - { tipo_documento: andamentos, descricao: "Decisão de suspensão/arquivamento e data; última diligência útil", origem: publicacao, obrigatoria: true, peso: 1.0 }
+    provas_que_afastam:
+      - { tipo_documento: andamentos, descricao: "Prazo prescricional intercorrente já consumado sem causa interruptiva (não há o que salvar)", origem: publicacao, obrigatoria: false, peso: 1.0 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CPC, art. 921, III, §§ 1º a 7º (redação da Lei 14.195/2021: §4º-A, §5º, §6º, §7º)", tipo: dispositivo, para_que_serve: "regime da suspensão e da prescrição intercorrente", conferido: false, nota: "[A CONFERIR pelo advogado-dono — redação vigente e termo inicial]" }
+        - { ref: "CPC, art. 1.056 (regra de transição: termo inicial da intercorrente para execuções anteriores a 2016)", tipo: dispositivo, para_que_serve: "ondas antigas (até 2016)", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STJ, IAC 1 (REsp 1.604.412) — prescrição intercorrente na execução civil: termo inicial e necessidade de intimação", tipo: precedente, para_que_serve: "termo inicial e contraditório prévio", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "STF, Súmula 150 (prescreve a execução no mesmo prazo da ação)", tipo: sumula, para_que_serve: "prazo da intercorrente = prazo do título", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "STJ, Tema 1.064? / tema repetitivo sobre diligências infrutíferas não interromperem a intercorrente [A CONFERIR]", tipo: tema, para_que_serve: "o que conta como diligência útil", conferido: false, nota: "[A CONFERIR pelo advogado-dono — número e tese]" }
+      argumentos_chave:
+        - "Pedidos genéricos de 'vista' ou 'prazo' não interrompem; só efetiva localização de bens/penhora (921 §4º-A) — logo o calendário de diligências deve ter conteúdo (Sisbajud/Renajud/Infojud com fato novo)."
+        - "Processo em observação: 1 diligência útil a cada 10–11 meses [ILUSTRATIVO] enquanto houver prazo; se morto, não gastar."
+    pedidos:
+      - "Carteira viva: diligência útil (T02.2/T02.3) antes do termo; carteira morta: ciência da suspensão/arquivamento sem recurso e relatório de baixa."
+    pedidos_subsidiarios:
+      - "Antes de reconhecimento de intercorrente: manifestação prévia (921 §5º) apontando causa interruptiva ou suspensiva, se houver."
+    risco_se_mal_aplicada: "Gastar diligência em processo morto ou, pior, deixar prescrever processo com garantia."
+    ativa: true
+
+  # ---------------------------------------------------------------- (2/3) ACORDO
+  - id: T09
+    nome: "Acordo / renegociação — sinal por faixa de dívida, garantia e programa"
+    categoria: sinal
+    ordem: 21
+    pai: null
+    resumo: >-
+      Não é peça: é a recomendação da FBS ao BASA de aceitar/propor acordo (valor, desconto,
+      parcelamento), respeitando as alçadas internas do banco e os programas legais vigentes.
+      Dívida sem garantia e sem bens com proposta ≥ X % é melhor que execução eterna; dívida com
+      garantia real excutível não se acorda com desconto alto.
+    condicoes_aplicacao:
+      - { campo: acordo_proposta_valor, operador: existe }
+    provas_necessarias:
+      - { tipo_documento: extrato_saldo_devedor, descricao: "Saldo atualizado", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: relatorio_triagem, descricao: "Score e fatores", origem: calculado, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: politica_alcadas_basa, descricao: "Política de descontos e alçadas do BASA por faixa/programa", origem: subsidio, obrigatoria: true, peso: 1.0 }
+    provas_que_afastam: []
+    fundamentacao:
+      dispositivos:
+        - { ref: "CPC, arts. 3º § 3º, 139, V, 190, 487, III, b, 515, II e 922 (suspensão por convenção)", tipo: dispositivo, para_que_serve: "homologação e suspensão por acordo", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "Política de renegociação do BASA; leis de renegociação rural (ver T06.6)", tipo: norma_regulatoria, para_que_serve: "limites de desconto por programa", conferido: false, nota: "[A CONFERIR pelo advogado-dono — obter do cliente]" }
+      precedentes: []
+      argumentos_chave:
+        - "Homologar e suspender (922) em vez de extinguir: se descumprido, retoma pelo saldo com a cláusula penal."
+        - "Pedir inclusão de honorários e custas no acordo (T11)."
+    pedidos:
+      - "Recomendação FBS → aprovação BASA → petição de homologação com suspensão até o cumprimento."
+    pedidos_subsidiarios: []
+    risco_se_mal_aplicada: "Desconto fora da alçada/programa expõe o gestor do banco; acordo sem cláusula de retomada perde a execução."
+    pendencia: "política de alçadas e descontos do BASA por faixa e programa a obter"
+    ativa: true
+
+  # ---------------------------------------------------------------- (2) INTERIOR / PRECATÓRIAS
+  - id: T10
+    nome: "Carta precatória, interior e correspondentes (TJPA interior + TJAM Itacoatiara/Manaus)"
+    categoria: processual
+    ordem: 22
+    pai: null
+    resumo: >-
+      86 % do TJPA é interior e 31 % do TJAM é Itacoatiara: citação, penhora e avaliação dependem
+      de precatórias (3,8 % das classes; 6,1 % no TJAM) e de correspondentes. O módulo escolhe
+      entre precatória, ato por meio eletrônico, oficial de justiça ad hoc ou correspondente,
+      pelo custo e prazo da comarca.
+    condicoes_aplicacao:
+      - { campo: carta_precatoria_necessaria, operador: "==", valor: true }
+    provas_necessarias:
+      - { tipo_documento: despacho, descricao: "Despacho determinando o ato a ser cumprido fora da comarca", origem: publicacao, obrigatoria: true, peso: 1.0 }
+    provas_que_afastam: []
+    fundamentacao:
+      dispositivos:
+        - { ref: "CPC, arts. 237, III, 260-268 (cartas), 255 (citação em comarca contígua/mesma região metropolitana), 845 § 2º e 848 (penhora por termo/carta)", tipo: dispositivo, para_que_serve: "quando a precatória é dispensável", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "Res. CNJ 354/2020 (atos processuais eletrônicos) e normas TJPA/TJAM sobre precatória eletrônica e custas [A CONFERIR]", tipo: norma_regulatoria, para_que_serve: "custos e forma", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes: []
+      argumentos_chave:
+        - "Penhora de imóvel pode ser por termo nos autos com averbação, sem precatória (845 §1º) [A CONFERIR]."
+        - "Custo da precatória + correspondente entra em custo_diligencias_estimado (T01)."
+    pedidos:
+      - "Expedição de carta precatória (ou ato por meio eletrônico/termo nos autos quando cabível) com recolhimento das custas devidas."
+    pedidos_subsidiarios: []
+    risco_se_mal_aplicada: "Precatória para comarca onde o correspondente não existe fica anos parada; o processo entra no KPI de 'sem andamento'."
+    ativa: true
+
+  # ---------------------------------------------------------------- SUBSIDIÁRIA
+  - id: T11
+    nome: "Honorários de sucumbência, custas e despesas — recuperar e quem adianta"
+    categoria: subsidiaria
+    ordem: 23
+    pai: null
+    resumo: >-
+      Em toda peça com valor: incluir honorários de 10 % fixados no despacho inicial (827), os
+      dos embargos e do cumprimento (85 §§ 1º/13), custas e despesas adiantadas (82 §2º). Definir
+      com o BASA quem adianta custas de diligência/edital/leiloeiro/precatória (contrato de
+      honorários) e registrar no dossiê.
+    condicoes_aplicacao:
+      - { campo: valor_divida_atualizado, operador: ">", valor: 0 }
+    provas_necessarias:
+      - { tipo_documento: despacho, descricao: "Despacho inicial com fixação de honorários", origem: publicacao, obrigatoria: false, peso: 0.8 }
+      - { tipo_documento: comprovante_custas, descricao: "Guias recolhidas", origem: subsidio, obrigatoria: false, peso: 0.6 }
+    provas_que_afastam: []
+    fundamentacao:
+      dispositivos:
+        - { ref: "CPC, arts. 82 § 2º, 85 §§ 1º, 2º e 13, 827 e § 1º (redução pela metade se pago em 3 dias)", tipo: dispositivo, para_que_serve: "sucumbência e custas na execução", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "Leis estaduais de custas TJPA e TJAM; regimentos de custas [A CONFERIR]", tipo: norma_regulatoria, para_que_serve: "valores de diligência/edital/precatória", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes: []
+      argumentos_chave:
+        - "Honorários são crédito da FBS (ou do BASA conforme contrato) — sempre atualizados na planilha."
+    pedidos:
+      - "Inclusão de honorários, custas e despesas no valor da execução."
+    pedidos_subsidiarios: []
+    risco_se_mal_aplicada: "Planilha sem honorários perde crédito; cobrar honorários não fixados é excesso."
+    ativa: true
+
+  # ---------------------------------------------------------------- (2) MONITÓRIA
+  - id: T12
+    nome: "Ação monitória e conversão em execução (título judicial)"
+    categoria: processual
+    ordem: 24
+    pai: null
+    resumo: >-
+      Para contratos sem força executiva (abertura de crédito em conta, extratos, propostas
+      assinadas só pelo devedor): monitória. Sem pagamento nem embargos em 15 dias, constitui-se
+      o título executivo judicial de pleno direito (701 §2º) e segue cumprimento (T05). Com
+      embargos monitórios, resposta em 15 dias com T06.x adaptadas.
+    condicoes_aplicacao:
+      - { campo: classe_cnj, operador: "==", valor: monitoria }
+    provas_necessarias:
+      - { tipo_documento: contrato, descricao: "Prova escrita sem eficácia de título (contrato + extratos)", origem: subsidio, obrigatoria: true, peso: 1.0 }
+      - { tipo_documento: andamentos, descricao: "Citação e decurso do prazo monitório", origem: publicacao, obrigatoria: true, peso: 1.0 }
+    provas_que_afastam:
+      - { tipo_documento: cedula, descricao: "Há título executivo extrajudicial (então a via é a execução, não a monitória)", origem: subsidio, obrigatoria: false, peso: 0.8 }
+    fundamentacao:
+      dispositivos:
+        - { ref: "CPC, arts. 700 a 702 (701 § 2º conversão; 702 embargos; 702 § 8º)", tipo: dispositivo, para_que_serve: "rito monitório", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      precedentes:
+        - { ref: "STJ, Súmula 247 (abertura de crédito + extrato = prova hábil à monitória) e Súmula 384 (instrumento de confissão de dívida, ainda que originário de abertura de crédito) [A CONFERIR]", tipo: sumula, para_que_serve: "cabimento", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "STJ, Súmula 339 (monitória contra Fazenda) — irrelevante; Súmula 503/504 (monitória com cheque/nota prescritos: 5 anos) [A CONFERIR]", tipo: sumula, para_que_serve: "monitória de títulos prescritos", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+      argumentos_chave:
+        - "Decorrido o prazo sem embargos: pedir certidão e conversão automática em cumprimento (T05) com multa e honorários."
+    pedidos:
+      - "Constituição do título executivo judicial e conversão em cumprimento de sentença; ou impugnação aos embargos monitórios."
+    pedidos_subsidiarios: []
+    risco_se_mal_aplicada: "Ajuizar monitória quando há título executivo (ou vice-versa) custa anos; a tese T06.2 e esta são espelho."
+    ativa: true
+
+# -----------------------------------------------------------------------------
+# EXCEÇÕES — a esteira para e devolve ao humano
+# -----------------------------------------------------------------------------
+excecoes:
+  - id: X01
+    descricao: "Executado falecido sem inventário localizado"
+    condicoes:
+      - { campo: executado_obito, operador: "==", valor: true }
+      - { campo: executado_inventario_aberto, operador: "==", valor: false }
+    acao: escalar_advogado_carteira
+    acoes_paralelas: [alertar_revisor]
+    nota: "Suspensão obrigatória (313 I); habilitar herdeiros exige qualificação segura. Sem bens → provável carteira morta (T01.1)."
+  - id: X02
+    descricao: "Executado em recuperação judicial ou falência"
+    condicoes:
+      - { campo: executado_recuperacao_judicial, operador: "==", valor: true }
+    acao: escalar_socio
+    nota: "Execução suspensa/atraída (Lei 11.101, arts. 6º e 49; credor fiduciário e crédito rural com regras próprias [A CONFERIR]); habilitação no juízo universal é peça de sócio."
+  - id: X03
+    descricao: "Carteira morta — valor líquido abaixo do custo de diligências; recomendação de baixa/cessão"
+    condicoes:
+      - { campo: recomendacao_triagem, operador: in, valor: [morta_baixa, morta_cessao] }
+    acao: escalar_socio
+    acoes_paralelas: [nao_gerar_minuta]
+    nota: "Nenhuma peça; relatório de baixa/cessão (T01.1) para sócio e alçada do BASA."
+  - id: X04
+    descricao: "Indício de fraude na cédula (assinatura, emitente nega, inquérito)"
+    condicoes:
+      - { campo: indicio_fraude_cedula, operador: "==", valor: true }
+    acao: nao_gerar_minuta
+    acoes_paralelas: [escalar_socio]
+    nota: "Não impulsionar título suspeito; comunicar o BASA (compliance). Flag com evidência, nunca rótulo."
+  - id: X05
+    descricao: "Garantidor terceiro vulnerável (idoso, analfabeto, cônjuge sem outorga, pequeno produtor familiar)"
+    condicoes:
+      - { campo: garantidor_terceiro_vulneravel, operador: "==", valor: true }
+    acao: alertar_revisor
+    acoes_paralelas: [escalar_advogado_carteira]
+    nota: "Diligência contra o garantidor exige análise humana (risco de nulidade do aval/fiança e de dano reputacional ao banco)."
+  - id: X06
+    descricao: "Decisão desfavorável ao exequente transitada em julgado"
+    condicoes:
+      - { campo: decisao_desfavoravel_transitada, operador: "==", valor: true }
+    acao: nao_gerar_minuta
+    acoes_paralelas: [escalar_advogado_carteira]
+    nota: "Não há o que impulsionar; avaliar ação autônoma/novo título ou baixa."
+  - id: X07
+    descricao: "Cliente orientou suspender (negociação, política, auditoria)"
+    condicoes:
+      - { campo: cliente_orientou_suspender, operador: "==", valor: true }
+    acao: nao_gerar_minuta
+    nota: "Registrar a orientação e a data; o processo sai do SLA de impulso enquanto durar."
+  - id: X08
+    descricao: "Renegociação administrativa em curso ou programa legal aplicável"
+    condicoes:
+      - { campo: renegociacao_em_curso, operador: "==", valor: true }
+    acao: sinalizar_acordo
+    nota: "Não impulsionar penhora durante negociação; T09."
+  - id: X09
+    descricao: "Dados inconsistentes: CNJ duplicado, sem CPF/CNPJ válido, valor em moeda antiga ou saldo sem memória de cálculo"
+    condicoes:
+      - { campo: cnj_duplicado, operador: "==", valor: true }
+    acao: pedir_subsidio
+    acoes_paralelas: [alertar_revisor]
+    nota: "Consolidar pastas (771 CNJs em 1.638 pastas), obter CPF/CNPJ e recalcular saldo antes de qualquer peça."
+  - id: X10
+    descricao: "Exceção de pré-executividade ou embargos com prazo fatal em menos de 5 dias"
+    condicoes:
+      - { campo: prazo_fatal, operador: existe }
+      - { campo: embargos_opostos, operador: "==", valor: true }
+    acao: alertar_revisor
+    acoes_paralelas: [escalar_advogado_carteira]
+    nota: "Prioridade máxima na fila de revisão (prazo de 15 dias — CPC 920 [A CONFERIR])."
+
+# -----------------------------------------------------------------------------
+# SINAIS DE ACORDO / RENEGOCIAÇÃO
+# -----------------------------------------------------------------------------
+sinais_acordo:
+  politica: >-
+    Polo ativo: acordo é instrumento de recuperação, não de mitigação de condenação. Regra geral
+    (ILUSTRATIVA — a política real é do BASA, por faixa de dívida e programa): sem garantia real e
+    sem bens localizados, aceitar propostas que recuperem mais que o valor presente esperado da
+    execução (score × saldo − custos); com garantia real excutível ou Sisbajud positivo, só
+    descontos pequenos de encargos e parcelamento curto. Programas legais (Lei 13.340/2016 e
+    sucessoras, PRONAF, securitização, Desenrola) prevalecem sobre a política geral quando o
+    contrato se enquadra. A FBS recomenda (valor, desconto, parcelas, racional); o BASA aprova
+    dentro da alçada do gestor/comitê; a plataforma registra.
+  quando_acordar:
+    - condicoes:
+        - { campo: recomendacao_triagem, operador: in, valor: [observacao, morta_baixa, morta_cessao] }
+        - { campo: acordo_proposta_valor, operador: existe }
+      racional: "Qualquer recuperação em carteira de baixo score supera a alternativa (prescrição intercorrente/baixa)."
+    - condicoes:
+        - { campo: programa_renegociacao_elegivel, operador: "!=", valor: nenhum }
+      racional: "Programa legal aplicável: o devedor tem direito; litigar só adia e gera sucumbência (T06.6)."
+    - condicoes:
+        - { campo: bens_localizados, operador: "==", valor: false }
+        - { campo: avalistas_n, operador: "==", valor: 0 }
+        - { campo: garantia_tipo, operador: contem, valor: nenhuma }
+      racional: "Sem garantia, sem aval e sem bens: a proposta é o único fluxo de caixa visível."
+  quando_nao_acordar:
+    - condicoes:
+        - { campo: garantia_tipo, operador: contem, valor: hipoteca }
+        - { campo: garantia_registrada, operador: "==", valor: true }
+        - { campo: acordo_desconto_pct, operador: ">", valor: 30, nota: "ILUSTRATIVO — limite de desconto com garantia real; calibrar com a política do BASA" }
+      racional: "Garantia real registrada excutível: desconto alto destrói valor; preferir expropriação ou acordo sem desconto de principal."
+    - condicoes:
+        - { campo: indicio_fraude_cedula, operador: "==", valor: true }
+      racional: "Título sob suspeita não se renegocia antes da apuração (X04)."
+  faixas_valor:
+    - grupo_comarcas: "Belém e Região Metropolitana (TJPA)"
+      comarcas: ["Belém", "Ananindeua", "Marituba", "Benevides", "Santa Izabel do Pará", "Castanhal"]
+      valor_min: 0
+      valor_max: 60000.0
+      moeda: BRL
+      base: "ILUSTRATIVO — faixa de dívida atualizada (até ≈ mediana da carteira, R$ 57,5 mil) em que a plataforma sinaliza acordo por padrão quando não há garantia real; calibrar com valor recuperado × custo por diligência da comarca (M01/M05)"
+      calibrar: true
+      provisorio: true
+      recalibrar_em_dias: 90
+    - grupo_comarcas: "Interior do Pará — polos da carteira (TJPA)"
+      comarcas: ["Tucuruí", "Marabá", "Rurópolis", "Novo Progresso", "Parauapebas", "Altamira", "Alenquer", "Novo Repartimento", "Itaituba", "Paragominas", "São Félix do Xingu", "Santarém", "Redenção", "Conceição do Araguaia", "Bragança", "Uruará"]
+      valor_min: 0
+      valor_max: 100000.0
+      moeda: BRL
+      base: "ILUSTRATIVO — no interior o custo de diligência (precatória, correspondente, oficial) é maior e a sinalização de acordo sobe de faixa; calibrar por comarca"
+      calibrar: true
+      provisorio: true
+      recalibrar_em_dias: 90
+    - grupo_comarcas: "TJAM — Itacoatiara e Manaus"
+      comarcas: ["Itacoatiara", "Manaus"]
+      valor_min: 0
+      valor_max: 60000.0
+      moeda: BRL
+      base: "ILUSTRATIVO — TJAM é quase monotemático (CCB 59,5 %, dívidas pequenas; mediana R$ 55,6 mil); Itacoatiara concentra 31 % do TJAM"
+      calibrar: true
+      provisorio: true
+      recalibrar_em_dias: 90
+    - grupo_comarcas: "TJAM — interior (Boca do Acre, Humaitá, Manacapuru, Pauini, Urucará, Coari e demais)"
+      comarcas: ["*"]
+      valor_min: 0
+      valor_max: 100000.0
+      moeda: BRL
+      base: "ILUSTRATIVO — comarcas de difícil acesso; custo de diligência alto"
+      calibrar: true
+      provisorio: true
+      recalibrar_em_dias: 90
+  nota_calibracao: >-
+    Aqui `faixas_valor` significa faixa de DÍVIDA ATUALIZADA (valor_divida_atualizado) por grupo
+    de comarcas dentro da qual a plataforma sinaliza acordo por padrão quando não há garantia real
+    nem bens; acima da faixa a sinalização depende do score e da política do BASA. Faixas são
+    provisórias; recalibrar em 90 dias com M01 (valor recuperado) e M05 (custo por diligência).
+  alcadas: []
+  fluxo_aprovacao:
+    recomendacao: "A FBS recomenda (valor, desconto %, parcelas, racional com score e custo de diligência; OAB do advogado da carteira)."
+    aprovacao: "O BASA aprova dentro da alçada interna (gestor de recuperação / comitê, por faixa e programa — [A CONFERIR] política do banco); a FBS não aprova desconto."
+    registro: "A plataforma registra recomendação e decisão (quem, quando, valor, desconto, programa) vinculadas ao caso; a petição de homologação só é gerada após o registro da aprovação."
+  decisao_final: "A decisão de acordar é do BASA, por recomendação da FBS; a plataforma só sinaliza e registra."
+
+# -----------------------------------------------------------------------------
+# ANTIFRAUDE / QUALIDADE DE DADOS ESPECÍFICOS (M4)
+# -----------------------------------------------------------------------------
+antifraude:
+  regra_inviolavel: "Nenhuma checagem produz rótulo de 'fraudador' (nem do executado, nem do garantidor); só flags com evidência. Apenas decisão humana registrada com OAB (human_decide) confirma um flag."
+  checagens:
+    - codigo: cnj_invalido_ou_duplicado
+      descricao: "Número fora do padrão CNJ, ausente, ou repetido em mais de uma pasta do Legal One"
+      parametros: { regex_cnj: "^\\d{7}-\\d{2}\\.\\d{4}\\.\\d\\.\\d{2}\\.\\d{4}$", nota: "base: 3.765 fora do padrão/vazios na base toda; 235 sem número e 928 fora do padrão na BASA ativa; 771 CNJs repetidos em 1.638 pastas" }
+      severidade: high
+      evidencia_esperada: "número bruto, forma detectada (notação científica, 20 dígitos sem máscara, máscara errada, nº antigo) e pastas com o mesmo CNJ"
+      implementada_em_m4: false
+      calibrar: false
+    - codigo: cliente_duplicado_cadastro
+      descricao: "BASA cadastrado em 4 contatos distintos (3863, 14574, 15082, 36641) — filtros por contato perdem processos"
+      parametros: { contatos_basa: [3863, 14574, 15082, 36641] }
+      severidade: medium
+      evidencia_esperada: "contato_id usado e lista dos demais"
+      implementada_em_m4: false
+      calibrar: false
+    - codigo: valor_moeda_antiga_outlier
+      descricao: "Valor incompatível com a época/classe — execuções de 1992–94 em Belém com > R$ 100 mi (moeda antiga/centavos); qualquer valor > R$ 5 mi exige confirmação"
+      parametros: { limite_confirmacao_brl: 5000000, anos_suspeitos: [1990, 1991, 1992, 1993, 1994, 1995], nota: "128 processos > R$ 5 mi; 12 > R$ 100 mi somam ≈ R$ 13 bi" }
+      severidade: high
+      evidencia_esperada: "valor, ano do CNJ, título e saldo recalculado pelo BASA"
+      implementada_em_m4: false
+      calibrar: true
+    - codigo: distribution_date_placeholder
+      descricao: "distributionDate = 01/01/1900 (placeholder de importação) — usar o ano do CNJ"
+      parametros: { placeholder: "1900-01-01", nota: "966 processos" }
+      severidade: low
+      evidencia_esperada: "data cadastrada × ano do CNJ"
+      implementada_em_m4: false
+      calibrar: false
+    - codigo: processo_sem_valor
+      descricao: "Processo sem valor cadastrado (0/nulo) — concentrado em antigos e cartas precatórias"
+      parametros: { nota: "1.458 processos (8,8 %) na BASA ativa" }
+      severidade: medium
+      evidencia_esperada: "valor_causa nulo e saldo do portal BASA ausente"
+      implementada_em_m4: false
+      calibrar: false
+    - codigo: advogado_outra_parte_artefato
+      descricao: "LawyerOfOtherParty = OLIVEIRA, ROCHA & REZENDE ADVOGADOS (ex-escritório do banco, 13.175 processos) — artefato de cadastro, não adversário; não usar o campo para mapear patronos do executado"
+      parametros: { nomes_artefato: ["OLIVEIRA, ROCHA & REZENDE"] }
+      severidade: info
+      evidencia_esperada: "nome no campo e marcação de artefato"
+      implementada_em_m4: false
+      calibrar: false
+    - codigo: executado_homonimo
+      descricao: "Executado sem CPF/CNPJ confirmado e nome frequente — risco de Sisbajud/Renajud contra homônimo"
+      parametros: { exige_cpf_para_sisbajud: true, nota: "só 1.357 contatos têm CPF/CNPJ no Legal One" }
+      severidade: high
+      evidencia_esperada: "nome, ausência de documento e fonte alternativa (título/portal BASA)"
+      implementada_em_m4: false
+      calibrar: false
+    - codigo: executado_obito
+      descricao: "Indício de óbito do executado (certidão nos autos, certidão do oficial, base pública)"
+      parametros: { fontes: ["autos", "certidao_oficial", "fonte_publica_a_definir", "portal_basa"] }
+      severidade: high
+      evidencia_esperada: "fonte e data do óbito × data dos atos executivos"
+      implementada_em_m4: false
+      calibrar: false
+    - codigo: executado_rj_falencia
+      descricao: "Executado com recuperação judicial/falência localizada no DataJud"
+      parametros: { classes_cnj: ["Recuperação Judicial", "Falência de Empresários, Sociedades Empresáriais, Microempresas e Empresas de Pequeno Porte"], nota: "[A CONFERIR nomes exatos das classes]" }
+      severidade: high
+      evidencia_esperada: "CNJ do processo de RJ/falência e data do deferimento"
+      implementada_em_m4: false
+      calibrar: false
+    - codigo: penhora_conta_terceiro_ou_salario
+      descricao: "Bloqueio Sisbajud em conta de terceiro/conjunta ou sobre verba com indício de impenhorabilidade (salário, aposentadoria, poupança ≤ 40 SM, benefício) — CPC 833 [A CONFERIR]"
+      parametros: { poupanca_limite_sm: 40 }
+      severidade: high
+      evidencia_esperada: "detalhamento Sisbajud (titularidade, tipo de conta) e extrato juntado pelo executado"
+      implementada_em_m4: false
+      calibrar: true
+    - codigo: titulo_indicio_fraude
+      descricao: "Assinatura da cédula visivelmente divergente do documento; emitente nega; inquérito/BO; mesma cédula em duas execuções"
+      parametros: {}
+      severidade: high
+      evidencia_esperada: "páginas comparadas e CNJs relacionados — só sinal visual/documental, sem laudo"
+      implementada_em_m4: false
+      calibrar: false
+    - codigo: garantidor_vulneravel
+      descricao: "Garantidor terceiro com indício de vulnerabilidade (idade ≥ 70, assinatura a rogo/impressão digital, ausência de outorga conjugal, DAP/PRONAF familiar)"
+      parametros: { idade_min: 70, nota: "[A CONFERIR] critério" }
+      severidade: medium
+      evidencia_esperada: "documento de identificação, forma de assinatura e certidão de casamento se houver"
+      implementada_em_m4: false
+      calibrar: true
+    - codigo: diligencia_repetida_sem_fato_novo
+      descricao: "Mesmo pedido (Sisbajud/Renajud/Infojud) repetido em menos de N dias sem fato novo — não conta como diligência útil e irrita o juízo"
+      parametros: { janela_dias: 180, nota: "ILUSTRATIVO" }
+      severidade: medium
+      evidencia_esperada: "andamentos com os pedidos anteriores e datas"
+      implementada_em_m4: false
+      calibrar: true
+    - codigo: prescricao_intercorrente_proxima
+      descricao: "Suspensão 921 III há mais de 1 ano e prazo do título a vencer em menos de 180 dias sem diligência útil"
+      parametros: { alerta_dias_antes: 180, nota: "[A CONFERIR] prazo do título (3 × 5 anos)" }
+      severidade: high
+      evidencia_esperada: "data da suspensão, prazo aplicável e última diligência útil"
+      implementada_em_m4: false
+      calibrar: true
+
+# -----------------------------------------------------------------------------
+# MODELO DE PEÇA (M6) — BIBLIOTECA DE PEÇAS PADRÃO DO POLO ATIVO
+# -----------------------------------------------------------------------------
+# Uma única estrutura de seções serve a toda a biblioteca; `tipo_peca_prevista` escolhe
+# o corpo. Biblioteca (drafts.draft_type): peticao_impulso (T02), requerimento_sisbajud
+# (T02.2), requerimento_renajud_infojud (T02.3), citacao_edital (T02.1),
+# manifestacao_penhora_negativa (T02.3/T08), impugnacao_embargos (T06.x),
+# resposta_excecao_pre_executividade (T07), cumprimento_sentenca (T05/T12),
+# pedido_suspensao_921 (T08), habilitacao_herdeiros (T04.1), idpj (T04),
+# homologacao_acordo (T09). Valores e datas SEMPRE com página (planilha/andamento).
+modelo_peca:
+  tipo: peticao_execucao_polo_ativo
+  formato_saida: markdown
+  regra_citacao: "Toda afirmação de fato, valor ou data cita document_page_id (draft_citations): saldo e data-base → página da planilha do BASA; fase/andamento → página do andamento/decisão; título → página da cédula. Sem página, sem afirmação."
+  secoes:
+    - { ordem: 1, id: enderecamento, titulo: "Endereçamento e identificação", obrigatoria: true, teses_vinculadas: [], instrucoes: "Juízo, vara, comarca, número CNJ, exequente (Banco da Amazônia S.A.), executado(s) com CPF/CNPJ, classe. Em precatória: juízo deprecante e deprecado.", exige_citacao_de_pagina: false }
+    - { ordem: 2, id: situacao_processual, titulo: "Situação processual", obrigatoria: true, teses_vinculadas: [T01, T08], instrucoes: "Fase atual, data e conteúdo do último andamento útil, diligências já realizadas (com resultado) e despacho pendente. Cada evento com página. Máximo 10 linhas em peças de impulso.", exige_citacao_de_pagina: true }
+    - { ordem: 3, id: credito, titulo: "Do crédito exequendo", obrigatoria: true, teses_vinculadas: [T11], instrucoes: "Título (tipo, número, data, vencimento), saldo devedor atualizado com data-base e página da planilha; honorários e custas incluídos. Em impugnação a embargos, incluir os critérios do cálculo.", exige_citacao_de_pagina: true }
+    - { ordem: 4, id: fundamento, titulo: "Fundamento do requerimento / da impugnação", obrigatoria: true, teses_vinculadas: [T02, T02.1, T02.2, T02.3, T02.4, T03, T04, T04.1, T05, T06, T06.1, T06.2, T06.3, T06.4, T06.5, T06.6, T07, T10, T12], instrucoes: "Peças de impulso: parágrafo único com a base legal da diligência (só referências conferidas). Impugnação a embargos/exceção: uma subseção por matéria alegada, na ordem do playbook; não enfrentar matéria não alegada.", exige_citacao_de_pagina: true }
+    - { ordem: 5, id: requerimentos, titulo: "Dos requerimentos", obrigatoria: true, teses_vinculadas: [], instrucoes: "Pedidos específicos, numerados, com valor e CPF/CNPJ quando for ordem a sistema (Sisbajud/Renajud/Infojud); prazo; intimações necessárias (cônjuge, credores, art. 889).", exige_citacao_de_pagina: false }
+    - { ordem: 6, id: acordo_registro, titulo: "Registro de acordo (quando houver)", obrigatoria: false, teses_vinculadas: [T09], instrucoes: "Só após registro da aprovação do BASA na plataforma: termos, parcelas, cláusula de retomada, pedido de homologação e suspensão (CPC 922).", exige_citacao_de_pagina: true }
+    - { ordem: 7, id: anexos, titulo: "Rol de documentos", obrigatoria: true, teses_vinculadas: [], instrucoes: "Planilha atualizada do BASA (sempre), título (quando ainda não nos autos), certidões, guias de custas; cada um com o tipo do playbook.", exige_citacao_de_pagina: false }
+  estilo:
+    - "Peças de impulso: no máximo 1 página; sem retórica; o juiz do interior lê centenas por semana."
+    - "Nunca repetir pedido já deferido/indeferido sem fato novo; dizer expressamente qual é o fato novo."
+    - "Valores sempre com data-base e página da planilha; CPF/CNPJ sempre que houver ordem a sistema."
+    - "Executado e garantidor são tratados com respeito; produtor rural/pequeno devedor sem adjetivos; impenhorabilidades reconhecidas de plano quando evidentes."
+    - "Referências legais só as conferidas no playbook; nunca inventar número de tema, súmula ou acórdão."
+
+# -----------------------------------------------------------------------------
+# CRITÉRIOS DE REVISÃO (M7)
+# -----------------------------------------------------------------------------
+# tempo_minimo_segundos é o piso da peça padrão (impulso, 5 min). Pisos por draft_type
+# (REVIEW_MIN_SECONDS_<TIPO>): peticao_impulso / requerimento_sisbajud /
+# requerimento_renajud_infojud / manifestacao_penhora_negativa / pedido_suspensao_921 = 300;
+# citacao_edital / cumprimento_sentenca / habilitacao_herdeiros = 600;
+# impugnacao_embargos / resposta_excecao_pre_executividade / idpj / homologacao_acordo = 1200.
+criterios_revisao:
+  tempo_minimo_segundos: 300
+  papel_minimo_revisor: lawyer
+  revisor_final: "advogado com OAB responsável pela carteira BASA (12 pessoas hoje com 1.500–1.950 processos cada — a revisão precisa caber nessa carga)"
+  exige_segunda_revisao_se:
+    - { campo: tipo_peca_prevista, operador: in, valor: [idpj, habilitacao_herdeiros], nota: "desconsideração e sucessão: sócio" }
+    - { campo: acordo_proposta_valor, operador: ">", valor: 100000.0, nota: "ILUSTRATIVO — acordo acima de R$ 100 mil (≈ p75 da carteira) vai a sócio antes de ir ao BASA; calibrar com alçadas do banco" }
+    - { campo: acordo_desconto_pct, operador: ">", valor: 30, nota: "ILUSTRATIVO" }
+    - { campo: recomendacao_triagem, operador: in, valor: [morta_baixa, morta_cessao], nota: "baixa/arquivamento/cessão de carteira: sócio" }
+    - { campo: valor_divida_atualizado, operador: ">", valor: 276000.0, nota: "≈ p90 da carteira — ILUSTRATIVO" }
+    - { campo: garantidor_terceiro_vulneravel, operador: "==", valor: true, nota: "X05" }
+    - { campo: indicio_fraude_cedula, operador: "==", valor: true, nota: "X04" }
+  exige_segunda_revisao_tambem:
+    - "Medidas atípicas do art. 139, IV (T02.3)."
+    - "Qualquer relatório de baixa/cessão em lote (T01.1) antes de ir ao BASA."
+    - "Primeira impugnação a embargos de cada subtese T06.x gerada pela esteira (amostra de calibração)."
+  autorizacao_dupla: null
+  checklist:
+    - { id: R01, item: "Saldo devedor, data-base e honorários batem com a planilha do BASA citada (página)", bloqueante: true }
+    - { id: R02, item: "Fase processual e último andamento útil conferidos nos autos (página); o pedido não repete diligência recente sem fato novo", bloqueante: true }
+    - { id: R03, item: "CPF/CNPJ do(s) executado(s) presente e válido em toda ordem a sistema (Sisbajud/Renajud/Infojud); sem homônimo", bloqueante: true }
+    - { id: R04, item: "Todas as referências legais citadas estão conferidas no playbook (nenhum placeholder sobrou)", bloqueante: true }
+    - { id: R05, item: "Nenhuma exceção aberta (óbito sem inventário, RJ/falência, fraude na cédula, cliente orientou suspender, carteira morta) sem decisão humana registrada", bloqueante: true }
+    - { id: R06, item: "Impugnação a embargos: cada matéria alegada enfrentada com cláusula/página; nenhuma matéria não alegada enfrentada; planilha do embargante exigida quando falta", bloqueante: true }
+    - { id: R07, item: "Impenhorabilidades evidentes (salário, poupança ≤ 40 SM, pequena propriedade rural, bem de família sem hipoteca) não estão sendo atacadas", bloqueante: true }
+    - { id: R08, item: "Acordo: recomendação FBS e aprovação do BASA registradas antes da petição de homologação; cláusula de retomada presente", bloqueante: true }
+    - { id: R09, item: "Peça de impulso cabe em 1 página e tem pedido específico com prazo", bloqueante: false }
+    - { id: R10, item: "Score de recuperabilidade e recomendação de triagem visíveis ao revisor e coerentes com a peça (não impulsionar carteira morta)", bloqueante: false }
+  motivos_recusa_padrao:
+    - "Saldo/data-base divergentes da planilha do BASA"
+    - "Diligência repetida sem fato novo"
+    - "CPF/CNPJ ausente ou homônimo não afastado"
+    - "Referência legal não conferida ou inexistente"
+    - "Exceção aberta sem decisão humana (óbito, RJ, fraude, cliente suspendeu, carteira morta)"
+    - "Impugnação enfrenta matéria não alegada ou deixa matéria alegada sem resposta"
+    - "Ataque a verba/bem evidentemente impenhorável"
+    - "Acordo sem aprovação do BASA registrada"
+  observacoes: >-
+    Piso de 5 min para peças de impulso: são peças de 1 página cujo risco está nos dados
+    (saldo, CPF, fase), conferíveis em minutos contra a planilha e o andamento; um piso maior
+    inviabiliza a carga (12 advogados × 1.500–1.950 processos). Piso de 20 min para impugnação a
+    embargos e resposta a exceção: peça de mérito, com várias matérias, cálculo e risco de
+    sucumbência — é a peça desta tipologia em que o erro custa dinheiro. Medir nas primeiras 100
+    peças de cada tipo; ajustar só para cima, com justificativa registrada.
+
+# -----------------------------------------------------------------------------
+# MÉTRICAS (M10/M11) — alinhadas aos KPIs do BASA (valor recuperado, prazo, SLA de impulso)
+# -----------------------------------------------------------------------------
+metricas:
+  - { id: M01, nome: "Valor recuperado por mês", definicao: "soma de outcomes.recovered_value (bloqueios transferidos, pagamentos, acordos cumpridos, arrematações) por mês, por tribunal/comarca e por tese que gerou a diligência", meta: "baseline nos 3 primeiros meses; depois +15 % vs. baseline [A CONFERIR com o BASA]", fonte: outcomes }
+  - { id: M02, nome: "Prazo médio até penhora efetiva", definicao: "dias entre citação válida e primeiro bloqueio/penhora com valor > 0", meta: "redução de 30 % vs. baseline da carteira [ILUSTRATIVO]", fonte: "outcomes + andamentos" }
+  - { id: M03, nome: "Processos sem andamento útil > 90 dias", definicao: "% de processos viva/viva_prioritaria com dias_sem_andamento > 90 (SLA de impulso do BASA)", meta: "< 5 % da carteira viva [A CONFERIR SLA contratual]", fonte: dossiers }
+  - { id: M04, nome: "SLA de impulso após despacho", definicao: "dias entre publicação de despacho que exige manifestação e protocolo da peça", meta: "mediana ≤ 5 dias úteis; 95 % dentro do prazo legal", fonte: "publicacoes + drafts" }
+  - { id: M05, nome: "Custo por diligência e por R$ recuperado", definicao: "custas + correspondente + tokens (llm_calls.cost_usd) por diligência, dividido pelo valor recuperado atribuível", meta: "< 10 % do valor recuperado [ILUSTRATIVO]", fonte: "custas + llm_calls + outcomes" }
+  - { id: M06, nome: "Taxa de êxito em embargos e exceções", definicao: "% de embargos/exceções julgados improcedentes ou não conhecidos por subtese T06.x/T07 e por comarca", meta: "≥ baseline FBS + 10 p.p. [A CONFERIR]", fonte: outcomes }
+  - { id: M07, nome: "Carteira morta identificada", definicao: "nº de processos e R$ (valor atualizado) com recomendacao_triagem ∈ {morta_baixa, morta_cessao} confirmada por sócio; e nº efetivamente baixados/cedidos", meta: "100 % da carteira triada em 6 meses; relatório mensal ao BASA", fonte: "dossiers + reviews" }
+  - { id: M08, nome: "Tempo médio de revisão por tipo de peça", definicao: "média de reviews.review_seconds por draft_type", meta: "impulso < 10 min; impugnação < 40 min [ILUSTRATIVO]", fonte: reviews }
+  - { id: M09, nome: "Aprovação sem alteração substancial", definicao: "% de reviews com substantial_change = false, por draft_type", meta: "> 80 % em impulsos; > 50 % em impugnações após 100 peças [ILUSTRATIVO]", fonte: reviews }
+  - { id: M10, nome: "Brier do score de recuperabilidade", definicao: "Brier score entre score_recuperabilidade e desfecho binário 'recuperou ≥ custo em 24 meses' (replay sobre encerrados + acompanhamento prospectivo)", meta: "< 0,20 no replay; recalibrar pesos trimestralmente", fonte: "dossiers + outcomes" }
+  - { id: M11, nome: "Prescrição intercorrente evitada × consumada", definicao: "nº de processos com alerta prescricao_intercorrente_proxima que receberam diligência útil no prazo vs. nº com prescrição reconhecida", meta: "0 prescrições em processos viva/viva_prioritaria", fonte: "fraud_checks + outcomes" }
+  - { id: M12, nome: "Qualidade de dados da carteira", definicao: "% de processos com CNJ válido e único, CPF/CNPJ válido, valor plausível e saldo com memória de cálculo", meta: "> 95 % antes do fim do piloto (hoje: 93 % CNJ válido; 771 duplicados; 8,8 % sem valor)", fonte: fraud_checks }

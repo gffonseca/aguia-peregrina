@@ -31,7 +31,9 @@ metadata:
   tribunal: TJPA                        # TJPA, TRT8, TJAP…
   reu_tipo: instituicao_financeira_regional
   lado: defesa                          # defesa | autor
-  tipo_peca_padrao: contestacao         # drafts.draft_type
+  polo: passivo                         # passivo (réu/executado, padrão) | ativo (autor/exequente —
+                                        # ex.: execução de crédito bancário em massa, credor = banco)
+  tipo_peca_padrao: contestacao         # drafts.draft_type (no polo ativo: peticao_impulso etc.)
   versao: 1
   supera_versao: null                   # número da versão anterior quando houver
   autor_nome: "Nome do advogado-dono"

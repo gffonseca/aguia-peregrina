@@ -13,6 +13,7 @@
 | `energia-falha-fornecimento-tjpa.playbook.yaml` / `.md` | Energia elétrica: interrupção/oscilação, danos em equipamentos, TOI, religação e negativação — defesa de distribuidora (Equatorial Pará / Norte Energia), TJPA. **Rascunho** — tudo `[A CONFERIR pelo advogado-dono]`. |
 | `aereo-cancelamento-atraso-tjpa.playbook.yaml` / `.md` | Transporte aéreo: cancelamento, atraso, overbooking e bagagem — defesa de companhia aérea (Azul/LATAM/Gol no PA), TJPA. **Rascunho**; só defesa (o lado do autor é do spinoff de créditos). |
 | `trabalhista-reclamatoria-trt8.playbook.yaml` / `.md` | Reclamatória trabalhista típica — defesa do empregador (terceirizadas, mineração/serviços, call center, varejo), TRT-8. **Rascunho**; teses por pedido, briefing de audiência e modelagem de acordo por pedido. |
+| `execucao-credito-basa-tjpa-tjam.playbook.yaml` / `.md` | Execução / recuperação de crédito bancário em massa — **polo ativo** (credor = Banco da Amazônia), TJPA + TJAM. Primeiro playbook com `metadata.polo: ativo`: as "teses" são módulos de decisão (triagem de recuperabilidade, impulso por fase, garantia rural, IDPJ/sucessão, cumprimento, impugnação a embargos, exceção de pré-executividade, art. 921/intercorrente, acordo, precatórias, monitória). **Rascunho** (20/10/2026) baseado na radiografia da carteira BASA (16.656 processos); piloto previsto com 200 processos. |
 
 Código: `app/modules/m00_playbook/schema.py` (modelo pydantic, `validate_playbook(path)`, `to_thesis_payloads()`), testes em `tests/test_playbook_schema.py`.
 
@@ -24,7 +25,9 @@ Código: `app/modules/m00_playbook/schema.py` (modelo pydantic, `validate_playbo
 cp playbooks/TEMPLATE.playbook.yaml playbooks/<tipologia>-<tribunal>.playbook.yaml
 ```
 
-Preencha `metadata` (você é o `autor_oab`), depois os blocos na ordem em que a esteira os consome:
+Preencha `metadata` (você é o `autor_oab`), depois os blocos na ordem em que a esteira os consome.
+
+**Polo.** `metadata.polo` diz de que lado o cliente está: `passivo` (réu/executado — padrão, todos os playbooks de defesa) ou `ativo` (autor/exequente — ex.: execução de crédito bancário, credor = banco). `lado` continua existindo (`defesa` | `autor`) e descreve a peça; `polo` descreve a posição processual e é o que M1/M5/M6 usam para saber se o "autor" dos autos é o cliente ou o adversário. Em polo ativo a árvore de `teses` é lida como **módulos de decisão** (o que fazer com o processo nesta fase), `sinais_acordo.faixas_valor` passa a significar faixa de dívida e o `tipo_peca_padrao` costuma ser uma peça curta de impulso — ver `execucao-credito-basa-tjpa-tjam.playbook.md`, seção 0.
 
 1. **Gatilhos de classificação** — como M1/M9 reconhecem a tipologia (assuntos CNJ, palavras-chave, exclusões).
 2. **Campos obrigatórios do dossiê** — o vocabulário que M3/M5 precisam extrair ou receber do cliente. Toda condição do playbook só pode citar campos daqui; o validador recusa campo desconhecido.

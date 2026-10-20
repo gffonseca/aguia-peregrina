@@ -49,6 +49,15 @@ class Lado(StrEnum):
     autor = "autor"
 
 
+class Polo(StrEnum):
+    """Posição processual do cliente na tipologia. `passivo` (réu/executado) é o padrão
+    histórico da esteira; `ativo` (autor/exequente) entrou com a tipologia de execução de
+    crédito bancário em massa (credor = banco)."""
+
+    ativo = "ativo"
+    passivo = "passivo"
+
+
 class Operador(StrEnum):
     """Operadores das condições de aplicação, avaliados sobre campos do dossiê (M5)."""
 
@@ -138,8 +147,16 @@ class Metadata(_Strict):
         description="valor gravado em cases.typology / theses.typology",
     )
     tribunal: str = Field(pattern=r"^[A-Z]{2,6}[0-9]{0,2}$", description="TJPA, TRT8…")
-    reu_tipo: str = Field(description="ex.: instituicao_financeira_regional")
+    reu_tipo: str = Field(
+        description="ex.: instituicao_financeira_regional (no polo ativo: tipo do executado, "
+        "ex.: devedor_pf_pj_credito_bancario)"
+    )
     lado: Lado = Lado.defesa
+    polo: Polo = Field(
+        default=Polo.passivo,
+        description="posição processual do cliente: passivo (réu/executado, padrão) | "
+        "ativo (autor/exequente — ex.: execução de crédito bancário)",
+    )
     tipo_peca_padrao: str = Field(default="contestacao", description="drafts.draft_type")
     versao: int = Field(ge=1)
     supera_versao: int | None = Field(default=None, ge=1)
