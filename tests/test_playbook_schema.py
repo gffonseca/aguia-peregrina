@@ -36,7 +36,7 @@ def test_consignado_content_matches_spec() -> None:
     assert pb.metadata.tipologia == "consignado_rmc_nao_reconhecido"
     assert pb.metadata.tribunal == "TJPA"
     assert pb.metadata.lado == "defesa"
-    assert pb.metadata.status == "rascunho"
+    assert pb.metadata.status == "em_revisao"
     nomes = " ".join(t.nome.lower() for t in pb.teses)
     for termo in (
         "biometria",
@@ -68,6 +68,83 @@ def test_consignado_content_matches_spec() -> None:
     # Subtese aponta para a mãe e a árvore é navegável.
     assert pb.tese("T06.1").pai == "T06"
     assert pb.criterios_revisao.tempo_minimo_segundos >= 900
+
+
+def test_consignado_encodes_review_session_1_decisions() -> None:
+    """Decisões da sessão de revisão de 2026-10-19 (status segue em_revisao, nada aprovado)."""
+    pb = validate_playbook(CONSIGNADO)
+    assert pb.metadata.status == "em_revisao"
+    assert pb.metadata.aprovado_em is None
+    assert pb.metadata.versao == 1
+    assert [r.data.isoformat() for r in pb.metadata.revisoes] == ["2026-10-19"]
+    assert "12.724" in pb.metadata.revisoes[0].por
+    assert pb.metadata.piloto is not None and pb.metadata.piloto.cliente_piloto is None
+
+    # 2 e 4: pendências de levantamento TJPA em T05 e T06.1
+    assert "TJPA" in (pb.tese("T05").pendencia or "")
+    assert "TJPA" in (pb.tese("T06.1").pendencia or "")
+    assert pb.tese("T06.1").pai == "T06"  # 1: RMC segue como subtese
+
+    # 5: escalada em três níveis; (b) e (c) exigem dupla autorização registrada
+    niveis = {n.nivel: n for n in pb.tese("T10").providencias_escalonadas}
+    assert set(niveis) == {"a", "b", "c"}
+    assert not niveis["a"].autorizacao_dupla
+    assert niveis["b"].autorizacao_dupla and niveis["c"].autorizacao_dupla
+    dupla = pb.criterios_revisao.autorizacao_dupla
+    assert dupla is not None
+    assert {"sócio FBS", "jurídico do cliente"} <= set(dupla.autorizadores)
+    assert "plataforma" in dupla.registro.lower()
+
+    # 7, 8, 9, 13: exceções
+    x = {e.id: e for e in pb.excecoes}
+    assert x["X01"].acao == "pedir_subsidio"
+    assert {"sinalizar_acordo", "gerar_minuta_sem_merito", "escalar_advogado_carteira"} <= {
+        a.value for a in x["X01"].acoes_paralelas
+    }
+    assert x["X03"].acao == "sinalizar_acordo"
+    assert x["X05"].condicoes[0].valor == 30000.0
+    assert x["X08"].acao == "alertar_revisor"
+    assert not any(
+        c.campo == "valor_contrato" for r in pb.sinais_acordo.quando_acordar for c in r.condicoes
+    )
+
+    # 10 e 12: sem alçadas por valor; recomendação FBS → aprovação do cliente; faixas provisórias
+    assert pb.sinais_acordo.alcadas == []
+    assert pb.sinais_acordo.fluxo_aprovacao is not None
+    assert all(f.provisorio and f.recalibrar_em_dias == 90 for f in pb.sinais_acordo.faixas_valor)
+
+    # 11: concentração de advogado em dois níveis; procuração antiga 180 dias; revisão 15 min
+    conc = next(c for c in pb.antifraude.checagens if c.codigo == "concentracao_advogado_mes")
+    assert conc.parametros["niveis"] == {"atencao": 10, "forte": 30}
+    antiga = next(c for c in pb.antifraude.checagens if c.codigo == "procuracao_antiga")
+    assert antiga.parametros["max_dias"] == 180
+    assert pb.criterios_revisao.tempo_minimo_segundos == 900
+    assert any(
+        c.campo == "valor_causa" and c.valor == 30000.0
+        for c in pb.criterios_revisao.exige_segunda_revisao_se
+    )
+
+    # 14: disponibilidade a confirmar com o cliente
+    campos = {c.campo: c for c in pb.campos_dossie_obrigatorios}
+    for campo in ("ip_log_disponivel", "biometria_score", "valor_creditado_conta_autor"):
+        assert campos[campo].disponibilidade == "a confirmar com cliente"
+
+    # 16: referências continuam não conferidas
+    assert pb.referencias_nao_conferidas()
+
+
+def test_dual_authorization_block_is_required_when_a_level_demands_it() -> None:
+    raw = _raw(CONSIGNADO)
+    raw["criterios_revisao"].pop("autorizacao_dupla")
+    with pytest.raises(ValueError, match="autorizacao_dupla"):
+        Playbook.model_validate(raw)
+
+
+def test_sinais_acordo_requires_fluxo_or_alcadas() -> None:
+    raw = _raw(TEMPLATE)
+    raw["sinais_acordo"].pop("fluxo_aprovacao")
+    with pytest.raises(ValueError, match="fluxo_aprovacao"):
+        Playbook.model_validate(raw)
 
 
 def _raw(path: Path) -> dict:

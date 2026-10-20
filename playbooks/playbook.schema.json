@@ -6,13 +6,16 @@
         "escalar_socio",
         "sinalizar_acordo",
         "pedir_subsidio",
-        "alertar_revisor"
+        "alertar_revisor",
+        "gerar_minuta_sem_merito",
+        "escalar_advogado_carteira"
       ],
       "title": "AcaoExcecao",
       "type": "string"
     },
     "Alcada": {
       "additionalProperties": false,
+      "description": "Alçada por valor. Superada pelo `fluxo_aprovacao` (decisão de 2026-10-19); mantida\npara playbooks antigos.",
       "properties": {
         "ate_valor": {
           "minimum": 0,
@@ -79,6 +82,40 @@
       "title": "AssuntoCnj",
       "type": "object"
     },
+    "AutorizacaoDupla": {
+      "additionalProperties": false,
+      "description": "Dupla autorização por escrito (sócio FBS + jurídico do cliente) para atos sensíveis.",
+      "properties": {
+        "exigida_para": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Exigida Para",
+          "type": "array"
+        },
+        "autorizadores": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 2,
+          "title": "Autorizadores",
+          "type": "array"
+        },
+        "registro": {
+          "description": "como/onde a plataforma guarda o registro (trilha de auditoria)",
+          "title": "Registro",
+          "type": "string"
+        }
+      },
+      "required": [
+        "exigida_para",
+        "autorizadores",
+        "registro"
+      ],
+      "title": "AutorizacaoDupla",
+      "type": "object"
+    },
     "CampoDossie": {
       "additionalProperties": false,
       "properties": {
@@ -106,6 +143,19 @@
           "default": false,
           "title": "Bloqueia Minuta Se Ausente",
           "type": "boolean"
+        },
+        "disponibilidade": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "ex.: 'a confirmar com cliente' — se o cliente consegue entregar",
+          "title": "Disponibilidade"
         }
       },
       "required": [
@@ -226,12 +276,44 @@
           "title": "Papel Minimo Revisor",
           "type": "string"
         },
+        "revisor_final": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "quem assina a revisão final (ex.: advogado OAB da carteira)",
+          "title": "Revisor Final"
+        },
         "exige_segunda_revisao_se": {
           "items": {
             "$ref": "#/$defs/Condicao"
           },
           "title": "Exige Segunda Revisao Se",
           "type": "array"
+        },
+        "exige_segunda_revisao_tambem": {
+          "description": "situações que exigem sócio mas não são expressas por campo do dossiê",
+          "items": {
+            "type": "string"
+          },
+          "title": "Exige Segunda Revisao Tambem",
+          "type": "array"
+        },
+        "autorizacao_dupla": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AutorizacaoDupla"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "checklist": {
           "items": {
@@ -248,6 +330,18 @@
           "minItems": 1,
           "title": "Motivos Recusa Padrao",
           "type": "array"
+        },
+        "observacoes": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Observacoes"
         }
       },
       "required": [
@@ -280,6 +374,14 @@
         },
         "acao": {
           "$ref": "#/$defs/AcaoExcecao"
+        },
+        "acoes_paralelas": {
+          "description": "ações executadas em paralelo à `acao` (ou após o prazo, se `acao` é pedir_subsidio)",
+          "items": {
+            "$ref": "#/$defs/AcaoExcecao"
+          },
+          "title": "Acoes Paralelas",
+          "type": "array"
         },
         "nota": {
           "anyOf": [
@@ -343,6 +445,25 @@
           "default": true,
           "title": "Calibrar",
           "type": "boolean"
+        },
+        "provisorio": {
+          "default": false,
+          "description": "faixa ilustrativa, ainda sem dados",
+          "title": "Provisorio",
+          "type": "boolean"
+        },
+        "recalibrar_em_dias": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Recalibrar Em Dias"
         }
       },
       "required": [
@@ -353,6 +474,31 @@
         "base"
       ],
       "title": "FaixaAcordo",
+      "type": "object"
+    },
+    "FluxoAprovacao": {
+      "additionalProperties": false,
+      "description": "Toda proposta de acordo: a FBS recomenda (valor sugerido + faixa), o cliente aprova.",
+      "properties": {
+        "recomendacao": {
+          "title": "Recomendacao",
+          "type": "string"
+        },
+        "aprovacao": {
+          "title": "Aprovacao",
+          "type": "string"
+        },
+        "registro": {
+          "title": "Registro",
+          "type": "string"
+        }
+      },
+      "required": [
+        "recomendacao",
+        "aprovacao",
+        "registro"
+      ],
+      "title": "FluxoAprovacao",
       "type": "object"
     },
     "Fundamentacao": {
@@ -607,6 +753,25 @@
           ],
           "default": null,
           "title": "Observacoes"
+        },
+        "revisoes": {
+          "description": "sessões de revisão já realizadas (cronológico)",
+          "items": {
+            "$ref": "#/$defs/Revisao"
+          },
+          "title": "Revisoes",
+          "type": "array"
+        },
+        "piloto": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Piloto"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "required": [
@@ -702,6 +867,37 @@
       "title": "ModeloPeca",
       "type": "object"
     },
+    "NivelProvidencia": {
+      "additionalProperties": false,
+      "description": "Escalada de providências de uma tese do tipo `sinal` (ex.: litigância predatória).",
+      "properties": {
+        "nivel": {
+          "enum": [
+            "a",
+            "b",
+            "c"
+          ],
+          "title": "Nivel",
+          "type": "string"
+        },
+        "descricao": {
+          "title": "Descricao",
+          "type": "string"
+        },
+        "autorizacao_dupla": {
+          "default": false,
+          "description": "exige autorização por escrito de sócio FBS + jurídico do cliente, registrada na plataforma",
+          "title": "Autorizacao Dupla",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "nivel",
+        "descricao"
+      ],
+      "title": "NivelProvidencia",
+      "type": "object"
+    },
     "Operador": {
       "description": "Operadores das condições de aplicação, avaliados sobre campos do dossiê (M5).",
       "enum": [
@@ -731,6 +927,41 @@
       ],
       "title": "OrigemCampo",
       "type": "string"
+    },
+    "Piloto": {
+      "additionalProperties": false,
+      "description": "Estado do piloto da tipologia (cliente-piloto, plano interno, prospecção).",
+      "properties": {
+        "cliente_piloto": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "null enquanto não houver",
+          "title": "Cliente Piloto"
+        },
+        "plano": {
+          "title": "Plano",
+          "type": "string"
+        },
+        "prospeccao": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Prospeccao",
+          "type": "array"
+        }
+      },
+      "required": [
+        "plano"
+      ],
+      "title": "Piloto",
+      "type": "object"
     },
     "PlaybookStatus": {
       "enum": [
@@ -845,6 +1076,33 @@
       "title": "RegraAcordo",
       "type": "object"
     },
+    "Revisao": {
+      "additionalProperties": false,
+      "description": "Registro de uma sessão de revisão do advogado-dono (antes da aprovação).",
+      "properties": {
+        "data": {
+          "format": "date",
+          "title": "Data",
+          "type": "string"
+        },
+        "por": {
+          "description": "nome + OAB de quem conduziu a sessão",
+          "title": "Por",
+          "type": "string"
+        },
+        "resumo": {
+          "title": "Resumo",
+          "type": "string"
+        }
+      },
+      "required": [
+        "data",
+        "por",
+        "resumo"
+      ],
+      "title": "Revisao",
+      "type": "object"
+    },
     "SecaoPeca": {
       "additionalProperties": false,
       "properties": {
@@ -937,9 +1195,31 @@
           "items": {
             "$ref": "#/$defs/Alcada"
           },
-          "minItems": 1,
           "title": "Alcadas",
           "type": "array"
+        },
+        "fluxo_aprovacao": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FluxoAprovacao"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "nota_calibracao": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Nota Calibracao"
         },
         "decisao_final": {
           "default": "A decisão de acordar é do advogado/cliente; a plataforma só sinaliza.",
@@ -950,8 +1230,7 @@
       "required": [
         "politica",
         "quando_acordar",
-        "faixas_valor",
-        "alcadas"
+        "faixas_valor"
       ],
       "title": "SinaisAcordo",
       "type": "object"
@@ -1046,6 +1325,26 @@
           ],
           "default": null,
           "title": "Risco Se Mal Aplicada"
+        },
+        "pendencia": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "decisão do advogado-dono ainda em aberto (ex.: aguarda levantamento TJPA)",
+          "title": "Pendencia"
+        },
+        "providencias_escalonadas": {
+          "items": {
+            "$ref": "#/$defs/NivelProvidencia"
+          },
+          "title": "Providencias Escalonadas",
+          "type": "array"
         },
         "ativa": {
           "default": true,

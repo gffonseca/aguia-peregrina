@@ -8,7 +8,7 @@
 |---|---|
 | `TEMPLATE.playbook.yaml` | Modelo comentado. Copie e preencha. Passa na validação como está. |
 | `playbook.schema.json` | JSON Schema (draft 2020-12) gerado do pydantic. Use no editor (VS Code: `yaml.schemas`) para autocompletar e apontar erro ao digitar. |
-| `consignado-rmc-tjpa.playbook.yaml` | Primeiro playbook: consignado/RMC não reconhecido, defesa de instituição financeira regional, TJPA. **Rascunho** — tudo marcado `[A CONFERIR pelo advogado-dono]`. |
+| `consignado-rmc-tjpa.playbook.yaml` | Primeiro playbook: consignado/RMC não reconhecido, defesa de instituição financeira regional, TJPA. **Em revisão** — sessão 1 (19/10/2026) aplicada; referências legais ainda `conferido: false` (levantamento em 20/10/2026). Sem cliente-piloto: piloto interno com casos encerrados da FBS primeiro; prospecção de Banpará/Basa/financeira regional em paralelo. |
 | `consignado-rmc-tjpa.playbook.md` | O mesmo conteúdo em prosa e tabelas para quem não edita YAML. **Derivado**: o YAML é a fonte da verdade. |
 
 Código: `app/modules/m00_playbook/schema.py` (modelo pydantic, `validate_playbook(path)`, `to_thesis_payloads()`), testes em `tests/test_playbook_schema.py`.
@@ -94,5 +94,6 @@ O validador **recusa** `status: aprovado` sem OAB + timestamp, ou com qualquer r
 1. Sem playbook aprovado, sem minuta.
 2. Uma referência legal só entra na peça se estiver `conferido: true` no playbook.
 3. Nenhuma checagem antifraude rotula pessoa; só advogado com OAB confirma um flag (`human_decide`).
-4. Sinal de acordo é sinal; a decisão é humana e registrada.
+4. Sinal de acordo é sinal; a decisão é humana e registrada — a FBS recomenda (valor + faixa), o jurídico do cliente aprova (`sinais_acordo.fluxo_aprovacao`).
 5. Versão aprovada não se edita; cria-se a próxima.
+6. Comunicação externa de padrão (Cijepa/NUMOPEDE, OAB) só com dupla autorização por escrito (sócio FBS + jurídico do cliente), registrada pela plataforma (`criterios_revisao.autorizacao_dupla`, `teses[].providencias_escalonadas`).

@@ -16,7 +16,7 @@ a árvore de teses de uma tipologia **antes** de qualquer minuta ser gerada. Est
 from __future__ import annotations
 
 import json
-from datetime import datetime
+from datetime import date, datetime
 from enum import StrEnum
 from pathlib import Path
 from typing import Any, Literal
@@ -98,6 +98,8 @@ class AcaoExcecao(StrEnum):
     sinalizar_acordo = "sinalizar_acordo"
     pedir_subsidio = "pedir_subsidio"
     alertar_revisor = "alertar_revisor"
+    gerar_minuta_sem_merito = "gerar_minuta_sem_merito"  # só preliminares + antifraude
+    escalar_advogado_carteira = "escalar_advogado_carteira"
 
 
 class Severidade(StrEnum):
@@ -110,6 +112,22 @@ class Severidade(StrEnum):
 # ---------------------------------------------------------------------------
 # Blocos
 # ---------------------------------------------------------------------------
+
+
+class Revisao(_Strict):
+    """Registro de uma sessão de revisão do advogado-dono (antes da aprovação)."""
+
+    data: date
+    por: str = Field(description="nome + OAB de quem conduziu a sessão")
+    resumo: str
+
+
+class Piloto(_Strict):
+    """Estado do piloto da tipologia (cliente-piloto, plano interno, prospecção)."""
+
+    cliente_piloto: str | None = Field(default=None, description="null enquanto não houver")
+    plano: str
+    prospeccao: list[str] = Field(default_factory=list)
 
 
 class Metadata(_Strict):
@@ -134,6 +152,10 @@ class Metadata(_Strict):
     aprovado_em: datetime | None = None
     descricao: str | None = None
     observacoes: str | None = None
+    revisoes: list[Revisao] = Field(
+        default_factory=list, description="sessões de revisão já realizadas (cronológico)"
+    )
+    piloto: Piloto | None = None
 
     @model_validator(mode="after")
     def _aprovacao_coerente(self) -> Metadata:
@@ -171,6 +193,9 @@ class CampoDossie(_Strict):
     descricao: str
     obrigatorio: bool = True
     bloqueia_minuta_se_ausente: bool = False
+    disponibilidade: str | None = Field(
+        default=None, description="ex.: 'a confirmar com cliente' — se o cliente consegue entregar"
+    )
 
 
 class Condicao(_Strict):
@@ -213,6 +238,18 @@ class Fundamentacao(_Strict):
     argumentos_chave: list[str] = Field(min_length=1)
 
 
+class NivelProvidencia(_Strict):
+    """Escalada de providências de uma tese do tipo `sinal` (ex.: litigância predatória)."""
+
+    nivel: Literal["a", "b", "c"]
+    descricao: str
+    autorizacao_dupla: bool = Field(
+        default=False,
+        description="exige autorização por escrito de sócio FBS + jurídico do cliente, "
+        "registrada na plataforma",
+    )
+
+
 class Tese(_Strict):
     id: str = Field(pattern=r"^T[0-9]{2}(\.[0-9]{1,2})*$", description="T01, T01.1…")
     nome: str
@@ -229,7 +266,19 @@ class Tese(_Strict):
     pedidos: list[str] = Field(min_length=1)
     pedidos_subsidiarios: list[str] = Field(default_factory=list)
     risco_se_mal_aplicada: str | None = None
+    pendencia: str | None = Field(
+        default=None,
+        description="decisão do advogado-dono ainda em aberto (ex.: aguarda levantamento TJPA)",
+    )
+    providencias_escalonadas: list[NivelProvidencia] = Field(default_factory=list)
     ativa: bool = True
+
+    @model_validator(mode="after")
+    def _niveis_unicos(self) -> Tese:
+        niveis = [n.nivel for n in self.providencias_escalonadas]
+        if len(niveis) != len(set(niveis)):
+            raise ValueError(f"tese {self.id}: níveis de providência repetidos")
+        return self
 
 
 class Excecao(_Strict):
@@ -237,6 +286,11 @@ class Excecao(_Strict):
     descricao: str
     condicoes: list[Condicao] = Field(min_length=1)
     acao: AcaoExcecao
+    acoes_paralelas: list[AcaoExcecao] = Field(
+        default_factory=list,
+        description="ações executadas em paralelo à `acao` (ou após o prazo, se `acao` é "
+        "pedir_subsidio)",
+    )
     nota: str | None = None
 
 
@@ -248,6 +302,8 @@ class FaixaAcordo(_Strict):
     moeda: Literal["BRL"] = "BRL"
     base: str = Field(description="como a faixa foi obtida (ex.: média de condenação na carteira)")
     calibrar: bool = True
+    provisorio: bool = Field(default=False, description="faixa ilustrativa, ainda sem dados")
+    recalibrar_em_dias: int | None = Field(default=None, ge=1)
 
     @model_validator(mode="after")
     def _faixa(self) -> FaixaAcordo:
@@ -262,8 +318,19 @@ class RegraAcordo(_Strict):
 
 
 class Alcada(_Strict):
+    """Alçada por valor. Superada pelo `fluxo_aprovacao` (decisão de 2026-10-19); mantida
+    para playbooks antigos."""
+
     ate_valor: float = Field(ge=0)
     aprovador: str
+
+
+class FluxoAprovacao(_Strict):
+    """Toda proposta de acordo: a FBS recomenda (valor sugerido + faixa), o cliente aprova."""
+
+    recomendacao: str
+    aprovacao: str
+    registro: str
 
 
 class SinaisAcordo(_Strict):
@@ -271,8 +338,16 @@ class SinaisAcordo(_Strict):
     quando_acordar: list[RegraAcordo] = Field(min_length=1)
     quando_nao_acordar: list[RegraAcordo] = Field(default_factory=list)
     faixas_valor: list[FaixaAcordo] = Field(min_length=1)
-    alcadas: list[Alcada] = Field(min_length=1)
+    alcadas: list[Alcada] = Field(default_factory=list)
+    fluxo_aprovacao: FluxoAprovacao | None = None
+    nota_calibracao: str | None = None
     decisao_final: str = "A decisão de acordar é do advogado/cliente; a plataforma só sinaliza."
+
+    @model_validator(mode="after")
+    def _aprovacao_definida(self) -> SinaisAcordo:
+        if not self.alcadas and self.fluxo_aprovacao is None:
+            raise ValueError("sinais_acordo exige fluxo_aprovacao (ou alcadas, legado)")
+        return self
 
 
 class ChecagemAntifraude(_Strict):
@@ -321,12 +396,31 @@ class ItemChecklist(_Strict):
     bloqueante: bool = True
 
 
+class AutorizacaoDupla(_Strict):
+    """Dupla autorização por escrito (sócio FBS + jurídico do cliente) para atos sensíveis."""
+
+    exigida_para: list[str] = Field(min_length=1)
+    autorizadores: list[str] = Field(min_length=2)
+    registro: str = Field(
+        description="como/onde a plataforma guarda o registro (trilha de auditoria)"
+    )
+
+
 class CriteriosRevisao(_Strict):
     tempo_minimo_segundos: int = Field(ge=60, description="REVIEW_MIN_SECONDS_<tipo> (M7)")
     papel_minimo_revisor: Literal["lawyer", "partner"] = "lawyer"
+    revisor_final: str | None = Field(
+        default=None, description="quem assina a revisão final (ex.: advogado OAB da carteira)"
+    )
     exige_segunda_revisao_se: list[Condicao] = Field(default_factory=list)
+    exige_segunda_revisao_tambem: list[str] = Field(
+        default_factory=list,
+        description="situações que exigem sócio mas não são expressas por campo do dossiê",
+    )
+    autorizacao_dupla: AutorizacaoDupla | None = None
     checklist: list[ItemChecklist] = Field(min_length=3)
     motivos_recusa_padrao: list[str] = Field(min_length=1)
+    observacoes: str | None = None
 
 
 class Metrica(_Strict):
@@ -398,6 +492,18 @@ class Playbook(_Strict):
         ):
             if len(lista) != len(set(lista)):
                 erros.append(f"ids duplicados em {grupo}")
+
+        exige_dupla = [
+            f"{t.id}/{n.nivel}"
+            for t in self.teses
+            for n in t.providencias_escalonadas
+            if n.autorizacao_dupla
+        ]
+        if exige_dupla and self.criterios_revisao.autorizacao_dupla is None:
+            erros.append(
+                "providências com autorizacao_dupla exigem criterios_revisao.autorizacao_dupla: "
+                f"{exige_dupla}"
+            )
 
         if self.metadata.status == PlaybookStatus.aprovado:
             nao_conferidas = [

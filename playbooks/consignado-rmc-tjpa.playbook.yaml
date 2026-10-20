@@ -1,8 +1,9 @@
 # =============================================================================
 # Águia Peregrina — M0 Playbook — Consignado / RMC não reconhecido (defesa) — TJPA
 # =============================================================================
-# PRIMEIRO RASCUNHO. Nenhuma citação legal, número, prazo ou valor aqui foi
-# conferido por advogado. Todo item marcado "[A CONFERIR pelo advogado-dono]"
+# EM REVISÃO (sessão 1 em 2026-10-19 — decisões 1–16 aplicadas; ver metadata.revisoes
+# e a seção "Decisões da revisão" do .md). Nenhuma citação legal, número, prazo ou valor
+# aqui foi conferido por advogado — o levantamento com fonte está previsto para 2026-10-20. Todo item marcado "[A CONFERIR pelo advogado-dono]"
 # e `conferido: false` precisa ser validado (texto vigente, número do tema,
 # ementa, modulação, jurisprudência atual do TJPA) antes de o status virar
 # `aprovado`. O validador recusa `status: aprovado` enquanto houver pendência.
@@ -26,7 +27,7 @@ metadata:
   autor_nome: "[A PREENCHER — advogado-dono da tipologia]"
   autor_oab: "PA 00000"
   criado_em: 2026-10-19T12:00:00-03:00
-  status: rascunho
+  status: em_revisao
   aprovado_por_nome: null
   aprovado_por_oab: null
   aprovado_em: null
@@ -36,10 +37,21 @@ metadata:
     ou cartão benefício (RCC), pedindo declaração de inexistência do débito, devolução
     (em dobro) dos descontos e dano moral. Réu: instituição financeira regional cliente da FBS.
   observacoes: >-
-    Rascunho gerado para validação. Números de temas repetitivos, súmulas, artigos e faixas
-    de valor são placeholders. Antes de aprovar: (1) conferir cada referência; (2) calibrar
-    faixas de acordo com a carteira do cliente; (3) confirmar com o cliente quais subsídios
-    (logs, biometria, TED, áudio) ele consegue entregar em até 5 dias úteis.
+    Em revisão. Números de temas repetitivos, súmulas, artigos e faixas de valor continuam
+    placeholders (`conferido: false`); o levantamento com fonte será feito e validado na sessão
+    de 2026-10-20. Pendências abertas após a sessão 1: prazo prescricional (T05) e postura em
+    RMC (T06.1) aguardam levantamento de jurisprudência do TJPA (12 meses); faixas de acordo
+    são provisórias; disponibilidade de log/biometria/TED a confirmar com o cliente.
+  revisoes:
+    - data: 2026-10-19
+      por: "Gustavo Fonseca OAB/PA 12.724"
+      resumo: "Sessão 1 de revisão: decisões 1–16"
+  piloto:
+    cliente_piloto: null
+    plano: >-
+      Ainda não há cliente-piloto. Piloto interno primeiro, com casos encerrados da FBS
+      (replay da esteira sobre processos já julgados), em paralelo à prospecção.
+    prospeccao: ["Banpará", "Banco da Amazônia (Basa)", "financeira regional"]
 
 # -----------------------------------------------------------------------------
 # GATILHOS DE CLASSIFICAÇÃO (M1/M9)
@@ -98,13 +110,13 @@ campos_dossie_obrigatorios:
   # --- subsídios do cliente (M3) ---
   - { campo: contrato_localizado, tipo: booleano, origem: subsidio, descricao: "Cliente localizou o instrumento contratual", obrigatorio: true, bloqueia_minuta_se_ausente: true }
   - { campo: contrato_assinatura_tipo, tipo: texto, origem: subsidio, descricao: "biometria_facial | assinatura_digital_icp | assinatura_eletronica_simples | fisica | digital_telefone | nenhuma", obrigatorio: true }
-  - { campo: biometria_score, tipo: numero, origem: subsidio, descricao: "Score da biometria facial (0–1), se houver", obrigatorio: false }
-  - { campo: documento_selfie_coincide, tipo: booleano, origem: subsidio, descricao: "Selfie × documento com match registrado pelo fornecedor de biometria", obrigatorio: false }
+  - { campo: biometria_score, tipo: numero, origem: subsidio, descricao: "Score da biometria facial (0–1), se houver", obrigatorio: false, disponibilidade: "a confirmar com cliente" }
+  - { campo: documento_selfie_coincide, tipo: booleano, origem: subsidio, descricao: "Selfie × documento com match registrado pelo fornecedor de biometria", obrigatorio: false, disponibilidade: "a confirmar com cliente" }
   - { campo: geolocalizacao_compativel, tipo: booleano, origem: subsidio, descricao: "Lat/long da contratação compatível com endereço do autor", obrigatorio: false }
-  - { campo: ip_log_disponivel, tipo: booleano, origem: subsidio, descricao: "Há log de IP/dispositivo/horário da contratação", obrigatorio: true }
-  - { campo: valor_creditado_conta_autor, tipo: booleano, origem: subsidio, descricao: "TED/PIX/crédito em conta de titularidade do próprio autor", obrigatorio: true, bloqueia_minuta_se_ausente: true }
+  - { campo: ip_log_disponivel, tipo: booleano, origem: subsidio, descricao: "Há log de IP/dispositivo/horário da contratação", obrigatorio: true, disponibilidade: "a confirmar com cliente" }
+  - { campo: valor_creditado_conta_autor, tipo: booleano, origem: subsidio, descricao: "TED/PIX/crédito em conta de titularidade do próprio autor", obrigatorio: true, bloqueia_minuta_se_ausente: true, disponibilidade: "a confirmar com cliente" }
   - { campo: conta_credito_titularidade, tipo: texto, origem: subsidio, descricao: "autor | terceiro | desconhecida", obrigatorio: true }
-  - { campo: ted_comprovante_localizado, tipo: booleano, origem: subsidio, descricao: "Comprovante de TED/PIX/ordem de pagamento juntável", obrigatorio: true }
+  - { campo: ted_comprovante_localizado, tipo: booleano, origem: subsidio, descricao: "Comprovante de TED/PIX/ordem de pagamento juntável", obrigatorio: true, disponibilidade: "a confirmar com cliente" }
   - { campo: extratos_mostram_uso, tipo: booleano, origem: subsidio, descricao: "Extratos mostram saque/uso do valor creditado", obrigatorio: false }
   - { campo: rmc_houve_saque_ou_compra, tipo: booleano, origem: subsidio, descricao: "No RMC/RCC, houve saque autorizado ou compras no cartão", obrigatorio: false }
   - { campo: descontos_parcelas_n, tipo: numero, origem: subsidio, descricao: "Nº de parcelas já descontadas", obrigatorio: true }
@@ -271,6 +283,11 @@ teses:
     pedidos_subsidiarios:
       - "Fixação de dano moral, se houver, considerando o conjunto das ações."
     risco_se_mal_aplicada: "Acusar fracionamento onde há contratos e fatos realmente distintos."
+    pendencia: null
+    providencias_escalonadas:
+      - { nivel: a, descricao: "Padrão: pedido de reunião por conexão + depoimento pessoal + exibição de documentos (na própria peça).", autorizacao_dupla: false }
+      - { nivel: b, descricao: "Comunicação institucional do padrão de fracionamento ao Cijepa/NUMOPEDE do TJPA, sem imputar conduta a pessoa.", autorizacao_dupla: true }
+      - { nivel: c, descricao: "Representação à OAB-PA, só em casos extremos.", autorizacao_dupla: true }
     ativa: true
 
   # ---------------------------------------------------------------- PREJUDICIAL
@@ -297,13 +314,15 @@ teses:
       precedentes:
         - { ref: "STJ — termo inicial em descontos sucessivos (trato sucessivo × ato único) [A CONFERIR]", tipo: precedente, para_que_serve: "termo inicial", conferido: false, nota: "[A CONFERIR pelo advogado-dono — risco: tese de trato sucessivo costuma afastar a prescrição total]" }
       argumentos_chave:
-        - "A ciência inequívoca ocorre com o primeiro desconto, visível no extrato do benefício."
-        - "Subsidiariamente, prescrição das parcelas anteriores ao quinquênio/triênio."
+        - "Termo inicial (tese principal): a ciência inequívoca ocorre com o primeiro desconto, visível no extrato do benefício — pretensão única, não renovada a cada parcela."
+        - "Termo inicial (tese subsidiária): se o juízo adotar trato sucessivo, prescrição das parcelas anteriores ao prazo contado retroativamente do ajuizamento."
+        - "O prazo (5, 3 ou 10 anos) será fixado após o levantamento da jurisprudência do TJPA; até lá a peça não afirma prazo."
     pedidos:
       - "Reconhecimento da prescrição e extinção com resolução de mérito (CPC, art. 487, II)."
     pedidos_subsidiarios:
       - "Prescrição parcial das parcelas anteriores ao prazo legal."
     risco_se_mal_aplicada: "Em descontos de trato sucessivo o juízo pode considerar a pretensão renovada a cada parcela; a tese total raramente prospera sozinha."
+    pendencia: "prazo (CDC 27 × CC 206 §3º × CC 205) aguarda levantamento TJPA 12 meses"
     ativa: true
 
   # ---------------------------------------------------------------- MÉRITO
@@ -387,6 +406,7 @@ teses:
     pedidos_subsidiarios:
       - "Se convertido em empréstimo consignado comum, aplicação da taxa média de mercado da época e compensação dos valores pagos, sem repetição em dobro."
     risco_se_mal_aplicada: "Em casos sem uso do cartão o TJPA tende a reconhecer vício de informação; avaliar acordo."
+    pendencia: "postura em RMC/RCC (conversão em consignado comum, taxa aplicável, repetição em dobro) aguarda levantamento TJPA 12 meses; estrutura mantida"
     ativa: true
 
   - id: T07
@@ -453,6 +473,7 @@ teses:
     pedidos_subsidiarios:
       - "Fixação em patamar moderado (faixa do TJPA [A CONFERIR]); juros e correção pelo índice legal vigente a partir do arbitramento (Súmula 362 STJ [A CONFERIR])."
     risco_se_mal_aplicada: "Chamar de 'mero aborrecimento' desconto que consome parte relevante de benefício mínimo de idoso soa insensível e piora o quantum."
+    pendencia: null  # estratégia confirmada em 2026-10-19: negação do dano + subsidiário quantum moderado
     ativa: true
 
   # ---------------------------------------------------------------- SUBSIDIÁRIAS
@@ -495,12 +516,14 @@ teses:
     ordem: 12
     pai: null
     resumo: >-
-      Não é uma tese de mérito; é um conjunto de providências (pedido de depoimento pessoal,
-      exibição de documentos, comunicação ao NUMOPEDE/Centro de Inteligência, ofício à OAB) que
-      só se insere na peça se o advogado-revisor confirmar os flags do M4. Jamais rotular o autor
-      ou o advogado como fraudador.
+      Não é uma tese de mérito; é uma escalada de providências em três níveis — (a) padrão:
+      depoimento pessoal + exibição de documentos, na peça; (b) comunicação institucional do
+      padrão ao Cijepa/NUMOPEDE do TJPA; (c) representação à OAB-PA em casos extremos. O nível (a)
+      só entra na peça se o advogado-revisor confirmar os flags do M4; (b) e (c) exigem dupla
+      autorização por escrito (sócio FBS + jurídico do cliente) registrada na plataforma. Jamais
+      rotular o autor ou o advogado como fraudador.
     condicoes_aplicacao:
-      - { campo: acoes_mesmo_advogado_mes_n, operador: ">=", valor: 30, nota: "N a calibrar com a carteira [A CONFERIR pelo advogado-dono]" }
+      - { campo: acoes_mesmo_advogado_mes_n, operador: ">=", valor: 10, nota: "nível 'atencao' da checagem concentracao_advogado_mes (≥ 10/mês); 'forte' é ≥ 30/mês — ver antifraude" }
     provas_necessarias:
       - { tipo_documento: relatorio_antifraude, descricao: "Flags do M4 com evidência e decisão humana registrada (human_decide)", origem: antifraude, obrigatoria: true, peso: 1.0 }
     provas_que_afastam:
@@ -511,13 +534,18 @@ teses:
       precedentes:
         - { ref: "CNJ — Recomendação sobre litigância predatória; TJPA — Centro de Inteligência/NUMOPEDE [A CONFERIR]", tipo: norma_regulatoria, para_que_serve: "canal institucional para comunicar padrões", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
       argumentos_chave:
-        - "Requerer depoimento pessoal do autor para confirmar ciência da ação e da procuração."
-        - "Requerer exibição de comprovante de residência atual, documento com foto e extratos."
-        - "Comunicar o padrão ao Centro de Inteligência do TJPA sem imputar conduta a pessoa determinada."
+        - "Nível (a): requerer depoimento pessoal do autor para confirmar ciência da ação e da procuração."
+        - "Nível (a): requerer exibição de comprovante de residência atual, documento com foto e extratos."
+        - "Nível (b), fora da peça: comunicar o padrão ao Cijepa/NUMOPEDE do TJPA sem imputar conduta a pessoa determinada — só com dupla autorização."
     pedidos:
       - "Depoimento pessoal do autor sob pena de confissão; exibição de documentos; demais providências que o juízo entender cabíveis."
     pedidos_subsidiarios: []
     risco_se_mal_aplicada: "Acusação de má-fé sem lastro gera condenação do réu e dano reputacional; só entra na peça após decisão humana registrada."
+    pendencia: null
+    providencias_escalonadas:
+      - { nivel: a, descricao: "Padrão (na peça): depoimento pessoal do autor + exibição de documentos. Requer flags do M4 confirmados por human_decide.", autorizacao_dupla: false }
+      - { nivel: b, descricao: "Comunicação institucional do padrão ao Cijepa/NUMOPEDE do TJPA (fora da peça; linguagem neutra; sem imputar conduta a pessoa). Requer nível 'forte' (≥ 30 ações/mês) ou padrão equivalente.", autorizacao_dupla: true }
+      - { nivel: c, descricao: "Representação à OAB-PA — só em casos extremos, com dossiê de evidências.", autorizacao_dupla: true }
     ativa: true
 
 # -----------------------------------------------------------------------------
@@ -529,7 +557,11 @@ excecoes:
     condicoes:
       - { campo: contrato_localizado, operador: "==", valor: false }
     acao: pedir_subsidio
-    nota: "Volta ao M3 com prazo; se persistir, sinalizar acordo (ver sinais_acordo)."
+    acoes_paralelas: [sinalizar_acordo, gerar_minuta_sem_merito, escalar_advogado_carteira]
+    nota: >-
+      Volta ao M3 com prazo. Se o contrato continuar não localizado após o subsídio, AMBAS as
+      ações em paralelo: sinalizar acordo E gerar minuta apenas com preliminares + antifraude
+      (sem mérito — T06/T06.1/T07 desativadas); escalar ao advogado da carteira, que decide.
   - id: X02
     descricao: "Crédito em conta de terceiro ou titularidade desconhecida"
     condicoes:
@@ -541,7 +573,7 @@ excecoes:
     condicoes:
       - { campo: indicio_fraude_contra_autor, operador: "==", valor: true }
     acao: sinalizar_acordo
-    nota: "Defender contratação válida aqui é temerário (Súmula 479 [A CONFERIR])."
+    nota: "Sinalizar acordo imediato (confirmado em 2026-10-19). Defender contratação válida aqui é temerário (Súmula 479 [A CONFERIR])."
   - id: X04
     descricao: "Autor possivelmente falecido antes da procuração/ajuizamento"
     condicoes:
@@ -551,7 +583,7 @@ excecoes:
   - id: X05
     descricao: "Valor da causa acima da alçada de contestação padrão"
     condicoes:
-      - { campo: valor_causa, operador: ">", valor: 60000.0, nota: "[A CONFERIR pelo advogado-dono] alçada do cliente" }
+      - { campo: valor_causa, operador: ">", valor: 30000.0, nota: "fixado em R$ 30 mil na sessão de 2026-10-19 (antes: 60 mil)" }
     acao: alertar_revisor
     nota: "Exige segunda revisão por sócio."
   - id: X06
@@ -568,6 +600,15 @@ excecoes:
       - { campo: ted_comprovante_localizado, operador: "==", valor: false }
     acao: sinalizar_acordo
     nota: "Sem T06 nem T07 a defesa fica só em preliminares; exposição alta."
+  - id: X08
+    descricao: "Contrato com assinatura física impugnada — custo de perícia grafotécnica"
+    condicoes:
+      - { campo: contrato_assinatura_tipo, operador: "==", valor: fisica }
+    acao: alertar_revisor
+    nota: >-
+      Sem regra fixa de valor (decisão de 2026-10-19): o revisor avalia custo da perícia ×
+      valor do contrato e decide entre defender com perícia e sinalizar acordo. Não é exceção
+      automática de acordo.
 
 # -----------------------------------------------------------------------------
 # SINAIS DE ACORDO
@@ -576,8 +617,10 @@ sinais_acordo:
   politica: >-
     Defender quando há contrato + trilha de autenticação + crédito em conta do autor. Acordar cedo
     (antes da audiência/contestação, quando o cliente autorizar) quando falta qualquer um desses
-    três pilares ou há indício de fraude real. Valores e alçadas abaixo são ilustrativos e
-    devem ser calibrados com a carteira do cliente por comarca [A CONFERIR pelo advogado-dono].
+    três pilares ou há indício de fraude real (regra dos três pilares confirmada em 2026-10-19).
+    Exceção: autor serial (≥ 3 ações contra o réu) — não acordar salvo decisão do cliente.
+    Toda proposta de acordo passa pelo jurídico do cliente; a FBS recomenda com valor sugerido
+    e faixa. Faixas abaixo são provisórias e serão recalibradas com dados da carteira.
   quando_acordar:
     - condicoes:
         - { campo: contrato_localizado, operador: "==", valor: false }
@@ -588,10 +631,6 @@ sinais_acordo:
     - condicoes:
         - { campo: indicio_fraude_contra_autor, operador: "==", valor: true }
       racional: "Fortuito interno; defender só aumenta sucumbência."
-    - condicoes:
-        - { campo: contrato_assinatura_tipo, operador: "==", valor: fisica }
-        - { campo: valor_contrato, operador: "<", valor: 3000.0 }
-      racional: "Perícia grafotécnica custa mais que o contrato [A CONFERIR pelo advogado-dono — valor]."
   quando_nao_acordar:
     - condicoes:
         - { campo: contrato_assinatura_tipo, operador: in, valor: [biometria_facial, assinatura_digital_icp] }
@@ -599,34 +638,45 @@ sinais_acordo:
       racional: "Caso forte; acordo aqui alimenta a litigância predatória."
     - condicoes:
         - { campo: acoes_mesmo_autor_mesmo_reu_n, operador: ">=", valor: 3 }
-      racional: "Autor serial; política de não acordar salvo decisão do cliente."
+      racional: "Autor serial (≥ 3 ações); política de não acordar salvo decisão do cliente (confirmada em 2026-10-19)."
   faixas_valor:
     - grupo_comarcas: "Região Metropolitana de Belém"
       comarcas: ["Belém", "Ananindeua", "Marituba", "Benevides", "Santa Bárbara do Pará", "Santa Izabel do Pará"]
       valor_min: 1000.0
       valor_max: 4000.0
       moeda: BRL
-      base: "ILUSTRATIVO [A CONFERIR pelo advogado-dono] — substituir pela média de condenação (dano moral + repetição) da carteira do cliente, 12 meses"
+      base: "ILUSTRATIVO — substituir pela média de condenação (dano moral + repetição) da carteira do cliente, 12 meses (painel M10/M05)"
       calibrar: true
+      provisorio: true
+      recalibrar_em_dias: 90
     - grupo_comarcas: "Interior — polos (Santarém, Marabá, Castanhal, Parauapebas, Altamira)"
       comarcas: ["Santarém", "Marabá", "Castanhal", "Parauapebas", "Altamira"]
       valor_min: 1500.0
       valor_max: 5000.0
       moeda: BRL
-      base: "ILUSTRATIVO [A CONFERIR pelo advogado-dono]"
+      base: "ILUSTRATIVO — recalibrar com a média de condenação da carteira (painel M10/M05)"
       calibrar: true
+      provisorio: true
+      recalibrar_em_dias: 90
     - grupo_comarcas: "Interior — demais comarcas"
       comarcas: ["*"]
       valor_min: 1500.0
       valor_max: 6000.0
       moeda: BRL
-      base: "ILUSTRATIVO [A CONFERIR pelo advogado-dono] — comarcas do interior do PA tendem a condenações maiores em consignado; confirmar com dados"
+      base: "ILUSTRATIVO — comarcas do interior do PA tendem a condenações maiores em consignado; confirmar com dados (painel M10/M05)"
       calibrar: true
-  alcadas:
-    - { ate_valor: 3000.0, aprovador: "advogado responsável pela carteira [A CONFERIR]" }
-    - { ate_valor: 10000.0, aprovador: "sócio FBS + jurídico do cliente [A CONFERIR]" }
-    - { ate_valor: 999999.0, aprovador: "comitê do cliente [A CONFERIR]" }
-  decisao_final: "A decisão de acordar é do advogado/cliente; a plataforma só sinaliza e registra."
+      provisorio: true
+      recalibrar_em_dias: 90
+  nota_calibracao: >-
+    Faixas marcadas `provisorio: true` são ilustrativas. O painel M10 (métrica M05 — condenação
+    média por comarca) recalibra cada faixa com a média de condenação da carteira; prazo de
+    recalibração: 90 dias a partir do início do piloto.
+  alcadas: []
+  fluxo_aprovacao:
+    recomendacao: "A FBS recomenda o acordo com valor sugerido e faixa (grupo de comarcas), fundamentando nos sinais do dossiê."
+    aprovacao: "Toda proposta de acordo passa pelo jurídico do cliente, que aprova, ajusta ou recusa — sem alçada por valor."
+    registro: "A plataforma registra recomendação (valor, faixa, racional, OAB) e decisão do cliente (quem, quando, valor aprovado) no caso."
+  decisao_final: "A decisão de acordar é do cliente, por recomendação da FBS; a plataforma só sinaliza e registra."
 
 # -----------------------------------------------------------------------------
 # ANTIFRAUDE ESPECÍFICO (M4)
@@ -643,7 +693,7 @@ antifraude:
       calibrar: false
     - codigo: procuracao_antiga
       descricao: "Procuração datada há mais de N dias do ajuizamento (sinal de outorga em massa)"
-      parametros: { max_dias: 180, nota: "[A CONFERIR pelo advogado-dono]" }
+      parametros: { max_dias: 180, nota: "confirmado em 2026-10-19" }
       severidade: medium
       evidencia_esperada: "data_procuracao, data_ajuizamento e diferença em dias"
       implementada_em_m4: false
@@ -663,9 +713,9 @@ antifraude:
       implementada_em_m4: false
       calibrar: false
     - codigo: concentracao_advogado_mes
-      descricao: "Mesmo advogado com mais de N ações contra o cliente no mês"
-      parametros: { n_min: 30, janela_dias: 30, nota: "[A CONFERIR pelo advogado-dono] calibrar N com a carteira" }
-      severidade: low
+      descricao: "Mesmo advogado com N+ ações contra o cliente no mês — dois níveis: 'atencao' e 'forte'"
+      parametros: { niveis: { atencao: 10, forte: 30 }, janela_dias: 30, nota: "níveis fixados em 2026-10-19; 'atencao' habilita T10 nível (a); 'forte' é pré-requisito do nível (b)" }
+      severidade: medium
       evidencia_esperada: "lista de CNJs do mesmo advogado na janela"
       implementada_em_m4: false
       calibrar: true
@@ -759,10 +809,27 @@ modelo_peca:
 criterios_revisao:
   tempo_minimo_segundos: 900
   papel_minimo_revisor: lawyer
+  revisor_final: "advogado com OAB responsável pela carteira"
   exige_segunda_revisao_se:
-    - { campo: valor_causa, operador: ">", valor: 60000.0, nota: "[A CONFERIR pelo advogado-dono]" }
+    - { campo: valor_causa, operador: ">", valor: 30000.0, nota: "X05 — fixado em R$ 30 mil em 2026-10-19" }
     - { campo: autor_falecido, operador: "==", valor: true }
-    - { campo: indicio_fraude_contra_autor, operador: "==", valor: true }
+    - { campo: indicio_fraude_contra_autor, operador: "==", valor: true, nota: "X03" }
+    - { campo: conta_credito_titularidade, operador: in, valor: [terceiro, desconhecida], nota: "X02" }
+  exige_segunda_revisao_tambem:
+    - "Qualquer comunicação externa de padrão (T04/T10 níveis b e c) — além da dupla autorização."
+  autorizacao_dupla:
+    exigida_para:
+      - "T10/T04 nível (b): comunicação institucional de padrão ao Cijepa/NUMOPEDE do TJPA"
+      - "T10/T04 nível (c): representação à OAB-PA"
+    autorizadores: ["sócio FBS", "jurídico do cliente"]
+    registro: >-
+      Por escrito, antes do ato. A plataforma deve armazenar o registro da autorização
+      (documento/aceite, identidade e OAB/cargo de cada autorizador, data-hora, caso e nível)
+      vinculado ao case_id e ao draft, como trilha de auditoria imutável; sem registro, a
+      providência não sai da plataforma.
+  observacoes: >-
+    Tempo mínimo de 15 min confirmado em 2026-10-19: medir nas primeiras 50 peças; ajustar
+    só para cima, com justificativa registrada.
   checklist:
     - { id: R01, item: "Cada fato da peça tem citação de página dos autos ou documento anexo identificado", bloqueante: true }
     - { id: R02, item: "Todas as referências legais citadas estão marcadas como conferidas no playbook (nenhum placeholder sobrou no texto)", bloqueante: true }
@@ -772,7 +839,8 @@ criterios_revisao:
     - { id: R06, item: "Produto correto (consignado × RMC × RCC) e valores/datas batem com o dossiê", bloqueante: true }
     - { id: R07, item: "Pedidos subsidiários presentes (compensação, repetição simples, quantum)", bloqueante: true }
     - { id: R08, item: "Tom respeitoso com autor idoso/beneficiário; sem 'mero aborrecimento' em benefício mínimo comprometido", bloqueante: false }
-    - { id: R09, item: "Sinal de acordo avaliado e registrado (defender × acordar) antes de protocolar", bloqueante: false }
+    - { id: R09, item: "Sinal de acordo avaliado e registrado (defender × acordar) antes de protocolar; se acordo, recomendação FBS (valor + faixa) enviada ao jurídico do cliente", bloqueante: false }
+    - { id: R10, item: "Providências de nível (b)/(c) (comunicação ao Cijepa/NUMOPEDE, OAB-PA) só com dupla autorização por escrito registrada na plataforma", bloqueante: true }
   motivos_recusa_padrao:
     - "Fato sem prova citável"
     - "Tese aplicada sem prova necessária"

@@ -102,6 +102,7 @@ teses:
 # 5. EXCEÇÕES — situações em que a esteira NÃO deve seguir sozinha
 # -----------------------------------------------------------------------------
 # acao: nao_gerar_minuta | escalar_socio | sinalizar_acordo | pedir_subsidio | alertar_revisor
+#       | gerar_minuta_sem_merito | escalar_advogado_carteira  (acoes_paralelas: lista opcional)
 excecoes:
   - id: X01
     descricao: "Contrato não localizado pelo cliente"
@@ -128,8 +129,12 @@ sinais_acordo:
       moeda: BRL
       base: "[A CONFERIR pelo advogado-dono] calibrar com a carteira"
       calibrar: true
-  alcadas:
-    - { ate_valor: 0, aprovador: "advogado responsável" }
+  # Fluxo de aprovação (padrão desde 2026-10-19): a FBS recomenda, o cliente aprova.
+  # `alcadas` por valor é legado; use um dos dois.
+  fluxo_aprovacao:
+    recomendacao: "A FBS recomenda com valor sugerido e faixa."
+    aprovacao: "Toda proposta passa pelo jurídico do cliente."
+    registro: "A plataforma registra recomendação e decisão (quem, quando, valor)."
   decisao_final: "A decisão de acordar é do advogado/cliente; a plataforma só sinaliza."
 
 # -----------------------------------------------------------------------------
