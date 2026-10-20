@@ -2,6 +2,7 @@
 
 from app.models.audit import AuditLog
 from app.models.base import Base
+from app.models.benner import BennerCorrecao
 from app.models.credit import (
     Cedente,
     CollectionEvent,
@@ -51,6 +52,7 @@ __all__ = [
     "BasaAtoCobrado",
     "BasaFicha",
     "BasaRecebivel",
+    "BennerCorrecao",
     "TriagemEmail",
     "TriagemPapel",
     "DataJudProcesso",

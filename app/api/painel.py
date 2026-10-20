@@ -26,3 +26,8 @@ def painel_triagem() -> HTMLResponse:
 @router.get("/painel/oportunidades", response_class=HTMLResponse, include_in_schema=False)
 def painel_oportunidades() -> HTMLResponse:
     return HTMLResponse((_DIR / "painel_oportunidades.html").read_text("utf-8"), headers=_HEADERS)
+
+
+@router.get("/painel/correcoes", response_class=HTMLResponse, include_in_schema=False)
+def painel_correcoes() -> HTMLResponse:
+    return HTMLResponse((_DIR / "painel_correcoes.html").read_text("utf-8"), headers=_HEADERS)

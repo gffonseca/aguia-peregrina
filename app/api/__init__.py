@@ -2,6 +2,7 @@ from fastapi import APIRouter
 
 from app.api import (
     auth,
+    benner,
     cases,
     documents,
     dossiers,
@@ -38,3 +39,4 @@ api_router.include_router(jobs.router)
 api_router.include_router(faturamento.router)
 api_router.include_router(painel.router)
 api_router.include_router(triagem.router)
+api_router.include_router(benner.router)

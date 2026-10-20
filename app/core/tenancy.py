@@ -91,6 +91,7 @@ class TenantMiddleware(BaseHTTPMiddleware):
         "/painel/recebiveis",  # página estática; os dados vêm da API com X-Ops-Key
         "/painel/triagem",
         "/painel/oportunidades",
+        "/painel/correcoes",
     )
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:

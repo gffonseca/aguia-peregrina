@@ -33,6 +33,10 @@ def run(payload: dict[str, Any], *, client: DataJudClient | None = None) -> dict
             ex = rodar_motor(db, tenant_id, hoje=hoje)
             est = {k: v for k, v in (ex.estatisticas or {}).items() if k != "por_evento"}
             log.info("motor_basa ok execucao=%s %s", ex.id, est)
-            return {"execucao_id": str(ex.id), "datajud": sync, **est}
+            from app.modules.m14_benner.correcoes import gerar
+
+            corr = gerar(db, tenant_id)  # fila de correções do Benner com os dados do dia
+            log.info("correcoes_benner %s", corr)
+            return {"execucao_id": str(ex.id), "datajud": sync, "correcoes": corr, **est}
     finally:
         current_tenant_id.reset(token)

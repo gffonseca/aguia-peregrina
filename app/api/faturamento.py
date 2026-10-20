@@ -125,6 +125,9 @@ def pre_auditoria(competencia: str, db: Session = DB) -> Response:
 async def conferencia(
     competencia: str = Query(pattern=r"^\d{4}-\d{2}$"),
     formato: str = Query(default="xlsx", pattern="^(xlsx|json)$"),
+    registrar_pendencias: bool = Query(
+        default=True, description="ato sem peça vira item 'subir peça' na fila do Benner"
+    ),
     prestacao: UploadFile = File(...),
     documentos: list[UploadFile] = File(...),
     db: Session = DB,
@@ -132,7 +135,12 @@ async def conferencia(
 ) -> Response | dict[str, Any]:
     """Cada ato cobrado tem a peça no Benner? E que peças do mês ficaram sem cobrança?"""
     data, rs = conferir_prestacao(
-        db, competencia, await prestacao.read(), [await d.read() for d in documentos]
+        db,
+        competencia,
+        await prestacao.read(),
+        [await d.read() for d in documentos],
+        tenant_id=tenant_id,
+        registrar_pendencias=registrar_pendencias,
     )
     if formato == "json":
         return rs

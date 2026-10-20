@@ -99,7 +99,15 @@ def importar_fichas(db: Session, tenant_id: uuid.UUID, arquivos: Iterable[bytes]
             f.importado_em = agora
     db.commit()
     total = db.scalar(select(func.count()).select_from(BasaFicha)) or 0
-    return {"novas": novas, "atualizadas": atualizadas, "total": int(total)}
+    from app.modules.m14_benner.correcoes import verificar_com_fichas
+
+    confirmadas = verificar_com_fichas(db)  # o export novo mostra correções já aplicadas
+    return {
+        "novas": novas,
+        "atualizadas": atualizadas,
+        "total": int(total),
+        "correcoes_confirmadas": sum(confirmadas.values()),
+    }
 
 
 def fichas_ativas(db: Session) -> list[BasaFicha]:
@@ -181,7 +189,12 @@ def cobertura_das_prestacoes(db: Session) -> tuple[date, date] | None:
 
 
 def conferir_prestacao(
-    db: Session, competencia: str, prestacao: bytes, documentos: Iterable[bytes]
+    db: Session,
+    competencia: str,
+    prestacao: bytes,
+    documentos: Iterable[bytes],
+    tenant_id: uuid.UUID | None = None,
+    registrar_pendencias: bool = False,
 ) -> tuple[bytes, dict[str, Any]]:
     """Pré-auditoria + conferente do Benner, sem gravar nada: o escritório roda antes de enviar.
 
@@ -204,9 +217,16 @@ def conferir_prestacao(
         for a in db.scalars(select(BasaAtoCobrado).where(BasaAtoCobrado.competencia != competencia))
     ]
     res = conferir(auditadas, ler_documentos(list(documentos)), competencia, cobrados_outras=outras)
+    pend: dict[str, int] = {}
+    if registrar_pendencias and tenant_id is not None:
+        from app.modules.m14_benner.correcoes import registrar_pecas
+
+        pend = registrar_pecas(db, tenant_id, res)
     with tempfile.TemporaryDirectory() as d:
         out = Path(d) / "conf.xlsx"
         rs = gerar_excel(auditadas, competencia, out, conferencia=res)
+        if pend:
+            rs["correcoes_benner"] = pend
         return out.read_bytes(), rs
 
 
