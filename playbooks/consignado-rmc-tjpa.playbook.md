@@ -2,7 +2,7 @@
 
 > **Versão para leitura.** Este documento reproduz em prosa e tabelas o arquivo `consignado-rmc-tjpa.playbook.yaml`, que é a **fonte da verdade** ingerida pela plataforma. Comentários e correções podem ser feitos aqui (ou no Word exportado deste Markdown); quem mantém o playbook transporta para o YAML e roda a validação. Se os dois divergirem, vale o YAML.
 >
-> **Estado: EM REVISÃO (versão 1) — pronto para aprovação.** Sessão 1 em 19/10/2026 (decisões 1–16, [seção 11](#11-decisões-da-revisão-19102026)) e sessão 2 em 20/10/2026 ([seção 12](#12-decisões-da-revisão-20102026)), ambas por Gustavo Fonseca (OAB/PA 12.724). Na sessão 2 **todas as referências legais foram conferidas** contra o levantamento de 19/10/2026 (STJ, Planalto, CNJ e portal de jurisprudência do TJPA, out/2025–out/2026) e cada uma traz a fonte na `nota`. O validador já aceita `status: aprovado` (dry-run); a aprovação (nome, OAB, data/hora) é ato separado do advogado-dono. Pendência que fica sob monitoramento: **Tema 929/STJ** (ver T09).
+> **Estado: APROVADO — versão 1, 20/10/2026 07:52 (-03), por Gustavo Fonseca (OAB/PA 12.724). Qualquer mudança de conteúdo gera v2.** Sessão 1 em 19/10/2026 (decisões 1–16, [seção 11](#11-decisões-da-revisão-19102026)) e sessão 2 em 20/10/2026 ([seção 12](#12-decisões-da-revisão-20102026)), ambas por Gustavo Fonseca (OAB/PA 12.724). Na sessão 2 **todas as referências legais foram conferidas** contra o levantamento de 19/10/2026 (STJ, Planalto, CNJ e portal de jurisprudência do TJPA, out/2025–out/2026) e cada uma traz a fonte na `nota`. O validador já aceita `status: aprovado` (dry-run); a aprovação (nome, OAB, data/hora) é ato separado do advogado-dono. Pendência que fica sob monitoramento: **Tema 929/STJ** (ver T09).
 
 ## 1. Identificação
 

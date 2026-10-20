@@ -30,10 +30,10 @@ metadata:
   autor_nome: "Gustavo Fonseca"
   autor_oab: "PA 12724"
   criado_em: 2026-10-19T12:00:00-03:00
-  status: em_revisao
-  aprovado_por_nome: null
-  aprovado_por_oab: null
-  aprovado_em: null
+  status: aprovado
+  aprovado_por_nome: "Gustavo Fonseca"
+  aprovado_por_oab: "PA 12724"
+  aprovado_em: "2026-10-20T10:52:00+00:00"
   descricao: >-
     Ações de consumidor (geralmente aposentado/pensionista do INSS ou servidor) que negam
     a contratação de empréstimo consignado, cartão consignado com reserva de margem (RMC)

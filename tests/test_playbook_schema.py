@@ -37,7 +37,9 @@ def test_consignado_content_matches_spec() -> None:
     assert pb.metadata.tipologia == "consignado_rmc_nao_reconhecido"
     assert pb.metadata.tribunal == "TJPA"
     assert pb.metadata.lado == "defesa"
-    assert pb.metadata.status == "em_revisao"
+    assert pb.metadata.status == "aprovado"
+    assert pb.metadata.aprovado_por_oab == "PA 12724"
+    assert pb.metadata.aprovado_em is not None
     nomes = " ".join(t.nome.lower() for t in pb.teses)
     for termo in (
         "biometria",
@@ -138,10 +140,11 @@ def test_consignado_encodes_review_session_1_decisions() -> None:
 
 def test_consignado_encodes_review_session_2_decisions() -> None:
     """Decisões da sessão 2 (2026-10-20): referências conferidas contra o levantamento;
-    T01/T05/T06.1/T08/T09 ajustados. Status segue em_revisao (aprovação é ato separado)."""
+    T01/T05/T06.1/T08/T09 ajustados. Aprovado v1 em 20/10/2026 (Gustavo Fonseca, OAB/PA 12.724)."""
     pb = validate_playbook(CONSIGNADO)
-    assert pb.metadata.status == "em_revisao"
-    assert pb.metadata.aprovado_em is None
+    assert pb.metadata.status == "aprovado"
+    assert pb.metadata.aprovado_por_oab == "PA 12724"
+    assert pb.metadata.aprovado_em is not None
     assert pb.metadata.autor_nome == "Gustavo Fonseca"
     assert pb.metadata.autor_oab == "PA 12724"
     assert [r.data.isoformat() for r in pb.metadata.revisoes] == ["2026-10-19", "2026-10-20"]
