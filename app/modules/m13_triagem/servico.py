@@ -258,3 +258,54 @@ def marcar(db: Session, tid: uuid.UUID, status: str, por: str) -> dict[str, Any]
     t.tratado_em = datetime.now(UTC)
     db.commit()
     return _item(t)
+
+
+# --- intimações do DJEN (Comunica PJe) -----------------------------------------------------
+
+
+def sincronizar_intimacoes(
+    db: Session,
+    tenant_id: uuid.UUID,
+    provider: Any,
+    desde: Any,
+    oabs: list[str],
+    nome_parte: str | None,
+) -> dict[str, int]:
+    """Busca as comunicações do DJEN e põe na triagem as dos processos da carteira BASA (por
+    nome da parte) e todas as das OABs do escritório (por OAB). Vão para a caixa 'djen'."""
+    carteira = set(_fichas(db))
+    vistos: dict[str, Any] = {}
+    st: Counter[str] = Counter()
+    if nome_parte:
+        for r in provider.fetch(since=desde, nome_parte=nome_parte):
+            st["djen_parte"] += 1
+            if r.cnj_number and r.cnj_number in carteira:
+                vistos[r.provider_ref] = r
+    for oab in oabs:
+        for r in provider.fetch(since=desde, oab=oab):
+            st["djen_oab"] += 1
+            vistos[r.provider_ref] = r
+    emails = []
+    for r in vistos.values():
+        raw = r.raw or {}
+        tipo = raw.get("tipoComunicacao") or "Comunicação"
+        classe = raw.get("nomeClasse") or ""
+        orgao = raw.get("nomeOrgao") or ""
+        num = r.cnj_number or ""
+        cab = (
+            f"PROCESSO Nº {num[:7]}-{num[7:9]}.{num[9:13]}.{num[13:14]}.{num[14:16]}.{num[16:]}"
+            if len(num) == 20
+            else ""
+        )
+        emails.append(
+            Email(
+                id=f"djen:{r.provider_ref}",
+                remetente="djen@comunica.pje.jus.br",
+                assunto=f"DJEN — {tipo} — {r.court or ''} — {classe}".strip(" —"),
+                corpo=f"{cab}\n{orgao}\n{r.text}",
+                recebido_em=r.published_at.isoformat() + "Z" if r.published_at else "",
+                link=raw.get("link"),
+            )
+        )
+    res = ingerir(db, tenant_id, emails, "djen")
+    return {**dict(st), **{f"triagem_{k}": v for k, v in res.items()}}

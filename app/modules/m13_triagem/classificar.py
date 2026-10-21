@@ -139,15 +139,15 @@ def classificar(
         else:
             papel = "prazos_escritorio"
         alta = re.search(
-            r"decurso de prazo|julgad|sentenc|acordao|pauta|sessao|liminar|prescric|"
-            r"audiencia|penhora|bloqueio|extinc",
+            r"decurso de prazo|julgad|julgo|procedente|condeno|sentenc|acordao|pauta|sessao|"
+            r"liminar|prescric|audiencia|penhora|bloqueio|extinc",
             txt,
         )
         if "decurso de prazo" in txt:
             acao = "conferir no sistema do tribunal se houve resposta; se não houve, peticionar"
         elif "prescric" in txt:
             acao = "manifestar contra a prescrição intercorrente"
-        elif re.search(r"julgad|sentenc|acordao", txt):
+        elif re.search(r"julgad|julgo|procedente|condeno|sentenc|acordao", txt):
             acao = "ler a decisão e avaliar recurso no prazo"
         elif re.search(r"pauta|sessao", txt):
             acao = "acompanhar o julgamento; avaliar memoriais ou sustentação"

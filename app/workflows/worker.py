@@ -174,6 +174,44 @@ def ciclo_triagem(agora: datetime) -> bool:
     return True
 
 
+def ciclo_intimacoes(agora: datetime) -> bool:
+    """DJEN a cada INTIMACOES_INTERVALO_H horas (últimos 3 dias, idempotente)."""
+    import uuid
+    from datetime import timedelta
+
+    from app.integrations.publications.comunica_pje import ComunicaPjeProvider
+    from app.modules.m13_triagem.servico import sincronizar_intimacoes
+
+    s = get_settings()
+    if not s.intimacoes_ativas:
+        return False
+    ult = _ULTIMA_TRIAGEM.get("djen")
+    if ult and (agora - ult).total_seconds() < s.intimacoes_intervalo_h * 3600:
+        return False
+    tid = _tenant_id()
+    if not tid:
+        return False
+    _ULTIMA_TRIAGEM["djen"] = agora
+    oabs = [x.strip() for x in s.intimacoes_oabs.split(",") if x.strip()]
+    token = current_tenant_id.set(uuid.UUID(tid))
+    try:
+        with SessionLocal() as db:
+            r = sincronizar_intimacoes(
+                db,
+                uuid.UUID(tid),
+                ComunicaPjeProvider(),
+                agora.date() - timedelta(days=3),
+                oabs,
+                s.intimacoes_nome_parte,
+            )
+        log.info("intimacoes: %s", r)
+    except Exception:
+        log.exception("intimacoes: falhou")
+    finally:
+        current_tenant_id.reset(token)
+    return True
+
+
 def main() -> None:
     logging.basicConfig(level=get_settings().log_level)
     from app.core.observabilidade import iniciar_sentry
@@ -205,6 +243,10 @@ def main() -> None:
             ciclo_triagem(datetime.now(fuso))
         except Exception:
             log.exception("triagem: erro na verificação")
+        try:
+            ciclo_intimacoes(datetime.now(fuso))
+        except Exception:
+            log.exception("intimacoes: erro na verificação")
         time.sleep(60)
 
 

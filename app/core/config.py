@@ -62,6 +62,12 @@ class Settings(BaseSettings):
     msgraph_client_id: str | None = None
     msgraph_client_secret: str | None = None
 
+    # Intimações do DJEN (Comunica PJe, API pública): parte e OABs monitoradas
+    intimacoes_ativas: bool = True
+    intimacoes_nome_parte: str | None = "BANCO DA AMAZONIA"
+    intimacoes_oabs: str = "12724/PA"  # separadas por vírgula, formato NUMERO/UF
+    intimacoes_intervalo_h: int = 3
+
     # Legal One (Thomson Reuters) — OData somente leitura; credenciais client_credentials
     legalone_client_id: str | None = None
     legalone_client_secret: str | None = None

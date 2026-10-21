@@ -84,6 +84,28 @@ def reclassificar(
     return servico.reclassificar(db)
 
 
+@router.post("/intimacoes/sincronizar")
+def intimacoes(
+    dias: int = Query(default=3, ge=1, le=30),
+    db: Session = DB,
+    tenant_id: uuid.UUID = Depends(tenant_id_dep),
+) -> dict[str, int]:
+    from datetime import date, timedelta
+
+    from app.integrations.publications.comunica_pje import ComunicaPjeProvider
+
+    s = get_settings()
+    oabs = [x.strip() for x in s.intimacoes_oabs.split(",") if x.strip()]
+    return servico.sincronizar_intimacoes(
+        db,
+        tenant_id,
+        ComunicaPjeProvider(),
+        date.today() - timedelta(days=dias),
+        oabs,
+        s.intimacoes_nome_parte,
+    )
+
+
 @router.post("/sincronizar")
 def sincronizar(db: Session = DB, tenant_id: uuid.UUID = Depends(tenant_id_dep)) -> dict[str, int]:
     s = get_settings()
