@@ -19,6 +19,7 @@ button{border:1px solid var(--ln);background:var(--chip);border-radius:6px;paddi
 .top{display:flex;gap:8px;flex-wrap:wrap;align-items:baseline;justify-content:space-between}.as{font-weight:600}.mut{color:var(--mut);font-size:12px}.v{font-variant-numeric:tabular-nums;font-weight:600}
 .al{color:var(--al);font-size:12px;font-weight:600}.bt{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center}.bt input{flex:1;min-width:180px}
 #login{background:var(--card);border:1px solid var(--ln);border-radius:10px;padding:16px;max-width:420px;display:grid;gap:8px}#login[hidden],#app[hidden]{display:none}
+.lib{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px;padding-top:6px;border-top:1px dashed var(--ln)}.lib input[type=text]{min-width:110px}
 .nota{background:var(--card);border:1px dashed var(--ln);border-radius:8px;padding:8px 12px;color:var(--mut);font-size:13px}
 a{color:var(--ac)}
 </style>
@@ -27,7 +28,7 @@ a{color:var(--ac)}
 <header>
   <nav style="font-size:13px;margin-bottom:6px"><a href="/painel/gestao">Gestão</a> · <a href="/painel/oportunidades">Atos a praticar</a> · <a href="/painel/correcoes">Correções no Benner</a> · <a href="/painel/triagem">Triagem de e-mails</a> · <a href="/painel/recebiveis">Recebíveis</a></nav>
   <h1>Correções no Benner</h1>
-  <p>Cada item traz a evidência. Copie a ficha, abra o Benner, corrija e marque "Feito". O próximo export do Benner confirma sozinho. Se o seu perfil não puder editar, baixe a planilha e envie à CCONS.</p>
+  <p>Cada item traz a evidência. Duas saídas: corrigir à mão no Benner e marcar "Feito", ou preencher o que só o advogado decide (motivo/êxito do encerramento; arquivo da peça) e "Liberar p/ robô". O próximo export do Benner confirma sozinho.</p>
 </header>
 <main>
   <form id="login" hidden></form>
@@ -35,7 +36,7 @@ a{color:var(--ac)}
     <div class="kpis" id="kpis"></div>
     <div class="barra tabs" id="tabs"></div>
     <div class="barra">
-      <label>Situação <select id="st"><option value="pendente">pendentes</option><option value="feito">feitos (aguardando export)</option><option value="confirmado">confirmados</option><option value="nao_procede">não procede</option></select></label>
+      <label>Situação <select id="st"><option value="pendente">pendentes</option><option value="aprovado">liberados p/ o robô</option><option value="feito">feitos (aguardando export)</option><option value="confirmado">confirmados</option><option value="nao_procede">não procede</option></select></label>
       <button id="baixar" type="button">Baixar planilha (CCONS)</button>
       <button id="gerar" type="button">Recalcular agora</button>
       <a id="benner" target="_blank" rel="noopener">Abrir o Benner</a>
@@ -50,22 +51,31 @@ let cred={},tipo="SITUACAO",dados=null;
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const T={SITUACAO:"Situação (encerrar)",NUMERO_PROCESSO:"Nº do processo",FICHA_INEXISTENTE:"Ficha inexistente",SUBIR_PECA:"Subir peça"};
 const api=(p,o={})=>Sessao.api(p,o);
+const MOTIVOS=["A CONFIRMAR","Acordo","Arquivado","Arquivado - Desistência da parte contrária","Decisão Judicial sem julgamento do mérito","DUPLICIDADE COM OUTRA PASTA","EM PARTE","Improcedente","PASTA INCONSISTENTE","Procedente","Procedente em parte"];
+function lib(i,n){if(!["pendente","aprovado"].includes(i.status))return"";const s=i.parametros||i.sugestao||{};
+  if(i.tipo==="SITUACAO")return `<div class="lib" data-lib="${n}"><span class="mut">Robô encerra com:</span><input type="text" name="data" placeholder="data dd/mm/aaaa" value="${esc(s.data||"")}"><select name="motivo"><option value="">motivo…</option>${MOTIVOS.map(m=>`<option ${m===s.motivo?"selected":""}>${esc(m)}</option>`).join("")}</select><select name="exito"><option value="">êxito?</option><option value="sim" ${s.exito==="sim"?"selected":""}>êxito: sim</option><option value="nao" ${s.exito==="nao"?"selected":""}>êxito: não</option></select><button data-aprovar="${n}" class="pri">${i.status==="aprovado"?"Atualizar":"Liberar p/ robô"}</button></div>`;
+  if(i.tipo==="SUBIR_PECA")return `<div class="lib" data-lib="${n}"><span class="mut">Robô sobe:</span><input type="file" name="arquivo"><span class="mut">${esc(i.anexo_nome||"sem arquivo")}</span><input type="text" name="nome" placeholder="nome" value="${esc(s.nome||"")}"><input type="text" name="tipo" placeholder="tipo (ex.: Petição)" value="${esc(s.tipo||"Petição")}"><input type="text" name="data" placeholder="data dd/mm/aaaa" value="${esc(s.data||"")}"><button data-aprovar="${n}" class="pri">${i.status==="aprovado"?"Atualizar":"Liberar p/ robô"}</button></div>`;
+  return""}
 async function carregar(){
   const st=document.getElementById("st").value;
   dados=await api(`/benner/correcoes?status=${st}&tipo=${tipo}&limite=300`);
   document.getElementById("benner").href=dados.benner_url;
   const R=dados.resumo,pend=k=>(R[k]||{}).pendente||0,tot=s=>Object.values(R).reduce((a,v)=>a+(v[s]||0),0);
-  document.getElementById("kpis").innerHTML=[["Pendentes",tot("pendente")],["Feitos, aguardando export",tot("feito")],["Confirmados no Benner",tot("confirmado")],["Não procede",tot("nao_procede")]].map(([a,b])=>`<div class="kpi"><span>${a}</span><b>${b}</b></div>`).join("");
+  document.getElementById("kpis").innerHTML=[["Pendentes",tot("pendente")],["Na fila do robô",tot("aprovado")],["Feitos, aguardando export",tot("feito")],["Confirmados no Benner",tot("confirmado")],["Não procede",tot("nao_procede")]].map(([a,b])=>`<div class="kpi"><span>${a}</span><b>${b}</b></div>`).join("");
   document.getElementById("tabs").innerHTML=Object.entries(T).map(([k,v])=>`<button data-t="${k}" aria-pressed="${k===tipo}">${v} (${pend(k)})</button>`).join("");
   document.getElementById("lista").innerHTML=(dados.total>dados.itens.length?`<p class="mut">Mostrando ${dados.itens.length} de ${dados.total}. A planilha traz todos.</p>`:"")+dados.itens.map((i,n)=>`<div class="it ${i.confianca==="alta"?"":"passou"}" style="${i.confianca==="alta"?"border-left-color:var(--ac)":""}">
    <div class="top"><span class="as">${esc(i.ficha||"—")} · ${esc(i.processo||"")}</span><span class="mut">${i.confianca==="alta"?"evidência forte":"conferir antes"}</span></div>
    <div><b>${esc(i.campo||"")}:</b> ${esc(i.valor_atual||"")} → <b>${esc(i.valor_proposto||"")}</b></div>
    <div class="mut">${esc(i.evidencia||"")}${i.aplicado_por?` · feito por ${esc(i.aplicado_por)}`:""}${i.observacao?" · "+esc(i.observacao):""}</div>
    <div class="bt"><button data-copiar="${esc(i.ficha||"")}">Copiar ficha</button><input placeholder="observação (motivo se não procede)" data-obs="${n}">
-   ${i.status!=="feito"&&i.status!=="confirmado"?`<button data-n="${n}" data-s="feito" class="pri">Feito</button>`:""}${i.status==="pendente"?`<button data-n="${n}" data-s="nao_procede">Não procede</button>`:`<button data-n="${n}" data-s="pendente">Reabrir</button>`}</div></div>`).join("")||`<p class="mut">Nada aqui.</p>`;
+   ${i.status!=="feito"&&i.status!=="confirmado"?`<button data-n="${n}" data-s="feito" class="pri">Feito</button>`:""}${i.status==="pendente"?`<button data-n="${n}" data-s="nao_procede">Não procede</button>`:`<button data-n="${n}" data-s="pendente">Reabrir</button>`}</div>${lib(i,n)}</div>`).join("")||`<p class="mut">Nada aqui.</p>`;
 }
 document.getElementById("lista").addEventListener("click",async e=>{const b=e.target;
   if(b.dataset.copiar!==undefined){try{await navigator.clipboard.writeText(b.dataset.copiar);b.textContent="Copiado"}catch(err){b.textContent=b.dataset.copiar}setTimeout(()=>b.textContent="Copiar ficha",1200);return}
+  if(b.dataset.aprovar!==undefined){const i=dados.itens[+b.dataset.aprovar],box=document.querySelector(`[data-lib="${b.dataset.aprovar}"]`),v=k=>(box.querySelector(`[name=${k}]`)||{}).value;b.disabled=true;
+    try{const f=box.querySelector("input[type=file]");if(f&&f.files[0]){const fd=new FormData();fd.append("arquivo",f.files[0]);await api(`/benner/correcoes/${i.id}/anexo`,{method:"POST",body:fd})}
+      const parametros=i.tipo==="SITUACAO"?{data:v("data"),motivo:v("motivo"),exito:v("exito")}:{nome:v("nome"),tipo:v("tipo"),data:v("data")};
+      await api(`/benner/correcoes/${i.id}/aprovar`,{method:"POST",body:JSON.stringify({parametros})});await carregar()}catch(err){alert("Não liberou: "+err.message);b.disabled=false}return}
   if(b.dataset.n===undefined)return;const i=dados.itens[+b.dataset.n],inp=document.querySelector(`input[data-obs="${b.dataset.n}"]`),obs=inp.value.trim();
   if(b.dataset.s==="nao_procede"&&!obs){inp.focus();inp.placeholder="diga o motivo para marcar Não procede";return}
   b.disabled=true;try{await api("/benner/correcoes/"+i.id,{method:"PATCH",body:JSON.stringify({status:b.dataset.s,observacao:obs||null})});await carregar()}catch(err){alert("Não salvou: "+err.message);b.disabled=false}});

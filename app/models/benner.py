@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from datetime import date, datetime
 
-from sqlalchemy import Date, DateTime, String, Text, UniqueConstraint
+from sqlalchemy import Date, DateTime, LargeBinary, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import JSONType, TenantModel
@@ -30,13 +30,19 @@ class BennerCorrecao(TenantModel):
     confianca: Mapped[str] = mapped_column(String(10), default="alta")  # alta | media
     evidencia: Mapped[str | None] = mapped_column(Text)
     origem: Mapped[str | None] = mapped_column(String(60))  # datajud, prestacao, conferencia
-    # pendente → feito (equipe/robô) → confirmado (visto no export seguinte) | nao_procede
+    # pendente → aprovado (advogado liberou p/ o robô, com os parâmetros) → feito (equipe/robô)
+    # → confirmado (visto no export seguinte) | nao_procede | superado
     status: Mapped[str] = mapped_column(String(14), default="pendente", index=True)
     aplicado_por: Mapped[str | None] = mapped_column(String(80))  # pessoa ou "robô"
     aplicado_em: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     confirmado_em: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     observacao: Mapped[str | None] = mapped_column(Text)
     historico: Mapped[list] = mapped_column(JSONType, default=list)
+    # o que o advogado decidiu ao liberar para o robô: SITUACAO → data/motivo/êxito do
+    # encerramento; SUBIR_PECA → nome, tipo e data do documento (o arquivo vai em `anexo`)
+    parametros: Mapped[dict | None] = mapped_column(JSONType)
+    anexo_nome: Mapped[str | None] = mapped_column(String(255))
+    anexo: Mapped[bytes | None] = mapped_column(LargeBinary, deferred=True)
 
 
 class BennerDocumento(TenantModel):

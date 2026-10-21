@@ -142,3 +142,81 @@ def test_gerar_marcar_e_confirmar(db: Session, as_tenant) -> None:  # type: igno
         assert r3["superados"] == 1
         c3 = db.scalar(select(BennerCorrecao).where(BennerCorrecao.ficha == "CIVE.3/2015"))
         assert c3 is not None and c3.status == "superado"
+
+
+def test_liberar_para_o_robo(db: Session, as_tenant) -> None:  # type: ignore[no-untyped-def]
+    import pytest
+
+    t = Tenant(name="FBS robô", kind="law_firm")
+    db.add(t)
+    db.commit()
+    with as_tenant(t.id):
+        db.add_all(
+            [
+                _f(t, "CIVE.1/2024", ARQ),
+                _dj(
+                    t,
+                    ARQ,
+                    [(1, "Distribuído", "2024-01-10"), (22, "Baixa Definitiva", "2025-05-02")],
+                ),
+            ]
+        )
+        db.commit()
+        correcoes.gerar(db, t.id)
+        sit = db.scalars(select(BennerCorrecao).where(BennerCorrecao.tipo == "SITUACAO")).one()
+        assert correcoes._item(sit)["sugestao"]["data"] == "02/05/2025"
+        with pytest.raises(ValueError, match="motivo"):
+            correcoes.aprovar(db, sit.id, "adv@fbs", {"data": "02/05/2025", "motivo": "x"})
+        with pytest.raises(ValueError, match="êxito"):
+            correcoes.aprovar(db, sit.id, "adv@fbs", {"data": "02/05/2025", "motivo": "Arquivado"})
+        with pytest.raises(ValueError, match="futura"):
+            correcoes.aprovar(
+                db, sit.id, "adv@fbs", {"data": "01/01/2099", "motivo": "Acordo", "exito": "sim"}
+            )
+        it = correcoes.aprovar(
+            db, sit.id, "adv@fbs", {"data": "2025-05-02", "motivo": "Acordo", "exito": "sim"}
+        )
+        assert it["status"] == "aprovado"
+        assert it["parametros"] == {
+            "situacao": "Encerrado",
+            "data": "02/05/2025",
+            "motivo": "Acordo",
+            "exito": "sim",
+        }
+        # regerar não "supera" o que o advogado liberou
+        correcoes.gerar(db, t.id)
+        assert [i["ficha"] for i in correcoes.fila_robo(db)] == ["CIVE.1/2024"]
+
+        peca = BennerCorrecao(
+            tenant_id=t.id,
+            tipo="SUBIR_PECA",
+            chave="SUBIR_PECA|CIVE.1/2024|x",
+            ficha="CIVE.1/2024",
+            cnj=ARQ,
+            campo="Documentos",
+            valor_proposto="Petição interlocutória de 15/09/2026",
+            status="pendente",
+            historico=[],
+        )
+        db.add(peca)
+        db.commit()
+        assert correcoes._item(peca)["sugestao"] == {
+            "nome": "PETIÇÃO INTERLOCUTÓRIA",
+            "tipo": "Petição",
+            "data": "15/09/2026",
+        }
+        with pytest.raises(ValueError, match="anexe"):
+            correcoes.aprovar(
+                db, peca.id, "adv@fbs", {"nome": "P", "tipo": "Petição", "data": "15/09/2026"}
+            )
+        with pytest.raises(ValueError, match="formato"):
+            correcoes.anexar(db, peca.id, "adv@fbs", "peca.exe", b"x")
+        correcoes.anexar(db, peca.id, "adv@fbs", "peça.pdf", b"%PDF-1.4 ...")
+        correcoes.aprovar(
+            db, peca.id, "adv@fbs", {"nome": "P", "tipo": "Petição", "data": "15/09/2026"}
+        )
+        assert len(correcoes.fila_robo(db)) == 2
+        # robô aplicou → feito; NUMERO_PROCESSO continua manual
+        correcoes.marcar(db, sit.id, "feito", "robô Benner", "robô: encerrada")
+        assert [i["tipo"] for i in correcoes.fila_robo(db)] == ["SUBIR_PECA"]
+        assert db.get(BennerCorrecao, peca.id).anexo == b"%PDF-1.4 ..."  # type: ignore[union-attr]

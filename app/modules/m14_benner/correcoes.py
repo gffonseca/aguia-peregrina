@@ -9,9 +9,10 @@ Quatro tipos, cada um com a evidência que justifica a correção:
   também não está em outra ficha) → pedir o cadastro à CCONS ou corrigir a prestação.
 - SUBIR_PECA: ato cobrado sem a peça no Benner (vem do conferente) → subir o documento.
 
-Ciclo: pendente → feito (pessoa ou robô) → confirmado (o export seguinte do Benner mostra a
-correção) | nao_procede (com motivo). Regerar a fila não duplica nem reabre o que a equipe já
-tratou; só atualiza a evidência do que segue pendente.
+Ciclo: pendente → aprovado (advogado libera para o robô com os parâmetros: data/motivo/êxito
+do encerramento ou o arquivo da peça) → feito (pessoa ou robô) → confirmado (o export seguinte
+do Benner mostra a correção) | nao_procede (com motivo). Regerar a fila não duplica nem
+reabre o que a equipe já tratou; só atualiza a evidência do que segue pendente.
 """
 
 from __future__ import annotations
@@ -34,7 +35,23 @@ from app.modules.m12_faturamento.tabela import normalizar
 
 ATIVAS = {"em andamento", "em encerramento", "em reativacao"}
 TIPOS = ("SITUACAO", "NUMERO_PROCESSO", "FICHA_INEXISTENTE", "SUBIR_PECA")
-STATUS = ("pendente", "feito", "confirmado", "nao_procede", "superado")
+STATUS = ("pendente", "aprovado", "feito", "confirmado", "nao_procede", "superado")
+# lista "Motivo de encerramento do processo" do Benner (BASA), mapeada em 20/10/2026
+MOTIVOS_ENCERRAMENTO = (
+    "A CONFIRMAR",
+    "Acordo",
+    "Arquivado",
+    "Arquivado - Desistência da parte contrária",
+    "Decisão Judicial sem julgamento do mérito",
+    "DUPLICIDADE COM OUTRA PASTA",
+    "EM PARTE",
+    "Improcedente",
+    "PASTA INCONSISTENTE",
+    "Procedente",
+    "Procedente em parte",
+)
+ANEXO_MAX = 20 * 1024 * 1024
+ANEXO_EXT = (".pdf", ".docx", ".doc", ".msg", ".jpg", ".jpeg", ".png", ".zip")
 BENNER_URL = "https://basa.bennercloud.com.br/JURIDICO/"
 
 
@@ -259,7 +276,7 @@ def registrar_pecas(db: Session, tenant_id: uuid.UUID, conferencia: Any) -> dict
             ] += 1
         else:
             x = existentes.get(chave[:300])
-            if x is not None and x.status in ("pendente", "feito"):
+            if x is not None and x.status in ("pendente", "aprovado", "feito"):
                 x.status, x.confirmado_em = "confirmado", agora
                 st["confirmados"] += 1
     db.commit()
@@ -272,7 +289,7 @@ def verificar_com_fichas(db: Session) -> dict[str, int]:
     agora = _agora()
     st: Counter[str] = Counter()
     for c in db.scalars(
-        select(BennerCorrecao).where(BennerCorrecao.status.in_(("pendente", "feito")))
+        select(BennerCorrecao).where(BennerCorrecao.status.in_(("pendente", "aprovado", "feito")))
     ):
         f = fichas.get(c.ficha or "")
         ok = False
@@ -314,7 +331,105 @@ def _item(c: BennerCorrecao) -> dict[str, Any]:
         "aplicado_em": c.aplicado_em.isoformat() if c.aplicado_em else None,
         "confirmado_em": c.confirmado_em.isoformat() if c.confirmado_em else None,
         "observacao": c.observacao,
+        "parametros": c.parametros,
+        "anexo_nome": c.anexo_nome,
+        "sugestao": _sugestao(c),
     }
+
+
+def _sugestao(c: BennerCorrecao) -> dict[str, str] | None:
+    """Pré-preenchimento do formulário de liberação (o advogado confere e decide)."""
+    m = re.search(r"(\d{2}/\d{2}/\d{4})", f"{c.evidencia or ''} {c.valor_proposto or ''}")
+    if c.tipo == "SITUACAO":
+        return {"data": m.group(1) if m else "", "motivo": "", "exito": ""}
+    if c.tipo == "SUBIR_PECA":
+        nome = re.sub(r" de \d{2}/\d{2}/\d{4}$", "", c.valor_proposto or "").strip()
+        return {"nome": nome.upper()[:120], "tipo": "Petição", "data": m.group(1) if m else ""}
+    return None
+
+
+def _data_br(v: Any) -> str:
+    s = str(v or "").strip()
+    try:
+        d = date.fromisoformat(s) if "-" in s else datetime.strptime(s, "%d/%m/%Y").date()
+    except ValueError:
+        raise ValueError(f"data inválida: {s!r} (use dd/mm/aaaa)") from None
+    if d > _agora().date():
+        raise ValueError("a data não pode ser futura")
+    return d.strftime("%d/%m/%Y")
+
+
+def aprovar(db: Session, cid: uuid.UUID, por: str, parametros: dict[str, Any]) -> dict[str, Any]:
+    """Advogado libera o item para o robô, com o que só ele pode decidir."""
+    c = db.get(BennerCorrecao, cid)
+    if c is None:
+        raise KeyError(cid)
+    if c.status not in ("pendente", "aprovado"):
+        raise ValueError(f"item está '{c.status}': só pendentes podem ir para o robô")
+    if c.tipo == "SITUACAO":
+        motivo = str(parametros.get("motivo") or "").strip()
+        if motivo not in MOTIVOS_ENCERRAMENTO:
+            raise ValueError("escolha o motivo de encerramento da lista do Benner")
+        exito = str(parametros.get("exito") or "").strip().lower()
+        if exito not in ("sim", "nao"):
+            raise ValueError("diga se houve êxito (sim/nao)")
+        p: dict[str, Any] = {
+            "situacao": "Encerrado",
+            "data": _data_br(parametros.get("data")),
+            "motivo": motivo,
+            "exito": exito,
+        }
+    elif c.tipo == "SUBIR_PECA":
+        if not c.anexo_nome:
+            raise ValueError("anexe o arquivo da peça antes de liberar")
+        nome = str(parametros.get("nome") or "").strip()
+        tipo_doc = str(parametros.get("tipo") or "").strip()
+        if not nome or not tipo_doc:
+            raise ValueError("informe o nome e o tipo do documento")
+        p = {"nome": nome[:200], "tipo": tipo_doc[:80], "data": _data_br(parametros.get("data"))}
+    else:
+        raise ValueError("este tipo de correção ainda é manual (sem robô)")
+    agora = _agora()
+    c.parametros, c.status = p, "aprovado"
+    c.historico = [
+        *(c.historico or []),
+        {"em": agora.isoformat(timespec="seconds"), "por": por[:80], "status": "aprovado", **p},
+    ]
+    db.commit()
+    return _item(c)
+
+
+def anexar(db: Session, cid: uuid.UUID, por: str, nome: str, dados: bytes) -> dict[str, Any]:
+    c = db.get(BennerCorrecao, cid)
+    if c is None:
+        raise KeyError(cid)
+    if c.tipo != "SUBIR_PECA":
+        raise ValueError("só itens 'Subir peça' recebem arquivo")
+    if c.status not in ("pendente", "aprovado"):
+        raise ValueError(f"item está '{c.status}'")
+    if not dados or len(dados) > ANEXO_MAX:
+        raise ValueError("arquivo vazio ou maior que 20 MB")
+    if not nome.lower().endswith(ANEXO_EXT):
+        raise ValueError("formato não aceito (" + ", ".join(ANEXO_EXT) + ")")
+    agora = _agora()
+    c.anexo, c.anexo_nome = dados, nome[:255]
+    c.historico = [
+        *(c.historico or []),
+        {"em": agora.isoformat(timespec="seconds"), "por": por[:80], "anexo": nome[:255]},
+    ]
+    db.commit()
+    return _item(c)
+
+
+def fila_robo(db: Session, limite: int = 10) -> list[dict[str, Any]]:
+    """O que o robô pode aplicar agora: só itens aprovados, mais antigos primeiro."""
+    sel = db.scalars(
+        select(BennerCorrecao)
+        .where(BennerCorrecao.status == "aprovado")
+        .order_by(BennerCorrecao.ficha)
+        .limit(limite)
+    )
+    return [_item(c) for c in sel]
 
 
 def listar(
@@ -337,7 +452,7 @@ def listar(
 def marcar(
     db: Session, cid: uuid.UUID, status: str, por: str, observacao: str | None = None
 ) -> dict[str, Any]:
-    if status not in ("pendente", "feito", "nao_procede"):
+    if status not in ("pendente", "feito", "nao_procede"):  # "aprovado" só via aprovar()
         raise ValueError("status inválido")
     if status == "nao_procede" and not (observacao or "").strip():
         raise ValueError("diga o motivo para marcar 'não procede'")

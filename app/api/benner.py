@@ -4,12 +4,17 @@
 - `GET  /benner/correcoes?status=pendente&tipo=`: itens e resumo.
 - `GET  /benner/correcoes.xlsx?status=pendente`: lote para a CCONS.
 - `PATCH /benner/correcoes/{id}` `{"status": "feito"|"nao_procede"|"pendente", "observacao"}`.
+- `POST /benner/correcoes/{id}/anexo` (multipart `arquivo`): a peça a subir (SUBIR_PECA).
+- `POST /benner/correcoes/{id}/aprovar` `{parametros}`: advogado libera para o robô.
+- `GET  /benner/correcoes/robo?limite=10`: o que o robô pode aplicar agora (só aprovados).
+- `GET  /benner/correcoes/{id}/anexo`: o arquivo, para o robô subir.
 """
 
 from __future__ import annotations
 
 import uuid
 from typing import Any
+from urllib.parse import quote
 
 from fastapi import APIRouter, Body, Depends, File, HTTPException, Query, UploadFile
 from fastapi.responses import Response
@@ -80,6 +85,62 @@ def planilha(status: str = "pendente", db: Session = DB) -> Response:
         correcoes.planilha(db, status=status),
         media_type=XLSX,
         headers={"Content-Disposition": 'attachment; filename="correcoes-benner.xlsx"'},
+    )
+
+
+@router.get("/correcoes/robo")
+def fila_robo(limite: int = Query(default=10, ge=1, le=50), db: Session = DB) -> dict[str, Any]:
+    itens = correcoes.fila_robo(db, limite)
+    return {"motivos": list(correcoes.MOTIVOS_ENCERRAMENTO), "total": len(itens), "itens": itens}
+
+
+@router.post("/correcoes/{cid}/aprovar")
+def aprovar(
+    cid: uuid.UUID,
+    corpo: dict[str, Any] = Body(...),
+    op: Operador = Depends(require_operador),
+    db: Session = DB,
+) -> dict[str, Any]:
+    if op.via != "login":
+        raise HTTPException(403, "liberação para o robô exige login de advogado (não a chave)")
+    try:
+        return correcoes.aprovar(db, cid, op.email, corpo.get("parametros") or {})
+    except KeyError:
+        raise HTTPException(404, "item não encontrado") from None
+    except ValueError as e:
+        raise HTTPException(422, str(e)) from None
+
+
+@router.post("/correcoes/{cid}/anexo")
+async def anexar(
+    cid: uuid.UUID,
+    arquivo: UploadFile = File(...),
+    op: Operador = Depends(require_operador),
+    db: Session = DB,
+) -> dict[str, Any]:
+    try:
+        return correcoes.anexar(
+            db, cid, op.email, arquivo.filename or "peca.pdf", await arquivo.read()
+        )
+    except KeyError:
+        raise HTTPException(404, "item não encontrado") from None
+    except ValueError as e:
+        raise HTTPException(422, str(e)) from None
+
+
+@router.get("/correcoes/{cid}/anexo")
+def baixar_anexo(cid: uuid.UUID, db: Session = DB) -> Response:
+    from app.models.benner import BennerCorrecao
+
+    c = db.get(BennerCorrecao, cid)
+    if c is None or not c.anexo:
+        raise HTTPException(404, "sem arquivo")
+    return Response(
+        c.anexo,
+        media_type="application/octet-stream",
+        headers={
+            "Content-Disposition": "attachment; filename*=UTF-8''" + quote(c.anexo_nome or "")
+        },
     )
 
 

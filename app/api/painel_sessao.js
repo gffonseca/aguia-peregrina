@@ -19,7 +19,9 @@
       return h;
     },
     async api(p, o = {}) {
-      const r = await fetch(p, { ...o, headers: { ...S.headers(), ...(o.headers || {}) } });
+      const h = { ...S.headers(), ...(o.headers || {}) };
+      if (o.body instanceof FormData) delete h["Content-Type"];  // o navegador põe o boundary
+      const r = await fetch(p, { ...o, headers: h });
       if (r.status === 401) { ss.del("tok"); S.tok = null; throw new Error("sessão expirada — entre de novo"); }
       if (!r.ok) throw new Error(r.status + " " + (await r.text()));
       return (r.headers.get("content-type") || "").includes("json") ? r.json() : r.blob();
