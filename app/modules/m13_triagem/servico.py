@@ -55,9 +55,22 @@ def ingerir(
     fichas = _fichas(db)
     carteira = set(fichas)
     c: Counter[str] = Counter()
+    sem_texto: dict[str, TriagemEmail] = {}
+    if caixa == "djen":  # intimações gravadas antes de guardarmos o texto integral
+        sem_texto = {
+            t.mensagem_id: t
+            for t in db.scalars(
+                select(TriagemEmail).where(
+                    TriagemEmail.caixa == "djen", TriagemEmail.texto_integral.is_(None)
+                )
+            )
+        }
     for e in emails:
         if e.id in ja:
             c["repetidos"] += 1
+            if e.id in sem_texto:
+                sem_texto[e.id].texto_integral = _texto_limpo(e.corpo, 30000)
+                c["texto_completado"] += 1
             continue
         tr = classificar(e, carteira=carteira)
         rec = None
