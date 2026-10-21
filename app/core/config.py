@@ -63,7 +63,8 @@ class Settings(BaseSettings):
     msgraph_client_secret: str | None = None
 
     # Intimações do DJEN (Comunica PJe, API pública): parte e OABs monitoradas
-    intimacoes_ativas: bool = True
+    # o DJEN recusa IP de fora do Brasil: no Railway (EUA) a busca fica com o relay do Mac
+    intimacoes_ativas: bool = False
     intimacoes_nome_parte: str | None = "BANCO DA AMAZONIA"
     intimacoes_oabs: str = "12724/PA"  # separadas por vírgula, formato NUMERO/UF
     intimacoes_intervalo_h: int = 3

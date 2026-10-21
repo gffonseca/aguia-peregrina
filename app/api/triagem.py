@@ -106,6 +106,24 @@ def intimacoes(
     )
 
 
+@router.post("/intimacoes/importar")
+def intimacoes_importar(
+    corpo: dict[str, list[dict[str, Any]]] = Body(...),
+    db: Session = DB,
+    tenant_id: uuid.UUID = Depends(tenant_id_dep),
+) -> dict[str, int]:
+    """Itens crus do DJEN enviados pelo relay: `{"por_parte": [...], "por_oab": [...]}`."""
+    from app.integrations.publications.comunica_pje import ComunicaPjeProvider
+
+    m = ComunicaPjeProvider._map
+    return servico.importar_intimacoes(
+        db,
+        tenant_id,
+        [m(i) for i in corpo.get("por_parte", [])],
+        [m(i) for i in corpo.get("por_oab", [])],
+    )
+
+
 @router.post("/sincronizar")
 def sincronizar(db: Session = DB, tenant_id: uuid.UUID = Depends(tenant_id_dep)) -> dict[str, int]:
     s = get_settings()

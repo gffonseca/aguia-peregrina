@@ -271,20 +271,29 @@ def sincronizar_intimacoes(
     oabs: list[str],
     nome_parte: str | None,
 ) -> dict[str, int]:
-    """Busca as comunicações do DJEN e põe na triagem as dos processos da carteira BASA (por
-    nome da parte) e todas as das OABs do escritório (por OAB). Vão para a caixa 'djen'."""
+    """Busca no DJEN e manda para a triagem. A API do DJEN recusa IP de fora do Brasil (403):
+    em produção quem busca é o relay no Mac do escritório (scripts/djen_relay.py), que chama
+    `importar_intimacoes`; esta função fica para rodar de dentro do Brasil."""
+    por_parte = list(provider.fetch(since=desde, nome_parte=nome_parte)) if nome_parte else []
+    por_oab = [r for oab in oabs for r in provider.fetch(since=desde, oab=oab)]
+    return importar_intimacoes(db, tenant_id, por_parte, por_oab)
+
+
+def importar_intimacoes(
+    db: Session, tenant_id: uuid.UUID, por_parte: list[Any], por_oab: list[Any]
+) -> dict[str, int]:
+    """Comunicações do DJEN → triagem (caixa 'djen'). As buscadas pelo nome do Banco só entram
+    se o processo é da carteira; as das OABs do escritório entram todas."""
     carteira = set(_fichas(db))
     vistos: dict[str, Any] = {}
     st: Counter[str] = Counter()
-    if nome_parte:
-        for r in provider.fetch(since=desde, nome_parte=nome_parte):
-            st["djen_parte"] += 1
-            if r.cnj_number and r.cnj_number in carteira:
-                vistos[r.provider_ref] = r
-    for oab in oabs:
-        for r in provider.fetch(since=desde, oab=oab):
-            st["djen_oab"] += 1
+    for r in por_parte:
+        st["djen_parte"] += 1
+        if r.cnj_number and r.cnj_number in carteira:
             vistos[r.provider_ref] = r
+    for r in por_oab:
+        st["djen_oab"] += 1
+        vistos[r.provider_ref] = r
     emails = []
     for r in vistos.values():
         raw = r.raw or {}
