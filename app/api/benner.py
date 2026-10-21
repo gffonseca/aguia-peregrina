@@ -36,6 +36,25 @@ async def documentos(
     return {"lidos": len(docs), **guardar_documentos(db, tenant_id, docs)}
 
 
+@router.post("/conciliacao/legalone", response_model=None)
+async def conciliacao_legalone(
+    arquivo: UploadFile = File(...),
+    formato: str = Query(default="xlsx", pattern="^(xlsx|json)$"),
+    db: Session = DB,
+) -> Response | dict[str, Any]:
+    """Export do Legal One × carteira do Benner → o que cadastrar, conferir e encerrar."""
+    from app.modules.m14_benner.conciliacao import conciliar, ler_legalone
+
+    dados, rs = conciliar(db, ler_legalone(await arquivo.read(), arquivo.filename or ""))
+    if formato == "json":
+        return rs
+    return Response(
+        dados,
+        media_type=XLSX,
+        headers={"Content-Disposition": 'attachment; filename="conciliacao-benner-legalone.xlsx"'},
+    )
+
+
 @router.post("/correcoes/gerar")
 def gerar(db: Session = DB, tenant_id: uuid.UUID = Depends(tenant_id_dep)) -> dict[str, int]:
     return correcoes.gerar(db, tenant_id)
