@@ -306,6 +306,57 @@ def fila_decisao(
         raise HTTPException(422, str(e)) from None
 
 
+class RascunhoIn(BaseModel):
+    processo: str
+    evento: str
+    data_evento: date
+
+
+@router.post("/fila/rascunho")
+def fila_rascunho(
+    d: RascunhoIn,
+    op: Operador = Depends(require_operador),
+    db: Session = DB,
+    tenant_id: uuid.UUID = Depends(tenant_id_dep),
+) -> dict[str, Any]:
+    """A IA redige a peça do item da fila (rascunho para revisão)."""
+    from app.modules.m12_faturamento import rascunhos
+
+    cnj = "".join(c for c in d.processo if c.isdigit())
+    try:
+        r = rascunhos.gerar(db, tenant_id, cnj, d.evento, d.data_evento, op.email)
+    except KeyError as e:
+        raise HTTPException(404, str(e)) from None
+    return rascunhos.item(r)
+
+
+@router.get("/rascunhos")
+def rascunhos_lista(processo: str | None = None, db: Session = DB) -> list[dict[str, Any]]:
+    from app.models.faturamento import RascunhoPeca
+    from app.modules.m12_faturamento import rascunhos
+
+    q = select(RascunhoPeca).order_by(RascunhoPeca.criado_em.desc())
+    if processo:
+        q = q.where(RascunhoPeca.cnj == "".join(c for c in processo if c.isdigit()))
+    return [rascunhos.item(r) for r in db.scalars(q.limit(200))]
+
+
+@router.get("/rascunhos/{rid}.docx")
+def rascunho_docx(rid: uuid.UUID, db: Session = DB) -> Response:
+    from app.models.faturamento import RascunhoPeca
+    from app.modules.m12_faturamento import rascunhos
+
+    r = db.get(RascunhoPeca, rid)
+    if r is None:
+        raise HTTPException(404, "rascunho não encontrado")
+    nome = f"rascunho-{r.ato_id or 'peca'}-{r.cnj}.docx"
+    return Response(
+        rascunhos.docx(r),
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        headers={"Content-Disposition": f'attachment; filename="{nome}"'},
+    )
+
+
 @router.get("/oportunidades")
 def oportunidades(
     status: str | None = Query(

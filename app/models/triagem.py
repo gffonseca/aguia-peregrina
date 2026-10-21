@@ -24,6 +24,8 @@ class TriagemEmail(TenantModel):
     remetente: Mapped[str] = mapped_column(String(200))
     assunto: Mapped[str] = mapped_column(String(500))
     trecho: Mapped[str | None] = mapped_column(Text)
+    # intimações do DJEN: o texto inteiro da decisão (base para a IA redigir a peça)
+    texto_integral: Mapped[str | None] = mapped_column(Text)
     link: Mapped[str | None] = mapped_column(Text)
     conversa: Mapped[str | None] = mapped_column(String(400))
     categoria: Mapped[str] = mapped_column(String(30), index=True)

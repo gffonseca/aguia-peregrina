@@ -19,6 +19,7 @@ from app.models.faturamento import (
     MotorExecucao,
     MotorOportunidade,
     OportunidadeDecisao,
+    RascunhoPeca,
 )
 from app.models.integrations import LegalOneRecord, LegalOneSyncRun
 from app.models.jurimetria import JmAward, JmCollection, JmDuration, JmOutcome, JmReversal
@@ -60,6 +61,7 @@ __all__ = [
     "MotorExecucao",
     "MotorOportunidade",
     "OportunidadeDecisao",
+    "RascunhoPeca",
     "Case",
     "CaseParty",
     "Cedente",

@@ -156,3 +156,21 @@ class OportunidadeDecisao(TenantModel):
     observacao: Mapped[str | None] = mapped_column(Text)
     por: Mapped[str] = mapped_column(String(80))
     em: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class RascunhoPeca(TenantModel):
+    """Peça redigida pela IA a partir de uma oportunidade do motor (SUGESTÃO para revisão)."""
+
+    __tablename__ = "rascunhos_pecas"
+
+    cnj: Mapped[str] = mapped_column(String(20), index=True)
+    evento: Mapped[str] = mapped_column(String(80))
+    data_evento: Mapped[date] = mapped_column(Date)
+    ato_id: Mapped[str | None] = mapped_column(String(60))
+    ficha: Mapped[str | None] = mapped_column(String(30))
+    conteudo: Mapped[str] = mapped_column(Text)  # Markdown
+    fontes: Mapped[dict] = mapped_column(JSONType, default=dict)  # o que a IA recebeu
+    modelo: Mapped[str | None] = mapped_column(String(80))
+    status: Mapped[str] = mapped_column(String(14), default="gerado")  # gerado|revisado|descartado
+    criado_por: Mapped[str] = mapped_column(String(80))
+    criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True))

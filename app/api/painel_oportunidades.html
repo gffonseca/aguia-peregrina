@@ -45,6 +45,12 @@ a{color:var(--ac)}
     <div id="lista"></div>
   </section>
 </main>
+<dialog id="dlg" style="max-width:860px;width:calc(100% - 32px);border:1px solid var(--ln);border-radius:10px;background:var(--card);color:var(--tx)">
+  <h3 id="dlgt" style="margin-top:0">Rascunho</h3>
+  <pre id="dlgm" style="white-space:pre-wrap;font:13px/1.5 ui-monospace,monospace;background:var(--bg);padding:12px;border-radius:8px;max-height:65vh;overflow:auto"></pre>
+  <button id="dlgdocx" class="pri" type="button">Baixar .docx</button> <button id="dlgcop" type="button">Copiar</button> <button type="button" onclick="document.getElementById('dlg').close()">Fechar</button>
+  <p class="mut">Gerado por IA a partir da ficha, dos movimentos do tribunal e, quando há, do texto da intimação no DJEN. Revisão obrigatória antes do protocolo.</p>
+</dialog>
 <script src="/painel/sessao.js"></script>
 <script>
 let cred={},tipo="gatilhos",dados=null;
@@ -68,9 +74,16 @@ async function carregar(){
    <div class="mut">${esc(i.observacao||"")}${i.movimento&&i.movimento!=="—"?" · movimento: "+esc(i.movimento):""}</div>
    ${i.decisao?`<div class="mut"><b>Decisão:</b> ${DEC[i.decisao]} por ${esc(i.decisao_por)}${i.decisao_obs?" — "+esc(i.decisao_obs):""}</div>`:""}
    <div class="bt"><input placeholder="observação (motivo, nº do protocolo...)" data-obs="${n}">
-   <button data-n="${n}" data-d="feito" class="pri">Feito</button><button data-n="${n}" data-d="nao_cabe">Não cabe</button><button data-n="${n}" data-d="em_andamento">Em andamento</button>${i.decisao?`<button data-n="${n}" data-d="">Desfazer</button>`:""}</div></div>`).join("")||`<p class="mut">Nada nesta fila.</p>`;
+   ${i.ato&&tipo!=="alertas"?`<button data-r="${n}">Rascunho (IA)</button>`:""}<button data-n="${n}" data-d="feito" class="pri">Feito</button><button data-n="${n}" data-d="nao_cabe">Não cabe</button><button data-n="${n}" data-d="em_andamento">Em andamento</button>${i.decisao?`<button data-n="${n}" data-d="">Desfazer</button>`:""}</div></div>`).join("")||`<p class="mut">Nada nesta fila.</p>`;
 }
-document.getElementById("lista").addEventListener("click",async e=>{const b=e.target;if(b.dataset.n===undefined||b.dataset.d===undefined)return;const i=dados.itens[+b.dataset.n];
+let rasc=null;
+document.getElementById("dlgdocx").onclick=async()=>{if(!rasc)return;const b=await api(`/faturamento/basa/rascunhos/${rasc.id}.docx`);const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=`rascunho-${rasc.ato||"peca"}-${rasc.processo}.docx`;a.click()};
+document.getElementById("dlgcop").onclick=()=>{try{navigator.clipboard.writeText(rasc.conteudo)}catch(e){}};
+document.getElementById("lista").addEventListener("click",async e=>{const b=e.target;
+  if(b.dataset.r!==undefined){const i=dados.itens[+b.dataset.r];b.disabled=true;b.textContent="Redigindo… (até 1 min)";
+    try{rasc=await api("/faturamento/basa/fila/rascunho",{method:"POST",body:JSON.stringify({processo:i.processo,evento:i.evento,data_evento:i.data_evento})});
+      document.getElementById("dlgt").textContent=`${i.ato_rotulo} — ${fmtCnj(i.processo)}${rasc.fontes&&rasc.fontes.intimacao_djen?" · com o texto da intimação":""}`;document.getElementById("dlgm").textContent=rasc.conteudo;document.getElementById("dlg").showModal()}
+    catch(err){alert("Não gerou: "+err.message)}finally{b.disabled=false;b.textContent="Rascunho (IA)"}return}if(b.dataset.n===undefined||b.dataset.d===undefined)return;const i=dados.itens[+b.dataset.n];
   const obs=document.querySelector(`input[data-obs="${b.dataset.n}"]`).value.trim();
   if(b.dataset.d==="nao_cabe"&&!obs){document.querySelector(`input[data-obs="${b.dataset.n}"]`).focus();document.querySelector(`input[data-obs="${b.dataset.n}"]`).placeholder="diga o motivo para marcar Não cabe";return}
   b.disabled=true;try{await api("/faturamento/basa/fila/decisao",{method:"POST",body:JSON.stringify({processo:i.processo,evento:i.evento,data_evento:i.data_evento,decisao:b.dataset.d||null,observacao:obs||null})});await carregar()}catch(err){alert("Não salvou: "+err.message);b.disabled=false}});

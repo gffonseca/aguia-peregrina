@@ -75,6 +75,7 @@ def ingerir(
                 remetente=e.remetente[:200],
                 assunto=(e.assunto or "")[:500],
                 trecho=_texto_limpo(e.corpo),
+                texto_integral=_texto_limpo(e.corpo, 30000) if caixa == "djen" else None,
                 link=e.link,
                 conversa=(e.conversa or None) and e.conversa[:400],
                 categoria=tr.categoria,
