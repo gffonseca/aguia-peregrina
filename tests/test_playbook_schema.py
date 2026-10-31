@@ -284,7 +284,7 @@ def test_execucao_basa_encodes_review_session_1_decisions() -> None:
     Referências legais seguem todas `conferido: false` (não validadas ainda)."""
     pb = validate_playbook(EXECUCAO_BASA)
     assert pb.metadata.status == "em_revisao"
-    assert [r.data.isoformat() for r in pb.metadata.revisoes] == ["2026-10-20"]
+    assert pb.metadata.revisoes[0].data.isoformat() == "2026-10-20"
     assert "12.724" in pb.metadata.revisoes[0].por and "Sessão 1" in pb.metadata.revisoes[0].resumo
     assert pb.referencias_nao_conferidas()
     assert all(not a.conferido for a in pb.gatilhos_classificacao.assuntos_cnj)
@@ -511,3 +511,36 @@ def test_to_thesis_payloads_matches_m0_model() -> None:
     # Em um rascunho, o placeholder continua sendo propagado para o body_markdown.
     rascunho = to_thesis_payloads(validate_playbook(TEMPLATE))
     assert any("[A CONFERIR pelo advogado-dono]" in p["body_markdown"] for p in rascunho)
+
+
+def test_execucao_basa_aplica_checklist_de_validacao() -> None:
+    """Correções do checklist de 20/10/2026 aplicadas em 31/10/2026, sem validação de OAB:
+    códigos TPU trocados, CPC 833 §2º (50 SM), Súmula 150 do STF, CCB trienal e
+    Lei 14.995 vencida."""
+    pb = validate_playbook(EXECUCAO_BASA)
+    rev = pb.metadata.revisoes[-1]
+    assert rev.data.isoformat() == "2026-10-31" and "pendente de validação" in rev.por
+    # nada vira conferido sem o advogado-dono
+    assert all(not a.conferido for a in pb.gatilhos_classificacao.assuntos_cnj)
+    assert all(not c.conferido for c in pb.gatilhos_classificacao.classes_cnj)
+
+    assuntos = {a.codigo: a.nome for a in pb.gatilhos_classificacao.assuntos_cnj}
+    assert "11806" not in assuntos  # é Empréstimo consignado
+    assert assuntos["4960"].startswith("Cédula de Crédito Bancário")
+    assert assuntos["9163"].startswith("Penhora") and assuntos["9582"].startswith("Alienação")
+    assert {"4964", "4976", "4963", "4969", "9518", "4962", "4968"} <= set(assuntos)
+    assert "1118" not in {c.codigo for c in pb.gatilhos_classificacao.classes_cnj}
+
+    refs = [
+        r for t in pb.teses for r in [*t.fundamentacao.dispositivos, *t.fundamentacao.precedentes]
+    ]
+    textos = " ".join(r.ref for r in refs)
+    assert "Res. CMN 4.966/2021" in textos
+    assert "50 SM" in textos and "Tema 1.230" in textos
+    for velho in ("Tema 1.064", "EREsp 1.582.475", "REsp 1.526.287", "Res. CMN 2.682/1999 ("):
+        assert velho not in textos, velho
+    assert any(r.ref.startswith("STF, Súmula 150") for r in refs)
+    campos = {c.campo: c for c in pb.campos_dossie_obrigatorios}
+    assert "3 anos para CCB" in campos["prescricao_titulo_data_limite"].descricao
+    t066 = pb.tese("T06.6")
+    assert "31/12/2025" in t066.resumo

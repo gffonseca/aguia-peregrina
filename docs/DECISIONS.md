@@ -61,7 +61,11 @@ Formato: contexto → decisão → consequências. Uma entrada por decisão; nun
 
 **Status:** aceita
 
-**Decisão.** `railway.json` com Nixpacks e `Procfile` com dois processos: `web` (migra e sobe uvicorn) e `worker` (`python -m app.workflows.worker`). Postgres (plugin com pgvector) e Redis como serviços do projeto. Bucket S3-compatível do Railway para autos.
+**Decisão.** Build pelo `Dockerfile` (`railway.json`: `builder: DOCKERFILE`, `preDeployCommand: alembic upgrade head`, healthcheck `/health`) e `Procfile` com dois processos: `web` (uvicorn) e `worker` (`python -m app.workflows.worker`). Postgres (plugin com pgvector) e Redis como serviços do projeto. Bucket S3-compatível do Railway para autos (ainda não provisionado).
+
+**Consequência.** Como o `web` roda a migração no pre-deploy, push em `main` = deploy + migração em produção.
+
+_Revisão 31/10/2026: a versão original citava Nixpacks; o deploy sempre usou o `Dockerfile`._
 
 ## ADR-007 — Trilha de auditoria e princípios OAB codificados
 
