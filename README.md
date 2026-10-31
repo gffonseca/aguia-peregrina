@@ -23,14 +23,14 @@ FastAPI (web)  ──►  Postgres 16 + pgvector (RLS por tenant)
    │                Hatchet (workflows duráveis) ── fallback in-process
    │
    ├── app/core/        config, sessão, tenancy, segurança (MFA), auditoria
-   ├── app/models/      33 tabelas (defesa, crédito, jurimetria), todas com tenant_id
-   ├── app/api/         routers por módulo
-   ├── app/modules/     regras de negócio: m00…m11 (defesa) + credit/ (compra)
+   ├── app/models/      47 tabelas (defesa, crédito, jurimetria, faturamento, triagem, Benner), todas com tenant_id
+   ├── app/api/         routers por módulo + painel.py (painéis HTML /painel/*)
+   ├── app/modules/     regras de negócio: m00…m11 (defesa), m12…m14 (BASA) + credit/ (compra)
    ├── app/llm/         gateway LiteLLM; log de toda chamada em llm_calls
    ├── app/workflows/   engine adapter + jobs
-   ├── app/integrations publications (Comunica PJe, Solucionare), ERP, DataJud, Legal One
+   ├── app/integrations publications (Comunica PJe/DJEN, Solucionare), ERP, DataJud, Legal One, Microsoft Graph
    ├── app/evals/       harness de ground truth
-   └── alembic/         migração inicial: schema + RLS + audit_log append-only
+   └── alembic/         0001 (schema + RLS + audit_log append-only) … 0010 (correções do robô)
 ```
 
 Stack fixada: Python 3.12 · FastAPI · SQLAlchemy 2 + Alembic · Postgres (pgvector) · Redis · Hatchet · LiteLLM · pydantic-settings · Railway.
@@ -54,6 +54,14 @@ Stack fixada: Python 3.12 · FastAPI · SQLAlchemy 2 + Alembic · Postgres (pgve
 | M10 Write-back | `modules/m10_writeback` | `outcomes`, `erp_writebacks` | Resultado/motivo/fase para o ERP do cliente |
 | M11 Qualidade | `modules/m11_qualidade` + `evals/` | `gt_tasks` | Ground truth: modelo × revisor × sênior |
 | Transversal | `core/` | `tenants`, `users`, `audit_log`, `llm_calls` | MFA, tenant_id em tudo, logs de LLM |
+
+### Contrato BASA FB1798 (M12–M14)
+
+| Módulo | Pacote | Tabelas | Função |
+|---|---|---|---|
+| M12 Faturamento | `modules/m12_faturamento` | `basa_fichas`, `basa_atos_cobrados`, `datajud_processos`, `motor_execucoes`, `motor_oportunidades`, `motor_decisoes`, `basa_recebiveis`, `rascunhos_pecas` | Prestação mensal por ato (Anexo I/II) e pré-auditoria contra glosa; **motor** diário (DataJud incremental → atos cobráveis abertos/perdidos → fila por pessoa com retorno "feito / não cabe"); recebíveis (cl. 18ª); rascunho da peça pela IA (.md/.docx). Painéis `/painel/gestao`, `/painel/oportunidades`, `/painel/recebiveis` |
+| M13 Triagem | `modules/m13_triagem` | `triagem_emails`, `triagem_papeis` | Triagem da caixa basa@ (Graph só `Mail.Read`, sem enviar/mover/apagar) e intimações do DJEN via relay no Brasil (`scripts/djen_relay.py`). Painel `/painel/triagem` |
+| M14 Benner | `modules/m14_benner` | `benner_correcoes`, `benner_documentos` | Fila de correções no Benner (situação, número, ficha inexistente, subir peça) com evidência; robô Playwright (`scripts/benner_robo.py`) só grava com `--confirmar` e encerramento exige motivo/êxito escolhidos por advogado; conciliação Benner × Legal One. Painel `/painel/correcoes` |
 
 ### Compra de créditos (N1–N6)
 
@@ -215,4 +223,10 @@ O script é idempotente (reaproveita tenant, playbook, processo por `external_re
 
 ## Estado
 
-Esqueleto executável: modelos, migração inicial, API com os fluxos de aprovação/bloqueio, pricing engine com os quatro exemplos testados, adaptadores de workflow/LLM/integrações como stubs documentados. Próximos passos: OCR por visão real, prompts de dossiê/minuta com evals, conector do provedor de publicações, Monte Carlo e lookups nas tabelas `jm_*`.
+Em produção no Railway (`web` + `worker` + pgvector + Redis), build pelo `Dockerfile`; migrações até `0010_correcoes_robo`.
+
+- **Defesa (M0–M7):** E2E M0→M7 rodando com caso sintético (≈ US$ 0,38/processo); playbook consignado/RMC TJPA **aprovado v1** (20/10/2026); execução BASA `em_revisao` (correções do checklist aplicadas, aguardando validação); energia, aéreo e trabalhista em rascunho.
+- **BASA (M12–M14):** motor diário às `MOTOR_BASA_HORA` no worker `in_process`, painéis de gestão/oportunidades/recebíveis/correções/triagem, login individual com TOTP, intimações do DJEN pelo relay no Mac. Robô do Benner implementado, **ainda sem teste de ponta a ponta** no sistema do cliente.
+- **Compra de créditos (N1–N6):** pricing engine com os quatro exemplos testados.
+
+Próximos passos: OCR por visão dos autos digitalizados, bucket S3-compatível para arquivos, prompts de dossiê/minuta com evals, Monte Carlo e lookups nas tabelas `jm_*` no pricing, conector do provedor de publicações.

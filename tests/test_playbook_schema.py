@@ -270,9 +270,9 @@ def test_execucao_basa_is_polo_ativo_draft() -> None:
         "monitória",
     ):
         assert termo in nomes, termo
-    # Rascunho: nada conferido ainda.
-    assert pb.referencias_nao_conferidas()
-    assert all(not a.conferido for a in pb.gatilhos_classificacao.assuntos_cnj)
+    # Sessão 2 (31/10/2026): referências e códigos validados; status segue em_revisao.
+    assert not pb.referencias_nao_conferidas()
+    assert all(a.conferido for a in pb.gatilhos_classificacao.assuntos_cnj)
     assert pb.sinais_acordo.fluxo_aprovacao is not None
     # Peça de impulso é curta: tempo mínimo menor que o da contestação (900 s).
     assert 60 <= pb.criterios_revisao.tempo_minimo_segundos < 900
@@ -284,10 +284,8 @@ def test_execucao_basa_encodes_review_session_1_decisions() -> None:
     Referências legais seguem todas `conferido: false` (não validadas ainda)."""
     pb = validate_playbook(EXECUCAO_BASA)
     assert pb.metadata.status == "em_revisao"
-    assert [r.data.isoformat() for r in pb.metadata.revisoes] == ["2026-10-20"]
+    assert pb.metadata.revisoes[0].data.isoformat() == "2026-10-20"
     assert "12.724" in pb.metadata.revisoes[0].por and "Sessão 1" in pb.metadata.revisoes[0].resumo
-    assert pb.referencias_nao_conferidas()
-    assert all(not a.conferido for a in pb.gatilhos_classificacao.assuntos_cnj)
     campos = {c.campo: c for c in pb.campos_dossie_obrigatorios}
     texto = EXECUCAO_BASA.read_text(encoding="utf-8")
 
@@ -511,3 +509,43 @@ def test_to_thesis_payloads_matches_m0_model() -> None:
     # Em um rascunho, o placeholder continua sendo propagado para o body_markdown.
     rascunho = to_thesis_payloads(validate_playbook(TEMPLATE))
     assert any("[A CONFERIR pelo advogado-dono]" in p["body_markdown"] for p in rascunho)
+
+
+def test_execucao_basa_aplica_checklist_de_validacao() -> None:
+    """Correções do checklist de 20/10/2026 aplicadas e validadas em 31/10/2026 (sessão 2):
+    códigos TPU trocados, CPC 833 §2º (50 SM), Súmula 150 do STF, CCB trienal e
+    Lei 14.995 vencida; citações sem fonte removidas."""
+    pb = validate_playbook(EXECUCAO_BASA)
+    aplicacao, sessao2 = pb.metadata.revisoes[-2:]
+    assert "pendente de validação" in aplicacao.por
+    assert sessao2.data.isoformat() == "2026-10-31" and "12.724" in sessao2.por
+    assert pb.metadata.status == "em_revisao"
+    # toda referência conferida diz quem conferiu e a fonte
+    refs = [
+        r for t in pb.teses for r in [*t.fundamentacao.dispositivos, *t.fundamentacao.precedentes]
+    ]
+    assert refs and all(r.conferido and r.nota.startswith("Conferido 31/10/2026") for r in refs)
+    assert all(c.conferido for c in pb.gatilhos_classificacao.classes_cnj)
+    for removida in ("penhora de safra futura", "Res. 1.129", "atos praticados após o óbito"):
+        assert not any(removida in r.ref for r in refs), removida
+
+    assuntos = {a.codigo: a.nome for a in pb.gatilhos_classificacao.assuntos_cnj}
+    assert "11806" not in assuntos  # é Empréstimo consignado
+    assert assuntos["4960"].startswith("Cédula de Crédito Bancário")
+    assert assuntos["9163"].startswith("Penhora") and assuntos["9582"].startswith("Alienação")
+    assert {"4964", "4976", "4963", "4969", "9518", "4962", "4968"} <= set(assuntos)
+    assert "1118" not in {c.codigo for c in pb.gatilhos_classificacao.classes_cnj}
+
+    refs = [
+        r for t in pb.teses for r in [*t.fundamentacao.dispositivos, *t.fundamentacao.precedentes]
+    ]
+    textos = " ".join(r.ref for r in refs)
+    assert "Res. CMN 4.966/2021" in textos
+    assert "50 SM" in textos and "Tema 1.230" in textos
+    for velho in ("Tema 1.064", "EREsp 1.582.475", "REsp 1.526.287", "Res. CMN 2.682/1999 ("):
+        assert velho not in textos, velho
+    assert any(r.ref.startswith("STF, Súmula 150") for r in refs)
+    campos = {c.campo: c for c in pb.campos_dossie_obrigatorios}
+    assert "3 anos para CCB" in campos["prescricao_titulo_data_limite"].descricao
+    t066 = pb.tese("T06.6")
+    assert "31/12/2025" in t066.resumo
