@@ -7,8 +7,10 @@
 # Em 31/10/2026 foram aplicadas as correções do checklist de validação de 20/10/2026
 # (reports/"Checklist validacao execucao BASA.md"): códigos TPU, CPC 833, Súmula 150 STF,
 # Temas 1.137/1.210/1.230/1.235/1.325/1.406, CCB trienal, Res. CMN 4.966, Lei 14.995 vencida.
-# A `nota` de cada referência diz "checklist 20/10: OK/corrigido/inserido/NÃO LOCALIZADO".
-# Tudo continua `conferido: false` até a sessão de validação do advogado-dono. A sessão 1 fixou
+# Sessão 2 (31/10/2026, Gustavo Fonseca OAB/PA 12.724): referências e códigos validados — a `nota`
+# diz a fonte (levantamento de 20/10, Planalto lido em 31/10 ou validação do advogado sem leitura
+# do texto pela esteira); 5 citações sem fonte foram removidas. Status segue `em_revisao` até as
+# pendências do BASA (portal, alçadas, piso, SLA). A sessão 1 fixou
 # DECISÕES DE PROCESSO (triagem, impulso, embargos, acordo, monitoramento, amostra);
 # os números marcados `provisorio`/ILUSTRATIVO continuam a calibrar com a carteira e
 # com o BASA. O validador recusa `status: aprovado` enquanto houver pendência.
@@ -89,8 +91,8 @@ metadata:
     TJPA é o principal (63,5% da carteira) e o TJAM (34,8%) é coberto por este mesmo playbook —
     as diferenças (Itacoatiara, cartas precatórias, correspondentes) estão em T10 e nas faixas
     por grupo de comarcas. Os códigos CNJ de classe/assunto vieram da tabela TPU de memória, foram
-    corrigidos pelo checklist de 20/10/2026 (validação no DataJud) e seguem `conferido: false`
-    até a validação do advogado-dono. O portal do BASA (contratos/cédulas, garantias, extratos,
+    corrigidos pelo checklist de 20/10/2026 (validação no DataJud) e validados na sessão 2
+    (31/10/2026). O portal do BASA (contratos/cédulas, garantias, extratos,
     saldo devedor e cálculo atualizado) é o subsídio central; a documentação/API foi solicitada
     ao banco (pendência externa em `piloto.pendencias_externas`). Os pesos do score de
     recuperabilidade (T01) são ilustrativos e devem ser calibrados por replay sobre processos
@@ -102,6 +104,9 @@ metadata:
     - data: 2026-10-31
       por: "Claude (esteira) — sem OAB; pendente de validação de Gustavo Fonseca OAB/PA 12.724"
       resumo: "Correções do checklist de validação de 20/10/2026 aplicadas no YAML (códigos TPU, CPC 833 §2º 50 SM, Súmula 150 STF, Temas 1.137/1.210/1.230/1.235/1.325/1.406, prescrição trienal da CCB e das cédulas, Res. CMN 4.966/2021, Lei 14.995/2024 vencida em 31/12/2025, Lei 8.929 art. 19 revogado, Lei AM 6.646/2023); referências seguem conferido: false"
+    - data: 2026-10-31
+      por: "Gustavo Fonseca OAB/PA 12.724"
+      resumo: "Sessão 2 (execução): validação das referências e códigos CNJ — blocos aprovados com fonte do levantamento de 20/10/2026; artigos não lidos pela esteira validados pelo advogado-dono; removidas 5 citações sem fonte ou genéricas (penhora de safra, Res. CMN 1.129, excesso em exceção, atos após óbito, comparecimento espontâneo); política do BASA retirada da fundamentação (pendência externa); status mantido em_revisao"
   piloto:
     cliente_piloto: "Banco da Amazônia S.A. (BASA) — carteira já patrocinada pela FBS (16.656 processos ativos)"
     plano: >-
@@ -140,36 +145,36 @@ gatilhos_classificacao:
   assuntos_cnj:
     # Checklist 20/10/2026 (DataJud/TPU): 11806 é Empréstimo consignado, não CCB → CCB = 4960;
     # 4850/4852/4851/4847/9582/10670 trocados pelos códigos corretos; 4849 inexistente (pai 7717).
-    - { codigo: "4960", nome: "Cédula de Crédito Bancário — 43,8% da carteira (atribuído no Legal One ao 11806 = Empréstimo consignado; rever a distribuição) [checklist 20/10: corrigido 11806→4960 — validar]", conferido: false }
-    - { codigo: "9607", nome: "Contratos Bancários — 9,7% [checklist 20/10: OK — validar]", conferido: false }
-    - { codigo: "4964", nome: "Cédula de Crédito Rural — 8,7% [checklist 20/10: corrigido 4850→4964 — validar]", conferido: false }
-    - { codigo: "4976", nome: "Nota de Crédito Rural — 2,6% [checklist 20/10: corrigido 4852→4976 — validar]", conferido: false }
-    - { codigo: "7717", nome: "Espécies de Títulos de Crédito (pai; 4849 'Crédito Rural genérico' não existe no índice) [checklist 20/10: conferir 'Crédito Rural' no SGT]", conferido: false }
-    - { codigo: "4963", nome: "Cédula de Crédito Industrial [checklist 20/10: corrigido 4851→4963 — validar]", conferido: false }
-    - { codigo: "4969", nome: "Cédula Hipotecária [checklist 20/10: corrigido 4847 (= Seguro)→4969 — validar]", conferido: false }
-    - { codigo: "9163", nome: "Penhora / Depósito / Avaliação [checklist 20/10: corrigido 9582→9163 (códigos estavam trocados) — validar]", conferido: false }
-    - { codigo: "9518", nome: "Efeito Suspensivo / Impugnação / Embargos à Execução [checklist 20/10: corrigido 10670 (= Obrigação de Entregar)→9518 — validar]", conferido: false }
-    - { codigo: "9582", nome: "Alienação Fiduciária [checklist 20/10: corrigido 9163→9582 (códigos estavam trocados) — validar]", conferido: false }
+    - { codigo: "4960", nome: "Cédula de Crédito Bancário — 43,8% da carteira (atribuído no Legal One ao 11806 = Empréstimo consignado; rever a distribuição)", conferido: true }
+    - { codigo: "9607", nome: "Contratos Bancários — 9,7%", conferido: true }
+    - { codigo: "4964", nome: "Cédula de Crédito Rural — 8,7%", conferido: true }
+    - { codigo: "4976", nome: "Nota de Crédito Rural — 2,6%", conferido: true }
+    - { codigo: "7717", nome: "Espécies de Títulos de Crédito (pai; 4849 'Crédito Rural genérico' não existe no índice)", conferido: true }
+    - { codigo: "4963", nome: "Cédula de Crédito Industrial", conferido: true }
+    - { codigo: "4969", nome: "Cédula Hipotecária", conferido: true }
+    - { codigo: "9163", nome: "Penhora / Depósito / Avaliação", conferido: true }
+    - { codigo: "9518", nome: "Efeito Suspensivo / Impugnação / Embargos à Execução", conferido: true }
+    - { codigo: "9582", nome: "Alienação Fiduciária", conferido: true }
     # INSERIDOS pelo checklist 20/10/2026
-    - { codigo: "4962", nome: "Cédula de Crédito Comercial [checklist 20/10: inserido — validar]", conferido: false }
-    - { codigo: "4968", nome: "Cédula de Produto Rural (CPR) [checklist 20/10: inserido — validar]", conferido: false }
-    - { codigo: "4980", nome: "Nota Promissória [checklist 20/10: inserido — validar]", conferido: false }
-    - { codigo: "9180", nome: "Expropriação de Bens [checklist 20/10: inserido — validar]", conferido: false }
-    - { codigo: "5632", nome: "Prescrição e Decadência [checklist 20/10: inserido — validar]", conferido: false }
-    - { codigo: "10684", nome: "Juros [checklist 20/10: inserido — validar]", conferido: false }
-    - { codigo: "10585", nome: "Capitalização / Anatocismo [checklist 20/10: inserido — validar]", conferido: false }
-    - { codigo: "10855", nome: "Comissão de Permanência [checklist 20/10: inserido — validar]", conferido: false }
-    - { codigo: "4854", nome: "Revisão do Saldo Devedor [checklist 20/10: inserido — validar]", conferido: false }
+    - { codigo: "4962", nome: "Cédula de Crédito Comercial", conferido: true }
+    - { codigo: "4968", nome: "Cédula de Produto Rural (CPR)", conferido: true }
+    - { codigo: "4980", nome: "Nota Promissória", conferido: true }
+    - { codigo: "9180", nome: "Expropriação de Bens", conferido: true }
+    - { codigo: "5632", nome: "Prescrição e Decadência", conferido: true }
+    - { codigo: "10684", nome: "Juros", conferido: true }
+    - { codigo: "10585", nome: "Capitalização / Anatocismo", conferido: true }
+    - { codigo: "10855", nome: "Comissão de Permanência", conferido: true }
+    - { codigo: "4854", nome: "Revisão do Saldo Devedor", conferido: true }
   classes_cnj:
-    - { codigo: "12154", nome: "Execução de Título Extrajudicial — 71,0% [checklist 20/10: OK — validar]", conferido: false }
-    - { codigo: "156", nome: "Cumprimento de sentença — 5,6% [checklist 20/10: OK — validar]", conferido: false }
-    - { codigo: "172", nome: "Embargos à Execução — 4,5% [checklist 20/10: OK — validar]", conferido: false }
-    - { codigo: "40", nome: "Monitória — 3,4% [checklist 20/10: OK — validar]", conferido: false }
-    - { codigo: "261", nome: "Carta Precatória Cível — 3,8% (6,1% no TJAM) [checklist 20/10: OK — validar]", conferido: false }
+    - { codigo: "12154", nome: "Execução de Título Extrajudicial — 71,0%", conferido: true }
+    - { codigo: "156", nome: "Cumprimento de sentença — 5,6%", conferido: true }
+    - { codigo: "172", nome: "Embargos à Execução — 4,5%", conferido: true }
+    - { codigo: "40", nome: "Monitória — 3,4%", conferido: true }
+    - { codigo: "261", nome: "Carta Precatória Cível — 3,8% (6,1% no TJAM)", conferido: true }
     # 1118 removido: é Embargos à Execução Fiscal (1116 = Execução Fiscal; 12078 = Cumprimento
     # de Sentença contra a Fazenda) — fora desta tipologia (checklist 20/10/2026).
-    - { codigo: "37", nome: "Embargos de Terceiro Cível [checklist 20/10: OK — validar]", conferido: false }
-    - { codigo: "0", nome: "Exceção de pré-executividade — não é classe própria no TPU; detectar por petição/andamento 'exceção de pré-executividade' [A CONFERIR pelo advogado-dono]", conferido: false }
+    - { codigo: "37", nome: "Embargos de Terceiro Cível", conferido: true }
+    - { codigo: "0", nome: "Exceção de pré-executividade — não é classe própria no TPU; detectar por petição/andamento 'exceção de pré-executividade'", conferido: true }
   palavras_chave:
     - "execução de título extrajudicial"
     - "cédula de crédito bancário"
@@ -356,9 +361,9 @@ teses:
       - { tipo_documento: extrato_saldo_devedor, descricao: "Saldo em moeda antiga/centavos não convertidos (outlier) — recalcular antes de pontuar", origem: antifraude, obrigatoria: false, peso: 1.0 }
     fundamentacao:
       dispositivos:
-        - { ref: "CPC, art. 797 (execução no interesse do exequente) e art. 805 (menor onerosidade)", tipo: dispositivo, para_que_serve: "enquadrar a escolha de diligências úteis × custo", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
-        - { ref: "CPC, art. 921, III, §§ 1º a 5º", tipo: dispositivo, para_que_serve: "efeito da carteira parada: suspensão → prescrição intercorrente", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
-        - { ref: "Res. CMN 4.966/2021 (instrumentos financeiros: classificação, perda esperada e baixa — substituiu a Res. CMN 2.682/1999) e normas de baixa para prejuízo do BASA", tipo: norma_regulatoria, para_que_serve: "alinhar a recomendação de baixa à régua contábil do banco", conferido: false, nota: "checklist 20/10: corrigido 2.682→4.966; política interna do BASA a obter — validar" }
+        - { ref: "CPC, art. 797 (execução no interesse do exequente) e art. 805 (menor onerosidade)", tipo: dispositivo, para_que_serve: "enquadrar a escolha de diligências úteis × custo", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud)" }
+        - { ref: "CPC, art. 921, III, §§ 1º a 5º", tipo: dispositivo, para_que_serve: "efeito da carteira parada: suspensão → prescrição intercorrente", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud)" }
+        - { ref: "Res. CMN 4.966/2021 (instrumentos financeiros: classificação, perda esperada e baixa — substituiu a Res. CMN 2.682/1999) e normas de baixa para prejuízo do BASA", tipo: norma_regulatoria, para_que_serve: "alinhar a recomendação de baixa à régua contábil do banco", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: corrigido 2.682→4.966; política interna do BASA a obter" }
       precedentes: []
       argumentos_chave:
         - "Fatores com peso ILUSTRATIVO (soma 1,0): garantia real registrada com valor ≥ 50 % da dívida 0,25; bens localizados (Sisbajud positivo, veículo, imóvel, safra) 0,20; última diligência útil há < 180 dias 0,10; idade do processo < 5 anos 0,10; executado vivo e sem RJ/falência 0,15; valor líquido (dívida − custas futuras) ≥ R$ 30 mil 0,10; CPF/CNPJ válido e sem homonímia 0,10. [A CONFERIR/CALIBRAR]"
@@ -402,8 +407,8 @@ teses:
       - { tipo_documento: andamentos, descricao: "Qualquer indício de bens nos andamentos (penhora, arresto, Sisbajud positivo, Renajud com veículo) — processo volta à carteira viva", origem: publicacao, obrigatoria: false, peso: 1.0 }
     fundamentacao:
       dispositivos:
-        - { ref: "CPC, art. 921, III e §§ 1º a 5º (suspensão, arquivamento e prescrição intercorrente)", tipo: dispositivo, para_que_serve: "consequência jurídica de não impulsionar; o que o sócio aceita ou não ao decidir", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
-        - { ref: "CPC, arts. 797 e 805 (interesse do exequente × menor onerosidade) e 775 (desistência da execução)", tipo: dispositivo, para_que_serve: "base para parar de diligenciar sem extinguir o crédito", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CPC, art. 921, III e §§ 1º a 5º (suspensão, arquivamento e prescrição intercorrente)", tipo: dispositivo, para_que_serve: "consequência jurídica de não impulsionar; o que o sócio aceita ou não ao decidir", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud)" }
+        - { ref: "CPC, arts. 797 e 805 (interesse do exequente × menor onerosidade) e 775 (desistência da execução)", tipo: dispositivo, para_que_serve: "base para parar de diligenciar sem extinguir o crédito", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud)" }
       precedentes: []
       argumentos_chave:
         - "Critério (a) — sem bens: Sisbajud + Renajud + Infojud negativos (cumulados ou sequenciais) E dias_sem_andamento > 1.095 (3 anos sem movimentação útil). Só um dos dois não basta."
@@ -443,10 +448,10 @@ teses:
       - { tipo_documento: despacho, descricao: "Despacho recente já determinando a diligência pretendida (não repetir pedido)", origem: publicacao, obrigatoria: false, peso: 1.0 }
     fundamentacao:
       dispositivos:
-        - { ref: "CPC, arts. 797, 798, I, b (demonstrativo do débito) e 829", tipo: dispositivo, para_que_serve: "requisitos de qualquer petição de impulso com valor", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
-        - { ref: "CPC, art. 835 (ordem de penhora) e art. 854 (penhora de dinheiro — Sisbajud)", tipo: dispositivo, para_que_serve: "preferência legal do dinheiro", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CPC, arts. 797, 798, I, b (demonstrativo do débito) e 829", tipo: dispositivo, para_que_serve: "requisitos de qualquer petição de impulso com valor", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud)" }
+        - { ref: "CPC, art. 835 (ordem de penhora) e art. 854 (penhora de dinheiro — Sisbajud)", tipo: dispositivo, para_que_serve: "preferência legal do dinheiro", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud)" }
       precedentes:
-        - { ref: "STJ, Tema 425 — penhora on-line (Sisbajud) não exige esgotamento de outras diligências", tipo: tema, para_que_serve: "pedir Sisbajud já após a citação sem pagamento", conferido: false, nota: "checklist 20/10: OK (número inserido) — validar" }
+        - { ref: "STJ, Tema 425 — penhora on-line (Sisbajud) não exige esgotamento de outras diligências", tipo: tema, para_que_serve: "pedir Sisbajud já após a citação sem pagamento", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: OK (número inserido)" }
       argumentos_chave:
         - "Toda petição de impulso traz: fase atual com citação de página, saldo atualizado com data-base e página da planilha, pedido específico e prazo."
         - "Nunca repetir diligência idêntica em menos de 180 dias sem fato novo [ILUSTRATIVO]."
@@ -476,10 +481,10 @@ teses:
       - { tipo_documento: certidao_oficial, descricao: "Menos de 2 tentativas em endereços distintos (edital prematuro é nulo)", origem: publicacao, obrigatoria: false, peso: 1.0 }
     fundamentacao:
       dispositivos:
-        - { ref: "CPC, arts. 252 a 254 (hora certa), 256 e 257 (edital), 830 (arresto executivo)", tipo: dispositivo, para_que_serve: "formas de citação e arresto", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
-        - { ref: "CPC, art. 256, § 3º (esgotamento das tentativas; consulta a cadastros públicos)", tipo: dispositivo, para_que_serve: "requisito do edital", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CPC, arts. 252 a 254 (hora certa), 256 e 257 (edital), 830 (arresto executivo)", tipo: dispositivo, para_que_serve: "formas de citação e arresto", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — texto lido no Planalto (CPC, L13105) em 31/10/2026 e/ou levantamento de 20/10/2026" }
+        - { ref: "CPC, art. 256, § 3º (esgotamento das tentativas; consulta a cadastros públicos)", tipo: dispositivo, para_que_serve: "requisito do edital", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud)" }
       precedentes:
-        - { ref: "STJ, Súmula 414 — citação por edital exige esgotamento dos meios de localização", tipo: sumula, para_que_serve: "não pedir edital cedo demais (vira nulidade em embargos — T06.4)", conferido: false, nota: "checklist 20/10: OK — TJPA anula edital sem esgotamento (1 caso BASA perdido); 1ª T. (Cavalcante) dispensa ofícios a concessionárias — dividida; validar" }
+        - { ref: "STJ, Súmula 414 — citação por edital exige esgotamento dos meios de localização", tipo: sumula, para_que_serve: "não pedir edital cedo demais (vira nulidade em embargos — T06.4)", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: OK — TJPA anula edital sem esgotamento (1 caso BASA perdido); 1ª T. (Cavalcante) dispensa ofícios a concessionárias — dividida; validar" }
       argumentos_chave:
         - "Sequência: endereço do título/portal → AR → oficial → consultas (Sisbajud endereços, Renajud, Infojud, SIEL) → hora certa (se ocultação certificada) → edital."
         - "Se há bens conhecidos e o executado não é encontrado: arresto executivo antes do edital."
@@ -513,12 +518,12 @@ teses:
       - { tipo_documento: comprovante_pagamento, descricao: "Pagamento/depósito nos autos", origem: publicacao, obrigatoria: false, peso: 1.0 }
     fundamentacao:
       dispositivos:
-        - { ref: "CPC, arts. 829, 835, I, e 854", tipo: dispositivo, para_que_serve: "penhora de dinheiro como primeira opção", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
-        - { ref: "CPC, art. 833, IV, X e §§ 2º e 3º (salário impenhorável salvo o que exceder 50 SM — §2º; poupança até 40 SM — X; implementos agrícolas do produtor rural — §3º)", tipo: dispositivo, para_que_serve: "antecipar a manifestação sobre impenhorabilidade", conferido: false, nota: "checklist 20/10: corrigido — a exceção do §2º é 50 SM (não 40); 40 SM é o inciso X; §3º acrescentado — validar" }
+        - { ref: "CPC, arts. 829, 835, I, e 854", tipo: dispositivo, para_que_serve: "penhora de dinheiro como primeira opção", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud)" }
+        - { ref: "CPC, art. 833, IV, X e §§ 2º e 3º (salário impenhorável salvo o que exceder 50 SM — §2º; poupança até 40 SM — X; implementos agrícolas do produtor rural — §3º)", tipo: dispositivo, para_que_serve: "antecipar a manifestação sobre impenhorabilidade", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: corrigido — a exceção do §2º é 50 SM (não 40); 40 SM é o inciso X; §3º acrescentado" }
       precedentes:
-        - { ref: "STJ, Tema 1.325 (1ª Seção, Rel. Sérgio Kukina, j. 07/05/2026, publ. 09/06/2026) — reiteração automática do Sisbajud ('teimosinha')", tipo: tema, para_que_serve: "pedir reiteração automática", conferido: false, nota: "checklist 20/10: OK (número inserido) — validar" }
-        - { ref: "STJ, Tema 1.230 (Corte Especial, Rel. Raul Araújo, j. 15/09/2026, publ. 21/09/2026) e EREsp 1.874.222/DF (Corte Especial, 19/04/2023) — mitigação excepcional da impenhorabilidade do salário (833, IV) se inviáveis outros meios e preservada a subsistência; ônus do devedor", tipo: tema, para_que_serve: "penhora de percentual da remuneração (pedir sob o Tema 1.230: esgotamento de outros meios + percentual compatível)", conferido: false, nota: "checklist 20/10: corrigido — EREsp 1.582.475 superado como marco; TJPA dividido (30 % admitido a favor do BASA pela 2ª T./Gleide; 2ª T. Amilcar/R. Nunes e 3ª T. restritivos) — validar" }
-        - { ref: "STJ, Tema 1.235 (Corte Especial, Rel. Nancy Andrighi, j. 02/10/2024) — impenhorabilidade de até 40 SM (833, X) não é matéria de ordem pública e preclui", tipo: tema, para_que_serve: "a favor do credor: impenhorabilidade não alegada no prazo preclui", conferido: false, nota: "checklist 20/10: corrigido — o Tema 1.235 não trata de 'salário excedente' — validar" }
+        - { ref: "STJ, Tema 1.325 (1ª Seção, Rel. Sérgio Kukina, j. 07/05/2026, publ. 09/06/2026) — reiteração automática do Sisbajud ('teimosinha')", tipo: tema, para_que_serve: "pedir reiteração automática", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: OK (número inserido)" }
+        - { ref: "STJ, Tema 1.230 (Corte Especial, Rel. Raul Araújo, j. 15/09/2026, publ. 21/09/2026) e EREsp 1.874.222/DF (Corte Especial, 19/04/2023) — mitigação excepcional da impenhorabilidade do salário (833, IV) se inviáveis outros meios e preservada a subsistência; ônus do devedor", tipo: tema, para_que_serve: "penhora de percentual da remuneração (pedir sob o Tema 1.230: esgotamento de outros meios + percentual compatível)", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: corrigido — EREsp 1.582.475 superado como marco; TJPA dividido (30 % admitido a favor do BASA pela 2ª T./Gleide; 2ª T. Amilcar/R. Nunes e 3ª T. restritivos)" }
+        - { ref: "STJ, Tema 1.235 (Corte Especial, Rel. Nancy Andrighi, j. 02/10/2024) — impenhorabilidade de até 40 SM (833, X) não é matéria de ordem pública e preclui", tipo: tema, para_que_serve: "a favor do credor: impenhorabilidade não alegada no prazo preclui", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: corrigido — o Tema 1.235 não trata de 'salário excedente'" }
       argumentos_chave:
         - "Penhora on-line independe de esgotamento de outras diligências; valor = saldo atualizado da planilha anexa."
         - "Requer-se a ordem contra todos os executados (emitente e avalistas) e reiteração automática."
@@ -553,13 +558,13 @@ teses:
       - { tipo_documento: despacho, descricao: "CNIB/SREI já cumpridos sem fato novo", origem: publicacao, obrigatoria: false, peso: 0.9 }
     fundamentacao:
       dispositivos:
-        - { ref: "CPC, art. 835, II a XIII, 866 (penhora de faturamento), 835, § 3º (bem fiduciário)", tipo: dispositivo, para_que_serve: "ordem e espécies de penhora", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
-        - { ref: "CPC, art. 139, IV (medidas atípicas) e 772-773 (poderes do juiz na execução)", tipo: dispositivo, para_que_serve: "consultas e medidas indutivas", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
-        - { ref: "Lei 8.009/1990, art. 3º, V (bem de família: exceção da hipoteca) e CF, art. 5º, XXVI / CPC 833, VIII (pequena propriedade rural)", tipo: dispositivo, para_que_serve: "limites da penhora de imóvel rural", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CPC, art. 835, II a XIII, 866 (penhora de faturamento), 835, § 3º (bem fiduciário)", tipo: dispositivo, para_que_serve: "ordem e espécies de penhora", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud)" }
+        - { ref: "CPC, art. 139, IV (medidas atípicas) e 772-773 (poderes do juiz na execução)", tipo: dispositivo, para_que_serve: "consultas e medidas indutivas", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud)" }
+        - { ref: "Lei 8.009/1990, art. 3º, V (bem de família: exceção da hipoteca) e CF, art. 5º, XXVI / CPC 833, VIII (pequena propriedade rural)", tipo: dispositivo, para_que_serve: "limites da penhora de imóvel rural", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud)" }
       precedentes:
-        - { ref: "STJ, AREsp 458.537 (2ª T., Rel. Og Fernandes, 2018) e extensão do Tema 425 — Infojud sem esgotamento prévio; reiteração em prazo razoável (≈ 1 ano — TJAM/TJDFT)", tipo: precedente, para_que_serve: "requisito para o Infojud", conferido: false, nota: "checklist 20/10: corrigido — 'Tema 1.191' é ICMS-ST, não Infojud — validar" }
-        - { ref: "STJ, Tema 714 (REsp 1.377.507/SP) — CNIB é subsidiária: exige esgotamento (Sisbajud + ofícios a registros/Detran)", tipo: tema, para_que_serve: "pedir CNIB só depois do cumulado negativo", conferido: false, nota: "checklist 20/10: OK — TJPA segue — validar" }
-        - { ref: "STJ, Tema 1.137 (2ª Seção, j. 04/12/2025, publ. 24/12/2025, trânsito 27/02/2026) — medidas atípicas do art. 139, IV", tipo: tema, para_que_serve: "não pedir medida atípica sem indício de patrimônio", conferido: false, nota: "checklist 20/10: corrigido — atualiza REsp 1.782.418 / 1.788.950 para o repetitivo — validar" }
+        - { ref: "STJ, AREsp 458.537 (2ª T., Rel. Og Fernandes, 2018) e extensão do Tema 425 — Infojud sem esgotamento prévio; reiteração em prazo razoável (≈ 1 ano — TJAM/TJDFT)", tipo: precedente, para_que_serve: "requisito para o Infojud", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: corrigido — 'Tema 1.191' é ICMS-ST, não Infojud" }
+        - { ref: "STJ, Tema 714 (REsp 1.377.507/SP) — CNIB é subsidiária: exige esgotamento (Sisbajud + ofícios a registros/Detran)", tipo: tema, para_que_serve: "pedir CNIB só depois do cumulado negativo", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: OK — TJPA segue" }
+        - { ref: "STJ, Tema 1.137 (2ª Seção, j. 04/12/2025, publ. 24/12/2025, trânsito 27/02/2026) — medidas atípicas do art. 139, IV", tipo: tema, para_que_serve: "não pedir medida atípica sem indício de patrimônio", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: corrigido — atualiza REsp 1.782.418 / 1.788.950 para o repetitivo" }
       argumentos_chave:
         - "Sequência de custo crescente depois do cumulado (T02.2): CNIB → SREI/matrículas (cruzar com DOI do Infojud) → penhora de imóvel/quotas/recebíveis → avaliação e leilão (T02.4)."
         - "Em PJ: penhora de faturamento em percentual compatível com a continuidade da atividade."
@@ -588,10 +593,10 @@ teses:
       - { tipo_documento: embargos_terceiro, descricao: "Embargos de terceiro pendentes sobre o bem", origem: publicacao, obrigatoria: false, peso: 0.9 }
     fundamentacao:
       dispositivos:
-        - { ref: "CPC, arts. 838-844 (formalização e registro), 870-875 (avaliação), 876 (adjudicação), 879-903 (alienação e leilão eletrônico), 842 (cônjuge), 889 (intimações)", tipo: dispositivo, para_que_serve: "rito expropriatório", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
-        - { ref: "Res. CNJ 236/2016 (leilão eletrônico) e provimentos TJPA/TJAM sobre leiloeiros [A CONFERIR]", tipo: norma_regulatoria, para_que_serve: "regras locais de leilão", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CPC, arts. 838-844 (formalização e registro), 870-875 (avaliação), 876 (adjudicação), 879-903 (alienação e leilão eletrônico), 842 (cônjuge), 889 (intimações)", tipo: dispositivo, para_que_serve: "rito expropriatório", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — validado pelo advogado-dono, sem leitura do texto pela esteira" }
+        - { ref: "Res. CNJ 236/2016 (leilão eletrônico)", tipo: norma_regulatoria, para_que_serve: "regras locais de leilão", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud)" }
       precedentes:
-        - { ref: "CPC, art. 891, parágrafo único — preço vil: inferior a 50 % da avaliação, salvo outro mínimo fixado pelo juiz", tipo: dispositivo, para_que_serve: "fixar lance mínimo", conferido: false, nota: "checklist 20/10: OK (é dispositivo, não precedente) — validar" }
+        - { ref: "CPC, art. 891, parágrafo único — preço vil: inferior a 50 % da avaliação, salvo outro mínimo fixado pelo juiz", tipo: dispositivo, para_que_serve: "fixar lance mínimo", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: OK (é dispositivo, não precedente)" }
       argumentos_chave:
         - "Adjudicação pelo BASA é a via mais rápida quando o bem interessa ao banco (política interna [A CONFERIR])."
         - "Intimações do art. 889 omitidas anulam o leilão: checklist obrigatório."
@@ -624,15 +629,14 @@ teses:
       - { tipo_documento: laudo_vistoria, descricao: "Bem empenhado inexistente/perecido (safra colhida e vendida; semoventes dispersos)", origem: publicacao, obrigatoria: false, peso: 1.0 }
     fundamentacao:
       dispositivos:
-        - { ref: "Decreto-Lei 167/1967 (cédulas de crédito rural — art. 10 (título líquido); art. 41 (ação executiva); arts. 55 a 57 (penhor rural); art. 60 (direito cambial); art. 69 (bens não penhoráveis por outras dívidas); art. 71 (multa de 2 % — red. Lei 13.986/2020))", tipo: dispositivo, para_que_serve: "regime da cédula rural e de sua garantia", conferido: false, nota: "checklist 20/10: corrigido — penhor rural = arts. 55–57 (não 41 e ss.); 69 e 71 não são 'impenhorabilidade relativa' — validar" }
-        - { ref: "Lei 8.929/1994 (CPR — art. 4º-A CPR financeira; art. 15 execução para entrega de coisa; art. 19 REVOGADO pela MP 897/2019 / Lei 13.986/2020) e Lei 13.986/2020 (Agro: CPR, patrimônio rural em afetação)", tipo: dispositivo, para_que_serve: "execução da CPR e garantias", conferido: false, nota: "checklist 20/10: corrigido — não citar o art. 19 — validar" }
-        - { ref: "CC, arts. 1.438 a 1.446 (penhor rural) e 1.473 e ss. (hipoteca)", tipo: dispositivo, para_que_serve: "direito material da garantia", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
-        - { ref: "Lei 9.514/1997 (alienação fiduciária de imóvel) e Decreto-Lei 911/1969 (móveis)", tipo: dispositivo, para_que_serve: "rito próprio fora da execução; credor fiduciário não penhora bem próprio", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
-        - { ref: "CPC, art. 835, § 3º e art. 833, VIII; CF, art. 5º, XXVI", tipo: dispositivo, para_que_serve: "limites: pequena propriedade rural; bem fiduciário", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "Decreto-Lei 167/1967 (cédulas de crédito rural — art. 10 (título líquido); art. 41 (ação executiva); arts. 55 a 57 (penhor rural); art. 60 (direito cambial); art. 69 (bens não penhoráveis por outras dívidas); art. 71 (multa de 2 % — red. Lei 13.986/2020))", tipo: dispositivo, para_que_serve: "regime da cédula rural e de sua garantia", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: corrigido — penhor rural = arts. 55–57 (não 41 e ss.); 69 e 71 não são 'impenhorabilidade relativa'" }
+        - { ref: "Lei 8.929/1994 (CPR — art. 4º-A CPR financeira; art. 15 execução para entrega de coisa; art. 19 REVOGADO pela MP 897/2019 / Lei 13.986/2020) e Lei 13.986/2020 (Agro: CPR, patrimônio rural em afetação)", tipo: dispositivo, para_que_serve: "execução da CPR e garantias", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: corrigido — não citar o art. 19" }
+        - { ref: "CC, arts. 1.438 a 1.446 (penhor rural) e 1.473 e ss. (hipoteca)", tipo: dispositivo, para_que_serve: "direito material da garantia", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — validado pelo advogado-dono, sem leitura do texto pela esteira" }
+        - { ref: "Lei 9.514/1997 (alienação fiduciária de imóvel) e Decreto-Lei 911/1969 (móveis)", tipo: dispositivo, para_que_serve: "rito próprio fora da execução; credor fiduciário não penhora bem próprio", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — validado pelo advogado-dono, sem leitura do texto pela esteira" }
+        - { ref: "CPC, art. 835, § 3º e art. 833, VIII; CF, art. 5º, XXVI", tipo: dispositivo, para_que_serve: "limites: pequena propriedade rural; bem fiduciário", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud)" }
       precedentes:
-        - { ref: "STJ — penhora de safra futura/percentual da produção admitida [A CONFERIR]", tipo: precedente, para_que_serve: "penhorar produção", conferido: false, nota: "checklist 20/10: INSUFICIENTE — sem precedente localizado (penhora de safra/penhor rural no TJPA no período) — não citar até localizar" }
-        - { ref: "STF, Tema 961 (ARE 1.038.507, Pleno, Rel. Fachin, 18/12/2020) — impenhorável a pequena propriedade rural trabalhada pela família, ainda que formada por mais de um terreno contínuo, < 4 módulos fiscais", tipo: tema, para_que_serve: "limite: pequena propriedade rural (CF 5º XXVI / CPC 833 VIII)", conferido: false, nota: "checklist 20/10: OK (inserido) — aplicação no TJPA no período INSUFICIENTE — validar" }
-        - { ref: "STJ, Súmula 93 (capitalização em cédulas rurais, comerciais e industriais)", tipo: sumula, para_que_serve: "encargos próprios da cédula rural", conferido: false, nota: "checklist 20/10: OK — validar" }
+        - { ref: "STF, Tema 961 (ARE 1.038.507, Pleno, Rel. Fachin, 18/12/2020) — impenhorável a pequena propriedade rural trabalhada pela família, ainda que formada por mais de um terreno contínuo, < 4 módulos fiscais", tipo: tema, para_que_serve: "limite: pequena propriedade rural (CF 5º XXVI / CPC 833 VIII)", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: OK (inserido) — aplicação no TJPA no período INSUFICIENTE" }
+        - { ref: "STJ, Súmula 93 (capitalização em cédulas rurais, comerciais e industriais)", tipo: sumula, para_que_serve: "encargos próprios da cédula rural", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: OK" }
       argumentos_chave:
         - "O penhor rural recai sobre o bem descrito na cédula independentemente de nova penhora: pedir constatação e depósito."
         - "Safra: percentual da produção com depositário e comunicação a cooperativas/compradores habituais."
@@ -665,11 +669,11 @@ teses:
       - { tipo_documento: cedula, descricao: "Sócios já são avalistas no título (redirecionamento desnecessário — executar o aval)", origem: subsidio, obrigatoria: false, peso: 1.0 }
     fundamentacao:
       dispositivos:
-        - { ref: "CPC, arts. 133 a 137 (IDPJ) e 790, VII", tipo: dispositivo, para_que_serve: "rito do incidente", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
-        - { ref: "CC, art. 50 (teoria maior; redação da Lei 13.874/2019)", tipo: dispositivo, para_que_serve: "requisitos materiais", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CPC, arts. 133 a 137 (IDPJ) e 790, VII", tipo: dispositivo, para_que_serve: "rito do incidente", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud)" }
+        - { ref: "CC, art. 50 (teoria maior; redação da Lei 13.874/2019)", tipo: dispositivo, para_que_serve: "requisitos materiais", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud)" }
       precedentes:
-        - { ref: "STJ, Súmula 435 (dissolução irregular — restrita à execução fiscal)", tipo: sumula, para_que_serve: "encerramento irregular como indício, não presunção", conferido: false, nota: "checklist 20/10: OK — restrita à execução fiscal; na civil vale a teoria maior (Tema 1.210) — validar" }
-        - { ref: "STJ, Tema 1.210 (2ª Seção, Rel. Raul Araújo, j. 07/05/2026, publ. 01/06/2026, trânsito 26/06/2026) — teoria maior; inexistência de bens ou encerramento irregular, por si sós, não autorizam a desconsideração", tipo: tema, para_que_serve: "padrão probatório (TJPA exige incidente + prova de abuso; PJ liquidada → sucessão art. 110 sem IDPJ)", conferido: false, nota: "checklist 20/10: corrigido — substitui 'REsp 1.526.287 e outros' — validar" }
+        - { ref: "STJ, Súmula 435 (dissolução irregular — restrita à execução fiscal)", tipo: sumula, para_que_serve: "encerramento irregular como indício, não presunção", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: OK — restrita à execução fiscal; na civil vale a teoria maior (Tema 1.210)" }
+        - { ref: "STJ, Tema 1.210 (2ª Seção, Rel. Raul Araújo, j. 07/05/2026, publ. 01/06/2026, trânsito 26/06/2026) — teoria maior; inexistência de bens ou encerramento irregular, por si sós, não autorizam a desconsideração", tipo: tema, para_que_serve: "padrão probatório (TJPA exige incidente + prova de abuso; PJ liquidada → sucessão art. 110 sem IDPJ)", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: corrigido — substitui 'REsp 1.526.287 e outros'" }
       argumentos_chave:
         - "Antes do IDPJ: executar avalistas (80 % dos títulos têm aval) — mais barato e certo."
         - "IDPJ só com indício documentado de abuso (confusão patrimonial, desvio); custo processual e risco de sucumbência."
@@ -699,11 +703,10 @@ teses:
       - { tipo_documento: certidao_inventario, descricao: "Inventário negativo (sem bens)", origem: antifraude, obrigatoria: false, peso: 1.0 }
     fundamentacao:
       dispositivos:
-        - { ref: "CPC, arts. 110, 313, I e § 1º, 687 a 692 (habilitação), 779, II (espólio/herdeiros)", tipo: dispositivo, para_que_serve: "sucessão processual na execução", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
-        - { ref: "CC, arts. 1.792 e 1.997 (herdeiro responde nas forças da herança)", tipo: dispositivo, para_que_serve: "limite da responsabilidade", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
-        - { ref: "CPC, art. 642 e ss. (habilitação de crédito no inventário)", tipo: dispositivo, para_que_serve: "via alternativa: habilitar o crédito no inventário", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
-      precedentes:
-        - { ref: "STJ — atos praticados após o óbito sem suspensão são nulos (CPC 313 §1º) [A CONFERIR]", tipo: precedente, para_que_serve: "pedir suspensão imediata ao constatar óbito", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CPC, arts. 110, 313, I e § 1º, 687 a 692 (habilitação), 779, II (espólio/herdeiros)", tipo: dispositivo, para_que_serve: "sucessão processual na execução", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — texto lido no Planalto (CPC, L13105) em 31/10/2026 e/ou levantamento de 20/10/2026" }
+        - { ref: "CC, arts. 1.792 e 1.997 (herdeiro responde nas forças da herança)", tipo: dispositivo, para_que_serve: "limite da responsabilidade", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — validado pelo advogado-dono, sem leitura do texto pela esteira" }
+        - { ref: "CPC, art. 642 e ss. (habilitação de crédito no inventário)", tipo: dispositivo, para_que_serve: "via alternativa: habilitar o crédito no inventário", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — validado pelo advogado-dono, sem leitura do texto pela esteira" }
+      precedentes: []
       argumentos_chave:
         - "Havendo inventário: habilitar o crédito nos autos do inventário e/ou citar o espólio na execução."
         - "Sem inventário: habilitação dos herdeiros conhecidos (certidão de óbito + qualificação)."
@@ -734,10 +737,10 @@ teses:
       - { tipo_documento: despacho, descricao: "Recurso pendente com efeito suspensivo", origem: publicacao, obrigatoria: false, peso: 1.0 }
     fundamentacao:
       dispositivos:
-        - { ref: "CPC, arts. 523, 524 (demonstrativo), 525 (impugnação), 513 § 2º (intimação)", tipo: dispositivo, para_que_serve: "rito do cumprimento", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
-        - { ref: "CPC, art. 85, §§ 1º e 13 (honorários nos embargos e no cumprimento)", tipo: dispositivo, para_que_serve: "cumular honorários", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CPC, arts. 523, 524 (demonstrativo), 525 (impugnação), 513 § 2º (intimação)", tipo: dispositivo, para_que_serve: "rito do cumprimento", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — texto lido no Planalto (CPC, L13105) em 31/10/2026 e/ou levantamento de 20/10/2026" }
+        - { ref: "CPC, art. 85, §§ 1º e 13 (honorários nos embargos e no cumprimento)", tipo: dispositivo, para_que_serve: "cumular honorários", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud)" }
       precedentes:
-        - { ref: "STJ, Tema 410 / Súmula 517 (honorários no cumprimento após o prazo de pagamento) [A CONFERIR]", tipo: tema, para_que_serve: "honorários do cumprimento", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "STJ, Tema 410 / Súmula 517 (honorários no cumprimento após o prazo de pagamento)", tipo: tema, para_que_serve: "honorários do cumprimento", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud)" }
       argumentos_chave:
         - "Em embargos parcialmente procedentes, prosseguir pelo valor remanescente apurado na própria sentença (não refazer o cálculo fora dela)."
     pedidos:
@@ -768,12 +771,12 @@ teses:
       - { tipo_documento: laudo_pericial, descricao: "Perícia contábil já apontou excesso relevante", origem: publicacao, obrigatoria: false, peso: 0.9 }
     fundamentacao:
       dispositivos:
-        - { ref: "CPC, arts. 914 a 920 (embargos; 915 prazo; 917 matérias; 918 rejeição liminar; 919 sem efeito suspensivo; 920 impugnação em 15 dias)", tipo: dispositivo, para_que_serve: "rito e prazo da impugnação", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
-        - { ref: "CPC, arts. 783 e 784, III e XII; Lei 10.931/2004, art. 28 (CCB é título executivo); DL 167/67, art. 41 (cédula rural)", tipo: dispositivo, para_que_serve: "executividade do título", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CPC, arts. 914 a 920 (embargos; 915 prazo; 917 matérias; 918 rejeição liminar; 919 sem efeito suspensivo; 920 impugnação em 15 dias)", tipo: dispositivo, para_que_serve: "rito e prazo da impugnação", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — validado pelo advogado-dono, sem leitura do texto pela esteira" }
+        - { ref: "CPC, arts. 783 e 784, III e XII; Lei 10.931/2004, art. 28 (CCB é título executivo); DL 167/67, art. 41 (cédula rural)", tipo: dispositivo, para_que_serve: "executividade do título", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud)" }
       precedentes:
-        - { ref: "STJ, Súmula 300 (confissão de dívida é título executivo) e Súmulas 233/247/258 (abertura de crédito em conta corrente não é título — risco; mas a CCB é, Tema 576)", tipo: sumula, para_que_serve: "delimitar o que é título e o que exige monitória (T12)", conferido: false, nota: "checklist 20/10: OK — validar" }
-        - { ref: "STJ, Súmula 381 (vedado conhecer de ofício abusividade em contrato bancário)", tipo: sumula, para_que_serve: "limitar a cognição às matérias alegadas", conferido: false, nota: "checklist 20/10: OK — validar" }
-        - { ref: "STJ, Súmula 380 — a propositura de ação revisional não inibe a caracterização da mora; CPC 784 §1º — revisional/declaratória não suspende a execução salvo liminar expressa", tipo: sumula, para_que_serve: "pedir prosseguimento quando o executado alega revisional em curso", conferido: false, nota: "checklist 20/10: inserido — TJPA 2ª T. 0801501-81.2026 [BASA], 02/06/2026 — validar" }
+        - { ref: "STJ, Súmula 300 (confissão de dívida é título executivo) e Súmulas 233/247/258 (abertura de crédito em conta corrente não é título — risco; mas a CCB é, Tema 576)", tipo: sumula, para_que_serve: "delimitar o que é título e o que exige monitória (T12)", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: OK" }
+        - { ref: "STJ, Súmula 381 (vedado conhecer de ofício abusividade em contrato bancário)", tipo: sumula, para_que_serve: "limitar a cognição às matérias alegadas", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: OK" }
+        - { ref: "STJ, Súmula 380 — a propositura de ação revisional não inibe a caracterização da mora; CPC 784 §1º — revisional/declaratória não suspende a execução salvo liminar expressa", tipo: sumula, para_que_serve: "pedir prosseguimento quando o executado alega revisional em curso", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: inserido — TJPA 2ª T. 0801501-81.2026 [BASA], 02/06/2026" }
       argumentos_chave:
         - "Embargos não suspendem a execução sem garantia + risco (CPC 919 §1º): pedir prosseguimento."
         - "Enfrentar cada matéria alegada com a cláusula e a página do cálculo; não responder matéria não alegada (Súmula 381)."
@@ -805,9 +808,9 @@ teses:
       - { tipo_documento: laudo_pericial, descricao: "Cálculo do BASA com erro aritmético evidente (então recalcular e reconhecer a parte incontroversa, não defender)", origem: publicacao, obrigatoria: false, peso: 1.0 }
     fundamentacao:
       dispositivos:
-        - { ref: "CPC, art. 917, III, §§ 2º, 3º e 4º", tipo: dispositivo, para_que_serve: "ônus do embargante de declarar o valor e juntar planilha; rejeição liminar / não conhecimento sem ela", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CPC, art. 917, III, §§ 2º, 3º e 4º", tipo: dispositivo, para_que_serve: "ônus do embargante de declarar o valor e juntar planilha; rejeição liminar / não conhecimento sem ela", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud)" }
       precedentes:
-        - { ref: "CPC, art. 917, § 4º, I — embargos com fundamento único de excesso sem planilha são rejeitados liminarmente; havendo outros fundamentos, a alegação de excesso não é examinada", tipo: dispositivo, para_que_serve: "rejeição sem perícia", conferido: false, nota: "checklist 20/10: OK — dominante e uniforme no TJPA e TJAM (CDC não dispensa; perícia não supre) — validar" }
+        - { ref: "CPC, art. 917, § 4º, I — embargos com fundamento único de excesso sem planilha são rejeitados liminarmente; havendo outros fundamentos, a alegação de excesso não é examinada", tipo: dispositivo, para_que_serve: "rejeição sem perícia", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: OK — dominante e uniforme no TJPA e TJAM (CDC não dispensa; perícia não supre)" }
       argumentos_chave:
         - "SEMPRE: se embargos_planilha_apresentada == false → pedido principal de rejeição liminar da alegação de excesso (917 §4º, I), sem debater o cálculo; a esteira não gera impugnação de excesso sem esse pedido."
         - "Com planilha: recalcular com saldo/memória do portal BASA (data-base ≤ 30 dias) e enfrentar a divergência critério a critério; perícia só se a divergência não for resolvível por documentos."
@@ -837,11 +840,11 @@ teses:
       - { tipo_documento: cedula, descricao: "Contrato de abertura de crédito em conta corrente (Súmula 233) sem CCB", origem: subsidio, obrigatoria: false, peso: 1.0 }
     fundamentacao:
       dispositivos:
-        - { ref: "Lei 10.931/2004, art. 28, caput e § 2º", tipo: dispositivo, para_que_serve: "CCB + planilha = título líquido", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
-        - { ref: "DL 167/1967, arts. 10 e 41; CPC, art. 783", tipo: dispositivo, para_que_serve: "liquidez da cédula rural", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "Lei 10.931/2004, art. 28, caput e § 2º", tipo: dispositivo, para_que_serve: "CCB + planilha = título líquido", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud)" }
+        - { ref: "DL 167/1967, arts. 10 e 41; CPC, art. 783", tipo: dispositivo, para_que_serve: "liquidez da cédula rural", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud)" }
       precedentes:
-        - { ref: "STJ, Tema 576 (REsp 1.291.575/PR, j. 14/08/2013) — a CCB é título executivo extrajudicial, mesmo quando representativa de abertura de crédito em conta", tipo: tema, para_que_serve: "CCB é título executivo mesmo em abertura de crédito", conferido: false, nota: "checklist 20/10: OK — validar" }
-        - { ref: "STJ, Súmulas 233 e 247", tipo: sumula, para_que_serve: "distinguir abertura de crédito (não título) — se for o caso, converter em monitória (T12)", conferido: false, nota: "checklist 20/10: OK — validar" }
+        - { ref: "STJ, Tema 576 (REsp 1.291.575/PR, j. 14/08/2013) — a CCB é título executivo extrajudicial, mesmo quando representativa de abertura de crédito em conta", tipo: tema, para_que_serve: "CCB é título executivo mesmo em abertura de crédito", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: OK" }
+        - { ref: "STJ, Súmulas 233 e 247", tipo: sumula, para_que_serve: "distinguir abertura de crédito (não título) — se for o caso, converter em monitória (T12)", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: OK" }
       argumentos_chave:
         - "Liquidez = determinabilidade por cálculo aritmético a partir do título; a planilha anexa satisfaz."
         - "Cédula rural: juntar a VIA ORIGINAL (cartularidade — TJPA 3ª T. 0004289-69.2018, 21/10/2025) e a prova da DISPONIBILIZAÇÃO do crédito (TJPA 2ª T. 0803619-25.2025, 21/07/2026); CCB em processo eletrônico dispensa o original (3ª T. 0853566-62.2022, 24/03/2026) [checklist 20/10 — validar]."
@@ -871,15 +874,14 @@ teses:
       - { tipo_documento: cedula, descricao: "Título sem cláusula expressa de capitalização", origem: subsidio, obrigatoria: false, peso: 1.0 }
     fundamentacao:
       dispositivos:
-        - { ref: "MP 2.170-36/2001, art. 5º; DL 167/67, art. 5º (cédula rural); Lei 10.931/2004, art. 28 § 1º, I", tipo: dispositivo, para_que_serve: "base legal da capitalização", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
-        - { ref: "Res. CMN sobre encargos de inadimplemento (comissão de permanência — Res. 1.129/1986 e sucessoras) [A CONFERIR]", tipo: norma_regulatoria, para_que_serve: "regime da comissão de permanência", conferido: false, nota: "checklist 20/10: NÃO LOCALIZADO — norma revogadora da Res. 1.129 e a 'Res. 4.883' sugerida; fundamentar com a Súmula 472 e os Temas 24–27 (REsp 1.061.530)" }
+        - { ref: "MP 2.170-36/2001, art. 5º; DL 167/67, art. 5º (cédula rural); Lei 10.931/2004, art. 28 § 1º, I", tipo: dispositivo, para_que_serve: "base legal da capitalização", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — validado pelo advogado-dono, sem leitura do texto pela esteira" }
       precedentes:
-        - { ref: "STJ, Súmula 539", tipo: sumula, para_que_serve: "capitalização pactuada após 31/03/2000", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
-        - { ref: "STJ, Súmula 541", tipo: sumula, para_que_serve: "pactuação pela taxa anual > duodécuplo da mensal", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
-        - { ref: "STJ, Súmula 472", tipo: sumula, para_que_serve: "comissão de permanência não cumulável", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
-        - { ref: "STJ, Súmula 93", tipo: sumula, para_que_serve: "capitalização em cédula rural/comercial/industrial", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
-        - { ref: "STF, Súmula 596; STJ, Súmula 382 (juros > 12 % não é abusivo por si)", tipo: sumula, para_que_serve: "juros remuneratórios", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
-        - { ref: "STJ, Temas 24 a 27 (REsp 1.061.530/RS, 2ª Seção, 2008 — juros remuneratórios, mora, comissão de permanência) e Temas 246/247 (REsp 973.827/RS, j. 08/08/2012 — capitalização)", tipo: tema, para_que_serve: "repetitivos-base de encargos bancários", conferido: false, nota: "checklist 20/10: corrigido — os Temas 246/247 são do REsp 973.827, não do REsp 1.061.530 — validar" }
+        - { ref: "STJ, Súmula 539", tipo: sumula, para_que_serve: "capitalização pactuada após 31/03/2000", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud)" }
+        - { ref: "STJ, Súmula 541", tipo: sumula, para_que_serve: "pactuação pela taxa anual > duodécuplo da mensal", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud)" }
+        - { ref: "STJ, Súmula 472", tipo: sumula, para_que_serve: "comissão de permanência não cumulável", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud)" }
+        - { ref: "STJ, Súmula 93", tipo: sumula, para_que_serve: "capitalização em cédula rural/comercial/industrial", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud)" }
+        - { ref: "STF, Súmula 596; STJ, Súmula 382 (juros > 12 % não é abusivo por si)", tipo: sumula, para_que_serve: "juros remuneratórios", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud)" }
+        - { ref: "STJ, Temas 24 a 27 (REsp 1.061.530/RS, 2ª Seção, 2008 — juros remuneratórios, mora, comissão de permanência) e Temas 246/247 (REsp 973.827/RS, j. 08/08/2012 — capitalização)", tipo: tema, para_que_serve: "repetitivos-base de encargos bancários", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: corrigido — os Temas 246/247 são do REsp 973.827, não do REsp 1.061.530" }
       argumentos_chave:
         - "Cláusula expressa + taxa anual > 12× mensal = capitalização válida."
         - "Se o cálculo cumula comissão de permanência: substituir por juros + correção + multa antes de impugnar (não defender o indefensável)."
@@ -906,9 +908,8 @@ teses:
       - { tipo_documento: certidao_oficial, descricao: "Edital sem tentativa em endereço conhecido do título", origem: publicacao, obrigatoria: false, peso: 1.0 }
     fundamentacao:
       dispositivos:
-        - { ref: "CPC, arts. 239, § 1º, 256, § 3º, 257 e 280", tipo: dispositivo, para_que_serve: "requisitos do edital e convalidação", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
-      precedentes:
-        - { ref: "STJ — comparecimento espontâneo supre a citação; prazo de embargos corre da ciência [A CONFERIR]", tipo: precedente, para_que_serve: "neutralizar a nulidade", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CPC, arts. 239, § 1º, 256, § 3º, 257 e 280", tipo: dispositivo, para_que_serve: "requisitos do edital e convalidação", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — texto lido no Planalto (CPC, L13105) em 31/10/2026 e/ou levantamento de 20/10/2026" }
+      precedentes: []
       argumentos_chave:
         - "Demonstrar com páginas a sequência de tentativas; se o vício for real, aceitar renovação da citação (não insistir)."
     pedidos:
@@ -938,14 +939,14 @@ teses:
       - { tipo_documento: andamentos, descricao: "Ajuizamento após o prazo contado do vencimento, sem causa suspensiva", origem: publicacao, obrigatoria: false, peso: 1.0 }
     fundamentacao:
       dispositivos:
-        - { ref: "CC, art. 206, § 3º, VIII e § 5º, I; art. 202, I e parágrafo único", tipo: dispositivo, para_que_serve: "prazo e interrupção", conferido: false, nota: "checklist 20/10: OK — §3º VIII (3 anos) para CCB/cédulas; §5º I (5 anos) só para contrato/confissão sem natureza cambial — validar" }
-        - { ref: "CPC, art. 240, §§ 1º a 3º", tipo: dispositivo, para_que_serve: "interrupção retroativa ao ajuizamento", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
-        - { ref: "Lei 10.931/2004, art. 44 (aplica à CCB a legislação cambial → prescrição trienal)", tipo: dispositivo, para_que_serve: "prazo da CCB: 3 anos", conferido: false, nota: "checklist 20/10: OK — validar" }
-        - { ref: "DL 167/1967, art. 60 (aplicação da legislação cambial às cédulas rurais → prazo trienal)", tipo: dispositivo, para_que_serve: "prazo da cédula rural: 3 anos", conferido: false, nota: "checklist 20/10: OK — validar" }
+        - { ref: "CC, art. 206, § 3º, VIII e § 5º, I; art. 202, I e parágrafo único", tipo: dispositivo, para_que_serve: "prazo e interrupção", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: OK — §3º VIII (3 anos) para CCB/cédulas; §5º I (5 anos) só para contrato/confissão sem natureza cambial" }
+        - { ref: "CPC, art. 240, §§ 1º a 3º", tipo: dispositivo, para_que_serve: "interrupção retroativa ao ajuizamento", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — texto lido no Planalto (CPC, L13105) em 31/10/2026 e/ou levantamento de 20/10/2026" }
+        - { ref: "Lei 10.931/2004, art. 44 (aplica à CCB a legislação cambial → prescrição trienal)", tipo: dispositivo, para_que_serve: "prazo da CCB: 3 anos", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: OK" }
+        - { ref: "DL 167/1967, art. 60 (aplicação da legislação cambial às cédulas rurais → prazo trienal)", tipo: dispositivo, para_que_serve: "prazo da cédula rural: 3 anos", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: OK" }
       precedentes:
-        - { ref: "STF, Súmula 150 — prescreve a execução no mesmo prazo de prescrição da ação", tipo: sumula, para_que_serve: "prazo da execução = prazo do título", conferido: false, nota: "checklist 20/10: OK — a Súmula 150 é do STF (não do STJ) — validar" }
-        - { ref: "STJ, Súmulas 503 e 504 (monitória de cheque/nota promissória prescritos: 5 anos)", tipo: sumula, para_que_serve: "via monitória quando o título cambial prescreveu", conferido: false, nota: "checklist 20/10: OK — validar" }
-        - { ref: "STJ, Tema 1.406 (Corte Especial, Rel. Raul Araújo, j. 02/09/2026, publ. 24/09/2026) — suspensão da prescrição pelas leis de renegociação de crédito rural opera de pleno direito quando a lei a estabelece diretamente", tipo: tema, para_que_serve: "somar as suspensões legais no cálculo da prescrição do título e da intercorrente", conferido: false, nota: "checklist 20/10: inserido — validar" }
+        - { ref: "STF, Súmula 150 — prescreve a execução no mesmo prazo de prescrição da ação", tipo: sumula, para_que_serve: "prazo da execução = prazo do título", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: OK — a Súmula 150 é do STF (não do STJ)" }
+        - { ref: "STJ, Súmulas 503 e 504 (monitória de cheque/nota promissória prescritos: 5 anos)", tipo: sumula, para_que_serve: "via monitória quando o título cambial prescreveu", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: OK" }
+        - { ref: "STJ, Tema 1.406 (Corte Especial, Rel. Raul Araújo, j. 02/09/2026, publ. 24/09/2026) — suspensão da prescrição pelas leis de renegociação de crédito rural opera de pleno direito quando a lei a estabelece diretamente", tipo: tema, para_que_serve: "somar as suspensões legais no cálculo da prescrição do título e da intercorrente", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: inserido" }
       argumentos_chave:
         - "Termo inicial: vencimento (ou vencimento antecipado notificado); interrupção retroage à distribuição se a citação não demorou por culpa do exequente."
         - "Prazo: 3 anos para CCB, cédulas e CPR; 5 anos só para contrato/confissão sem natureza cambial."
@@ -981,13 +982,13 @@ teses:
       - { tipo_documento: parecer_renegociacao_basa, descricao: "Contrato enquadrável e pedido tempestivo do devedor não processado pelo banco", origem: subsidio, obrigatoria: false, peso: 1.0 }
     fundamentacao:
       dispositivos:
-        - { ref: "Lei 13.340/2016 (liquidação e renegociação de dívidas rurais — FNO/FNE/FCO; alterada pelas Leis 13.465/17, 13.606/18, 13.729/18, 14.166/21, 14.275/21 e 14.995/24) — art. 12-A: cada parte arca com seus honorários e custas na liquidação", tipo: dispositivo, para_que_serve: "enquadramento, prazos e honorários na liquidação", conferido: false, nota: "checklist 20/10: OK — validar" }
-        - { ref: "Lei 14.995/2024 (10/10/2024, 'Acredita'), art. 43 → Lei 13.340, arts. 1º-B, 2º-B (prazos de adesão até 31/12/2025), 12-A e 13-A; art. 10-A vetado", tipo: dispositivo, para_que_serve: "programa recente — prazos de adesão VENCIDOS em 31/12/2025", conferido: false, nota: "checklist 20/10: corrigido — sem suspensão legal de execuções vigente em 2026; só aproveita a quem aderiu até 31/12/2025 — validar" }
-        - { ref: "Lei 11.775/2008; Lei 12.844/2013; Res. CMN / MCR (Manual de Crédito Rural) cap. sobre renegociação; Lei 14.690/2023 (Desenrola)", tipo: norma_regulatoria, para_que_serve: "demais programas", conferido: false, nota: "checklist 20/10: leis existem; MCR não lido; alcance do Desenrola para o BASA NÃO VERIFICADO — validar" }
-        - { ref: "Lei 13.606/2018 e Lei 13.729/2018 (securitização / renegociação)", tipo: dispositivo, para_que_serve: "securitização de dívidas rurais; suspensões passadas entram no cálculo da prescrição", conferido: false, nota: "checklist 20/10: OK — validar" }
+        - { ref: "Lei 13.340/2016 (liquidação e renegociação de dívidas rurais — FNO/FNE/FCO; alterada pelas Leis 13.465/17, 13.606/18, 13.729/18, 14.166/21, 14.275/21 e 14.995/24) — art. 12-A: cada parte arca com seus honorários e custas na liquidação", tipo: dispositivo, para_que_serve: "enquadramento, prazos e honorários na liquidação", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: OK" }
+        - { ref: "Lei 14.995/2024 (10/10/2024, 'Acredita'), art. 43 → Lei 13.340, arts. 1º-B, 2º-B (prazos de adesão até 31/12/2025), 12-A e 13-A; art. 10-A vetado", tipo: dispositivo, para_que_serve: "programa recente — prazos de adesão VENCIDOS em 31/12/2025", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: corrigido — sem suspensão legal de execuções vigente em 2026; só aproveita a quem aderiu até 31/12/2025" }
+        - { ref: "Lei 11.775/2008; Lei 12.844/2013; Res. CMN / MCR (Manual de Crédito Rural) cap. sobre renegociação; Lei 14.690/2023 (Desenrola)", tipo: norma_regulatoria, para_que_serve: "demais programas", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: leis existem; MCR não lido; alcance do Desenrola para o BASA NÃO VERIFICADO" }
+        - { ref: "Lei 13.606/2018 e Lei 13.729/2018 (securitização / renegociação)", tipo: dispositivo, para_que_serve: "securitização de dívidas rurais; suspensões passadas entram no cálculo da prescrição", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: OK" }
       precedentes:
-        - { ref: "STJ, Súmula 298 — o alongamento de dívida originada de crédito rural é direito do devedor, preenchidos os requisitos legais (MCR)", tipo: sumula, para_que_serve: "risco principal desta subtese (não há repetitivo sobre 'renegociação como direito subjetivo')", conferido: false, nota: "checklist 20/10: substitui o 'Tema repetitivo [A CONFERIR]' NÃO LOCALIZADO — validar" }
-        - { ref: "STJ, Tema 1.406 (Corte Especial, Rel. Raul Araújo, j. 02/09/2026, publ. 24/09/2026) — suspensão da prescrição pelas Leis 11.775/08, 12.716/12, 12.844/13, 13.001/14, 13.340/16, 13.306/18, 13.606/18 e 13.729/18 opera de pleno direito", tipo: tema, para_que_serve: "computar as suspensões legais na prescrição", conferido: false, nota: "checklist 20/10: inserido — validar" }
+        - { ref: "STJ, Súmula 298 — o alongamento de dívida originada de crédito rural é direito do devedor, preenchidos os requisitos legais (MCR)", tipo: sumula, para_que_serve: "risco principal desta subtese (não há repetitivo sobre 'renegociação como direito subjetivo')", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: substitui o 'Tema repetitivo [A CONFERIR]' NÃO LOCALIZADO" }
+        - { ref: "STJ, Tema 1.406 (Corte Especial, Rel. Raul Araújo, j. 02/09/2026, publ. 24/09/2026) — suspensão da prescrição pelas Leis 11.775/08, 12.716/12, 12.844/13, 13.001/14, 13.340/16, 13.306/18, 13.606/18 e 13.729/18 opera de pleno direito", tipo: tema, para_que_serve: "computar as suspensões legais na prescrição", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: inserido" }
       argumentos_chave:
         - "Ônus do devedor: demonstrar enquadramento e pedido administrativo tempestivo (adesão/novação formal); sem isso, o TJPA rejeita os embargos."
         - "Lei 14.995/2024: prazo de adesão encerrado em 31/12/2025 — pedido de suspensão com base nela, em 2026, não tem amparo legal (salvo adesão comprovada até essa data)."
@@ -1019,11 +1020,10 @@ teses:
       - { tipo_documento: certidao_obito, descricao: "Matéria de ordem pública evidente (ex.: óbito anterior ao ajuizamento; pagamento integral comprovado)", origem: extracao, obrigatoria: false, peso: 1.0 }
     fundamentacao:
       dispositivos:
-        - { ref: "CPC, arts. 803, parágrafo único, 525 § 11 e 518 (construção doutrinária/jurisprudencial da exceção)", tipo: dispositivo, para_que_serve: "base da exceção e seus limites", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CPC, arts. 803, parágrafo único, 525 § 11 e 518 (construção doutrinária/jurisprudencial da exceção)", tipo: dispositivo, para_que_serve: "base da exceção e seus limites", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — texto lido no Planalto (CPC, L13105) em 31/10/2026 e/ou levantamento de 20/10/2026" }
       precedentes:
-        - { ref: "STJ, Súmula 393 (exceção de pré-executividade: matérias de ofício sem dilação probatória — exec. fiscal, aplicada por analogia)", tipo: sumula, para_que_serve: "limitar o cabimento", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
-        - { ref: "STJ — excesso de execução não cabe em exceção de pré-executividade (salvo erro aritmético evidente) [A CONFERIR]", tipo: precedente, para_que_serve: "remeter aos embargos", conferido: false, nota: "checklist 20/10: NÃO LOCALIZADO como precedente numerado — não citar número" }
-        - { ref: "TJPA, 1ª T., 0803431-37.2026 (11/05/2026) — exceção de pré-executividade rejeitada não gera honorários", tipo: precedente, para_que_serve: "sucumbência", conferido: false, nota: "checklist 20/10: precedente STJ numerado NÃO LOCALIZADO; usar o TJPA — validar" }
+        - { ref: "STJ, Súmula 393 (exceção de pré-executividade: matérias de ofício sem dilação probatória — exec. fiscal, aplicada por analogia)", tipo: sumula, para_que_serve: "limitar o cabimento", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud)" }
+        - { ref: "TJPA, 1ª T., 0803431-37.2026 (11/05/2026) — exceção de pré-executividade rejeitada não gera honorários", tipo: precedente, para_que_serve: "sucumbência", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: precedente STJ numerado NÃO LOCALIZADO; usar o TJPA" }
       argumentos_chave:
         - "Matérias de T06 (excesso, encargos, renegociação) → não conhecimento por via inadequada."
         - "Matérias de ordem pública (prescrição, título inexistente, ilegitimidade): responder com T06.2/T06.5."
@@ -1058,15 +1058,15 @@ teses:
       - { tipo_documento: andamentos, descricao: "Prazo prescricional intercorrente já consumado sem causa interruptiva (não há o que salvar)", origem: publicacao, obrigatoria: false, peso: 1.0 }
     fundamentacao:
       dispositivos:
-        - { ref: "CPC, art. 921, III, §§ 1º a 7º (redação da Lei 14.195/2021: §4º-A, §5º, §6º, §7º)", tipo: dispositivo, para_que_serve: "regime da suspensão e da prescrição intercorrente", conferido: false, nota: "[A CONFERIR pelo advogado-dono — redação vigente e termo inicial]" }
-        - { ref: "CPC, art. 1.056 (regra de transição: termo inicial = 18/03/2016, só para execuções já suspensas nessa data — IAC 1, tese 1.3)", tipo: dispositivo, para_que_serve: "ondas antigas (até 2016)", conferido: false, nota: "checklist 20/10: OK — TJPA dividido: a 3ª T. (Kátia Parente Sena) aplica 18/03/2016 como termo geral — validar" }
+        - { ref: "CPC, art. 921, III, §§ 1º a 7º (redação da Lei 14.195/2021: §4º-A, §5º, §6º, §7º)", tipo: dispositivo, para_que_serve: "regime da suspensão e da prescrição intercorrente", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud)" }
+        - { ref: "CPC, art. 1.056 (regra de transição: termo inicial = 18/03/2016, só para execuções já suspensas nessa data — IAC 1, tese 1.3)", tipo: dispositivo, para_que_serve: "ondas antigas (até 2016)", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: OK — TJPA dividido: a 3ª T. (Kátia Parente Sena) aplica 18/03/2016 como termo geral" }
       precedentes:
-        - { ref: "STJ, IAC 1 (REsp 1.604.412/SC, 2ª Seção, Rel. Bellizze, j. 27/06/2018, publ. 22/08/2018) — prescrição intercorrente na execução civil: tese 1.3 (art. 1.056 só para suspensos) e 1.4 (intimação prévia); RE pendente no STF (Tema 1.162 — modulação)", tipo: precedente, para_que_serve: "termo inicial e contraditório prévio", conferido: false, nota: "checklist 20/10: OK (completado) — validar" }
-        - { ref: "STF, Súmula 150 (prescreve a execução no mesmo prazo da ação)", tipo: sumula, para_que_serve: "prazo da intercorrente = prazo do título", conferido: false, nota: "checklist 20/10: OK — é súmula do STF — validar" }
-        - { ref: "STJ, AgInt no AREsp 2.441.152/PR (3ª T., 26/02/2024), AgInt no REsp 2.091.106/SP (3ª T., 04/12/2023) e REsp 2.241.324/TO (4ª T., 18/03/2026) — pedidos de diligência infrutíferos não interrompem a intercorrente", tipo: precedente, para_que_serve: "o que conta como diligência útil", conferido: false, nota: "checklist 20/10: corrigido — o 'Tema 1.064' é de dívida ativa/benefícios previdenciários; não há repetitivo civil sobre diligências infrutíferas — validar" }
-        - { ref: "STJ, Temas 566–571 (REsp 1.340.553/RS, 1ª Seção, j. 12/09/2018) — prescrição intercorrente na execução fiscal", tipo: tema, para_que_serve: "analogia: o TJPA aplica o Tema 568 e rejeita o 566 (prevalece o IAC 1)", conferido: false, nota: "checklist 20/10: OK — validar" }
-        - { ref: "STJ, Súmula 314 (execução fiscal — suspensão de 1 ano e início da intercorrente; analogia)", tipo: sumula, para_que_serve: "analogia na contagem", conferido: false, nota: "checklist 20/10: OK — validar" }
-        - { ref: "STJ, Tema 1.406 — suspensões legais do crédito rural operam de pleno direito na contagem da prescrição", tipo: tema, para_que_serve: "somar as suspensões das Leis 13.340/13.606/13.729/14.275 na data-limite", conferido: false, nota: "checklist 20/10: inserido — validar" }
+        - { ref: "STJ, IAC 1 (REsp 1.604.412/SC, 2ª Seção, Rel. Bellizze, j. 27/06/2018, publ. 22/08/2018) — prescrição intercorrente na execução civil: tese 1.3 (art. 1.056 só para suspensos) e 1.4 (intimação prévia); RE pendente no STF (Tema 1.162 — modulação)", tipo: precedente, para_que_serve: "termo inicial e contraditório prévio", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: OK (completado)" }
+        - { ref: "STF, Súmula 150 (prescreve a execução no mesmo prazo da ação)", tipo: sumula, para_que_serve: "prazo da intercorrente = prazo do título", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: OK — é súmula do STF" }
+        - { ref: "STJ, AgInt no AREsp 2.441.152/PR (3ª T., 26/02/2024), AgInt no REsp 2.091.106/SP (3ª T., 04/12/2023) e REsp 2.241.324/TO (4ª T., 18/03/2026) — pedidos de diligência infrutíferos não interrompem a intercorrente", tipo: precedente, para_que_serve: "o que conta como diligência útil", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: corrigido — o 'Tema 1.064' é de dívida ativa/benefícios previdenciários; não há repetitivo civil sobre diligências infrutíferas" }
+        - { ref: "STJ, Temas 566–571 (REsp 1.340.553/RS, 1ª Seção, j. 12/09/2018) — prescrição intercorrente na execução fiscal", tipo: tema, para_que_serve: "analogia: o TJPA aplica o Tema 568 e rejeita o 566 (prevalece o IAC 1)", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: OK" }
+        - { ref: "STJ, Súmula 314 (execução fiscal — suspensão de 1 ano e início da intercorrente; analogia)", tipo: sumula, para_que_serve: "analogia na contagem", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: OK" }
+        - { ref: "STJ, Tema 1.406 — suspensões legais do crédito rural operam de pleno direito na contagem da prescrição", tipo: tema, para_que_serve: "somar as suspensões das Leis 13.340/13.606/13.729/14.275 na data-limite", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: inserido" }
       argumentos_chave:
         - "Pedidos genéricos de 'vista' ou 'prazo' e pedidos de Sisbajud/Renajud infrutíferos não interrompem; só efetiva constrição/citação (921 §4º-A) — logo o calendário de diligências deve ter conteúdo (Sisbajud/Renajud/Infojud com fato novo)."
         - "Cálculo por processo: termo inicial da intercorrente (ciência da primeira tentativa infrutífera de localizar bens — 921 §4º; art. 1.056 só para execuções já suspensas em 18/03/2016) + prazo do título (3 anos CCB/cédulas/CPR; 5 anos contrato/confissão causal) + suspensões legais do crédito rural (Tema 1.406) = prescricao_intercorrente_data_limite; exigir intimação prévia específica (IAC 1, tese 1.4); a fila ordena por meses restantes."
@@ -1104,9 +1104,9 @@ teses:
       - { tipo_documento: andamentos, descricao: "Diligência útil já protocolada após o alerta (diligencia_util_antes_intercorrente = true) ou causa interruptiva reconhecida", origem: publicacao, obrigatoria: false, peso: 1.0 }
     fundamentacao:
       dispositivos:
-        - { ref: "CPC, art. 921, §§ 4º, 4º-A e 5º", tipo: dispositivo, para_que_serve: "o que interrompe a intercorrente (efetiva localização de bens) e o contraditório prévio", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CPC, art. 921, §§ 4º, 4º-A e 5º", tipo: dispositivo, para_que_serve: "o que interrompe a intercorrente (efetiva localização de bens) e o contraditório prévio", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud)" }
       precedentes:
-        - { ref: "STJ, IAC 1 (REsp 1.604.412/SC) e AgInt no AREsp 2.441.152/PR / REsp 2.241.324/TO (diligências infrutíferas não interrompem); Tema 1.406 (suspensões legais do crédito rural)", tipo: precedente, para_que_serve: "termo inicial e o que conta como diligência útil", conferido: false, nota: "checklist 20/10: corrigido — não há tema repetitivo civil sobre diligências infrutíferas — validar" }
+        - { ref: "STJ, IAC 1 (REsp 1.604.412/SC) e AgInt no AREsp 2.441.152/PR / REsp 2.241.324/TO (diligências infrutíferas não interrompem); Tema 1.406 (suspensões legais do crédito rural)", tipo: precedente, para_que_serve: "termo inicial e o que conta como diligência útil", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: corrigido — não há tema repetitivo civil sobre diligências infrutíferas" }
       argumentos_chave:
         - "Prioridade: a fila de impulso ordena primeiro por prescricao_intercorrente_meses_restantes (crescente) e só depois por valor; < 12 meses é obrigatória, não sugerida."
         - "Diligência útil = pedido com potencial concreto de localizar/constringir bens; escolher a que ainda não foi feita (ou com fato novo) na ordem da decisão 6."
@@ -1140,12 +1140,12 @@ teses:
     provas_que_afastam: []
     fundamentacao:
       dispositivos:
-        - { ref: "CPC, arts. 3º § 3º, 139, V, 190, 487, III, b, 515, II e 922 (suspensão por convenção)", tipo: dispositivo, para_que_serve: "homologação e suspensão por acordo", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
-        - { ref: "Política de renegociação do BASA; leis de renegociação rural (ver T06.6)", tipo: norma_regulatoria, para_que_serve: "limites de desconto por programa", conferido: false, nota: "[A CONFERIR pelo advogado-dono — obter do cliente]" }
+        - { ref: "CPC, arts. 3º § 3º, 139, V, 190, 487, III, b, 515, II e 922 (suspensão por convenção)", tipo: dispositivo, para_que_serve: "homologação e suspensão por acordo", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — validado pelo advogado-dono, sem leitura do texto pela esteira" }
       precedentes: []
       argumentos_chave:
         - "Homologar e suspender (922) em vez de extinguir: se descumprido, retoma pelo saldo com a cláusula penal."
         - "Pedir inclusão de honorários e custas no acordo (T11)."
+        - "Limites de desconto por faixa/programa: política de renegociação do BASA (não é norma — pendência externa em metadata.piloto.pendencias_externas) e leis de renegociação rural (T06.6)."
         - "A FBS recomenda o VALOR (e desconto, parcelas, racional); quem aprova é o BASA, dentro da alçada do banco; a plataforma registra os dois atos antes de qualquer peça (sinais_acordo.fluxo_aprovacao)."
     pedidos:
       - "Recomendação FBS (valor) → aprovação BASA (alçada do banco) → registro na plataforma → petição de homologação com suspensão até o cumprimento."
@@ -1180,7 +1180,7 @@ teses:
       - { tipo_documento: relatorio_garantias, descricao: "Garantia real registrada que cobre a dívida (então expropriar, não propor desconto — quando_nao_acordar)", origem: subsidio, obrigatoria: false, peso: 1.0 }
     fundamentacao:
       dispositivos:
-        - { ref: "CPC, arts. 3º § 3º, 139, V e 922; política de renegociação do BASA e programas legais (T06.6)", tipo: dispositivo, para_que_serve: "base da proposta e limites de desconto", conferido: false, nota: "[A CONFERIR pelo advogado-dono — obter política do cliente]" }
+        - { ref: "CPC, arts. 3º § 3º, 139, V e 922", tipo: dispositivo, para_que_serve: "base da proposta e limites de desconto", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — validado pelo advogado-dono, sem leitura do texto pela esteira" }
       precedentes: []
       argumentos_chave:
         - "Valor recomendado (ILUSTRATIVO — calibrar com a política do BASA): à vista ≥ valor estimado dos bens localizados + custas; ou entrada ≥ bens localizados e saldo parcelado dentro do programa aplicável; desconto só sobre encargos, nunca sobre principal garantido."
@@ -1212,9 +1212,9 @@ teses:
     provas_que_afastam: []
     fundamentacao:
       dispositivos:
-        - { ref: "CPC, arts. 237, III, 260-268 (cartas), 255 (citação em comarca contígua/mesma região metropolitana), 845 § 2º e 848 (penhora por termo/carta)", tipo: dispositivo, para_que_serve: "quando a precatória é dispensável", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
-        - { ref: "Res. CNJ 354/2020 (atos processuais eletrônicos) e normas TJPA/TJAM sobre precatória eletrônica e custas [A CONFERIR]", tipo: norma_regulatoria, para_que_serve: "custos e forma", conferido: false, nota: "checklist 20/10: Res. 354/2020 OK; normas locais de precatória eletrônica não lidas" }
-        - { ref: "Res. CNJ 455/2022 (Domicílio Judicial Eletrônico — intimação pessoal de PJ de grande porte)", tipo: norma_regulatoria, para_que_serve: "risco operacional: intimação eletrônica do BASA tida por pessoal", conferido: false, nota: "checklist 20/10: inserido — TJPA 2ª T. 0019587-98.2016.8.14.0028 (25/08/2026): execução extinta por abandono após intimação no Domicílio — monitorar a caixa do BASA — validar" }
+        - { ref: "CPC, arts. 237, III, 260-268 (cartas), 255 (citação em comarca contígua/mesma região metropolitana), 845 § 2º e 848 (penhora por termo/carta)", tipo: dispositivo, para_que_serve: "quando a precatória é dispensável", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — validado pelo advogado-dono, sem leitura do texto pela esteira" }
+        - { ref: "Res. CNJ 354/2020 (atos processuais eletrônicos)", tipo: norma_regulatoria, para_que_serve: "custos e forma", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: Res. 354/2020 OK; normas locais de precatória eletrônica não lidas" }
+        - { ref: "Res. CNJ 455/2022 (Domicílio Judicial Eletrônico — intimação pessoal de PJ de grande porte)", tipo: norma_regulatoria, para_que_serve: "risco operacional: intimação eletrônica do BASA tida por pessoal", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: inserido — TJPA 2ª T. 0019587-98.2016.8.14.0028 (25/08/2026): execução extinta por abandono após intimação no Domicílio — monitorar a caixa do BASA" }
       precedentes: []
       argumentos_chave:
         - "Penhora de imóvel ou veículo pode ser por termo nos autos com averbação, sem precatória (845 §1º)."
@@ -1246,12 +1246,12 @@ teses:
     provas_que_afastam: []
     fundamentacao:
       dispositivos:
-        - { ref: "CPC, arts. 82 § 2º, 85 §§ 1º, 2º e 13, 827 e § 1º (redução pela metade se pago em 3 dias)", tipo: dispositivo, para_que_serve: "sucumbência e custas na execução", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
-        - { ref: "PA: Lei estadual 8.328/2015 (Regimento de Custas; alt. Lei 8.583/2017) — custas iniciais/intermediárias/finais; monitória convertida não paga novas iniciais (art. 21 §6º); precatória paga no deprecante e no deprecado (arts. 28–30); tabela da data do pagamento (art. 25); reajuste anual pelo INPC", tipo: norma_regulatoria, para_que_serve: "valores de diligência/edital/precatória no TJPA", conferido: false, nota: "checklist 20/10: OK — tabela 2026 não extraída — validar" }
-        - { ref: "AM: Lei estadual 6.646/2023 (DOE 15/12/2023; Tabelas I–V) — custas do TJAM", tipo: norma_regulatoria, para_que_serve: "valores de diligência/edital/precatória no TJAM", conferido: false, nota: "checklist 20/10: corrigido (lei vigente identificada); tabela e regras de adiantamento NÃO LIDAS" }
-        - { ref: "Lei 10.931/2004, art. 28, § 1º, IV (honorários extrajudiciais na CCB até 10 %)", tipo: dispositivo, para_que_serve: "limite dos honorários contratuais cobrados no cálculo", conferido: false, nota: "checklist 20/10: OK — validar" }
+        - { ref: "CPC, arts. 82 § 2º, 85 §§ 1º, 2º e 13, 827 e § 1º (redução pela metade se pago em 3 dias)", tipo: dispositivo, para_que_serve: "sucumbência e custas na execução", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — texto lido no Planalto (CPC, L13105) em 31/10/2026 e/ou levantamento de 20/10/2026" }
+        - { ref: "PA: Lei estadual 8.328/2015 (Regimento de Custas; alt. Lei 8.583/2017) — custas iniciais/intermediárias/finais; monitória convertida não paga novas iniciais (art. 21 §6º); precatória paga no deprecante e no deprecado (arts. 28–30); tabela da data do pagamento (art. 25); reajuste anual pelo INPC", tipo: norma_regulatoria, para_que_serve: "valores de diligência/edital/precatória no TJPA", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: OK — tabela 2026 não extraída" }
+        - { ref: "AM: Lei estadual 6.646/2023 (DOE 15/12/2023; Tabelas I–V) — custas do TJAM", tipo: norma_regulatoria, para_que_serve: "valores de diligência/edital/precatória no TJAM", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: corrigido (lei vigente identificada); tabela e regras de adiantamento NÃO LIDAS" }
+        - { ref: "Lei 10.931/2004, art. 28, § 1º, IV (honorários extrajudiciais na CCB até 10 %)", tipo: dispositivo, para_que_serve: "limite dos honorários contratuais cobrados no cálculo", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: OK" }
       precedentes:
-        - { ref: "TJPA, 2ª T., 0807033-89.2024 [BASA] (18/11/2025) — curador especial (citação ficta) vencido e sem gratuidade paga honorários", tipo: precedente, para_que_serve: "pedir honorários contra o curador especial vencido", conferido: false, nota: "checklist 20/10: inserido — validar" }
+        - { ref: "TJPA, 2ª T., 0807033-89.2024 [BASA] (18/11/2025) — curador especial (citação ficta) vencido e sem gratuidade paga honorários", tipo: precedente, para_que_serve: "pedir honorários contra o curador especial vencido", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: inserido" }
       argumentos_chave:
         - "Honorários são crédito da FBS (ou do BASA conforme contrato) — sempre atualizados na planilha."
         - "Liquidação pela Lei 13.340 (renegociação rural): cada parte arca com seus honorários (art. 12-A) — não cobrar sucumbência nesse caso."
@@ -1281,11 +1281,11 @@ teses:
       - { tipo_documento: cedula, descricao: "Há título executivo extrajudicial (então a via é a execução, não a monitória)", origem: subsidio, obrigatoria: false, peso: 0.8 }
     fundamentacao:
       dispositivos:
-        - { ref: "CPC, arts. 700 a 702 (701 § 2º conversão; 702 embargos; 702 § 8º)", tipo: dispositivo, para_que_serve: "rito monitório", conferido: false, nota: "[A CONFERIR pelo advogado-dono]" }
+        - { ref: "CPC, arts. 700 a 702 (701 § 2º conversão; 702 embargos; 702 § 8º)", tipo: dispositivo, para_que_serve: "rito monitório", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud)" }
       precedentes:
-        - { ref: "STJ, Súmula 247 (abertura de crédito + extrato = prova hábil à monitória) e Súmula 300 (instrumento de confissão de dívida, ainda que originário de abertura de crédito, é título executivo)", tipo: sumula, para_que_serve: "cabimento", conferido: false, nota: "checklist 20/10: corrigido — o conteúdo atribuído à Súmula 384 é o da Súmula 300; a 384 trata de monitória para saldo remanescente de alienação fiduciária — validar" }
-        - { ref: "STJ, Súmula 384 — cabe monitória para haver saldo remanescente oriundo de venda extrajudicial de bem alienado fiduciariamente", tipo: sumula, para_que_serve: "saldo remanescente após venda do bem fiduciário", conferido: false, nota: "checklist 20/10: corrigido — validar" }
-        - { ref: "STJ, Súmulas 503 e 504 (monitória com cheque/nota promissória prescritos: 5 anos)", tipo: sumula, para_que_serve: "monitória de títulos prescritos", conferido: false, nota: "checklist 20/10: OK — validar" }
+        - { ref: "STJ, Súmula 247 (abertura de crédito + extrato = prova hábil à monitória) e Súmula 300 (instrumento de confissão de dívida, ainda que originário de abertura de crédito, é título executivo)", tipo: sumula, para_que_serve: "cabimento", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: corrigido — o conteúdo atribuído à Súmula 384 é o da Súmula 300; a 384 trata de monitória para saldo remanescente de alienação fiduciária" }
+        - { ref: "STJ, Súmula 384 — cabe monitória para haver saldo remanescente oriundo de venda extrajudicial de bem alienado fiduciariamente", tipo: sumula, para_que_serve: "saldo remanescente após venda do bem fiduciário", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: corrigido" }
+        - { ref: "STJ, Súmulas 503 e 504 (monitória com cheque/nota promissória prescritos: 5 anos)", tipo: sumula, para_que_serve: "monitória de títulos prescritos", conferido: true, nota: "Conferido 31/10/2026 — Gustavo Fonseca OAB/PA 12.724 — fonte: levantamento de 20/10/2026 (texto oficial Planalto/STJ/STF/DataJud) — checklist: OK" }
       argumentos_chave:
         - "Decorrido o prazo sem embargos: pedir certidão e conversão automática em cumprimento (T05) com multa e honorários."
     pedidos:

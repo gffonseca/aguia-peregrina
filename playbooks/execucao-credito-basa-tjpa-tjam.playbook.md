@@ -2,7 +2,7 @@
 
 > **Versão para leitura.** Este documento reproduz em prosa e tabelas o arquivo `execucao-credito-basa-tjpa-tjam.playbook.yaml`, que é a **fonte da verdade** ingerida pela plataforma. Comentários e correções podem ser feitos aqui; quem mantém o playbook transporta para o YAML e roda a validação. Se os dois divergirem, vale o YAML.
 >
-> **Estado: EM REVISÃO (versão 1; sessão 1 de revisão em 20/10/2026).** Autor e revisor: Gustavo Fonseca (OAB/PA 12.724). Primeira tipologia de **polo ativo** da Águia Peregrina. A sessão 1 fixou as **decisões de processo** (seção 0.1); **nenhuma referência legal foi validada ainda**. As correções do checklist de 20/10/2026 foram aplicadas em 31/10/2026 (seção 0.2), mas as 107 referências seguem `conferido: false` no YAML até a validação do advogado-dono; prazos, valores, pesos e faixas marcados **ilustrativo/provisório** seguem a calibrar com a carteira e com o BASA. Pendências que dependem do cliente (portal do BASA, política de alçadas, programas vigentes, piso de valor, SLA) estão marcadas **⏳ CLIENTE** e registradas em `metadata.piloto.pendencias_externas` (dono: Gustavo).
+> **Estado: EM REVISÃO (versão 1; sessão 1 de revisão em 20/10/2026).** Autor e revisor: Gustavo Fonseca (OAB/PA 12.724). Primeira tipologia de **polo ativo** da Águia Peregrina. A sessão 1 fixou as **decisões de processo** (seção 0.1); **referências validadas na sessão 2 (31/10/2026)**: as correções do checklist de 20/10/2026 foram aplicadas e validadas (seção 0.2); 0 referências `conferido: false` no YAML; o status segue `em_revisao` até as pendências do BASA; prazos, valores, pesos e faixas marcados **ilustrativo/provisório** seguem a calibrar com a carteira e com o BASA. Pendências que dependem do cliente (portal do BASA, política de alçadas, programas vigentes, piso de valor, SLA) estão marcadas **⏳ CLIENTE** e registradas em `metadata.piloto.pendencias_externas` (dono: Gustavo).
 
 ## 0. Por que esta tipologia é diferente da defesa
 
@@ -44,7 +44,7 @@ Sessão conduzida por Gustavo Fonseca (OAB/PA 12.724). Cada decisão está codif
 
 **Mudanças de schema (aditivas):** `Piloto.amostra` (texto opcional) e `Piloto.pendencias_externas` (lista de `{descricao, dono, status, aberta_em}`) em `app/modules/m00_playbook/schema.py`; `playbook.schema.json` regenerado.
 
-### 0.2 Correções do checklist de validação (aplicadas em 31/10/2026 — pendentes de validação)
+### 0.2 Correções do checklist de validação e sessão 2 (31/10/2026)
 
 Fonte: `reports/Checklist validacao execucao BASA.md` (20/10/2026). Aplicadas no YAML pela esteira (Claude), **sem OAB**: toda referência continua `conferido: false` e a `nota` diz o resultado do checklist ("OK", "corrigido", "inserido", "NÃO LOCALIZADO", "INSUFICIENTE"). Agora são 107 referências (eram 92) porque entraram precedentes novos. A validação e a mudança para `conferido: true` são do advogado-dono.
 
@@ -56,6 +56,8 @@ Fonte: `reports/Checklist validacao execucao BASA.md` (20/10/2026). Aplicadas no
 | Renegociação rural (T06.6, dossiê) | **Lei 14.995/2024: adesão encerrada em 31/12/2025**, sem suspensão legal vigente em 2026; Súmula 298 substitui o "tema repetitivo" não localizado; art. 12-A da Lei 13.340 (cada parte com seus honorários). |
 | Encargos (T06.3) | Temas 246/247 atribuídos ao **REsp 973.827** (os Temas 24–27 são do REsp 1.061.530); a norma sobre comissão de permanência ficou NÃO LOCALIZADA. |
 | Outros | Res. CMN 2.682→**4.966/2021** (T01); Temas **425**, **1.325**, **714** e **1.137** (T02.x); **Tema 1.210** no IDPJ (T04); DL 167 (penhor = arts. 55–57) e Lei 8.929 (art. 19 revogado) em T03; **Tema 961/STF** em T03; Súmula **384** corrigida e Súmula 300 em T12; Súmula 380 em T06; custas **PA Lei 8.328/2015** e **AM Lei 6.646/2023** em T11; Domicílio Judicial Eletrônico (Res. CNJ 455/2022), via original da cédula rural e honorários do curador especial. |
+
+**Sessão 2 (31/10/2026, Gustavo Fonseca OAB/PA 12.724).** Validação em blocos: (1) códigos TPU, (2) referências confirmadas pelo levantamento e (3) corrigidas/inseridas — aprovadas com a fonte na `nota`; (4) removidas 5 citações sem fonte ou genéricas (penhora de safra futura, Res. CMN 1.129 "e sucessoras", excesso em exceção de pré-executividade, "atos após o óbito" e "comparecimento espontâneo" — os dois últimos já cobertos por CPC 313 §1º e 239 §1º); (5) artigos não lidos pela esteira (CPC 642, 772–773, 838–848, 889, 914–916, 922; CC 1.438–1.446, 1.473, 1.792; Lei 9.514; DL 911; MP 2.170-36; MCR) validados pelo advogado-dono — a `nota` diz "sem leitura do texto pela esteira". A política de renegociação do BASA saiu da fundamentação de T09/T09.1 (não é norma; segue como pendência externa).
 
 Ficam em aberto: tabelas de custas 2026 (PA) e do TJAM (não lidas); conferência no e-SAJ do TJAM; precedentes NÃO LOCALIZADOS/INSUFICIENTES (norma revogadora da Res. 1.129, excesso em exceção de pré-executividade, EREsp da intercorrente sem honorários, penhora de safra); alcance do Desenrola para o BASA.
 
@@ -69,8 +71,8 @@ Ficam em aberto: tabelas de custas 2026 (PA) e do TJAM (não lidas); conferênci
 | Peça padrão | petição de impulso da execução (biblioteca na seção 8) |
 | Versão | 1 (em revisão) |
 | Autor (OAB) | Gustavo Fonseca — PA 12724 |
-| Revisões | sessão 1 — 20/10/2026 (Gustavo Fonseca OAB/PA 12.724): triagem, impulso, embargos, acordo, monitoramento, amostra; 31/10/2026 — correções do checklist de validação aplicadas pela esteira, pendentes de validação (seção 0.2) |
-| Aprovação | pendente (referências legais ainda não conferidas) |
+| Revisões | sessão 1 — 20/10/2026 (Gustavo Fonseca OAB/PA 12.724): triagem, impulso, embargos, acordo, monitoramento, amostra; sessão 2 — 31/10/2026 (Gustavo Fonseca OAB/PA 12.724): correções do checklist aplicadas e referências validadas (seção 0.2) |
+| Aprovação | pendente (referências validadas; faltam as pendências do BASA — portal, alçadas, piso, SLA) |
 | Piloto | **BASA** (carteira já patrocinada). **Amostra: os 200 processos de maior valor atualizado com bens localizados** (penhora/arresto, Sisbajud positivo, Renajud com veículo ou garantia real registrada), excluindo outliers de moeda antiga e processos sem CNJ válido; fallback = garantia real registrada no título se os andamentos forem insuficientes. Fase 1: T01 em replay (+200 encerrados para calibrar o score). Fase 2: impulsos em lote diário. Fase 3: impugnações. Pré-requisito: documentação/API do portal do BASA (pendência externa — Gustavo). |
 
 **Escopo.** Carteira de recuperação de crédito do Banco da Amazônia patrocinada pela FBS: execuções de título extrajudicial (CCB, cédulas e notas de crédito rural, contratos bancários), cumprimentos de sentença, monitórias e os incidentes defensivos do executado (embargos à execução, exceção de pré-executividade). O objetivo da esteira não é "vencer a ação": é recuperar valor no menor prazo e com o menor custo de diligência.
@@ -298,7 +300,7 @@ Peças de impulso padrão (300 s) são processadas em **lote diário** e revisad
 
 ## 11. O que falta antes de `aprovado`
 
-1. **Validar** as correções do checklist (seção 0.2) e marcar `conferido: true` em cada uma das 107 referências legais e dos códigos CNJ (classes e assuntos), com fonte e data na `nota` (sessão 2).
+1. ~~Validar as referências e os códigos CNJ~~ — feito na sessão 2 (31/10/2026). Reabrir só para as lacunas listadas na seção 0.2.
 2. **Confirmar** o prazo trienal da CCB e das cédulas (aplicado pelo checklist em T06.5/T08/T08.1), o termo inicial da intercorrente (921 §4º; art. 1.056 só para suspensos — o TJPA está dividido) e a soma das suspensões legais (Tema 1.406). Sem isso o cálculo por processo da decisão 10 continua ilustrativo.
 3. **Portal do BASA** ⏳ CLIENTE (dono: Gustavo): documentação/API solicitada — campos estruturados (título, garantias, saldo, memória de cálculo, fonte do recurso), quem acessa, frequência de atualização. Bloqueia o piloto.
 4. **Obter do BASA** ⏳ CLIENTE (dono: Gustavo): política de alçadas e descontos por faixa/programa (necessária para a proposta ativa T09.1); programas de renegociação vigentes; régua contábil de baixa; **piso de valor para não diligenciar (hipótese R$ 10.000)**; **SLA contratual de impulso (hipótese 90 dias)**; quem adianta custas.
